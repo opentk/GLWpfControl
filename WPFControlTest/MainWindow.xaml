@@ -1,0 +1,17 @@
+﻿<Window x:Class="WPFControlTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFControlTest"
+        xmlns:openTkControl="clr-namespace:OpenTkControl;assembly=OpenTkControl"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+		<openTkControl:GLWpfControl x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
+		<Label Content="An overlayed label." HorizontalAlignment="Left" Margin="82,104,0,0" VerticalAlignment="Top"/>
+		<Button Content="Button" HorizontalAlignment="Left" Margin="350,110,0,0" VerticalAlignment="Top" Width="75"/>
+		<Rectangle Fill="#FFE6931C" HorizontalAlignment="Left" Height="100" Margin="275,165,0,0" Stroke="Black" VerticalAlignment="Top" Width="100"/>
+		<Label Content="WPF &#xD;&#xA;Rectangle" Margin="280,170,147,59" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"/>
+	</Grid>
+</Window>
