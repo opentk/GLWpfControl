@@ -594,10 +594,6 @@ src/OpenTK/Graphics/OpenGL/Wrappers
 src/OpenTK/Graphics/OpenGL4/Enums
 src/OpenTK/Graphics/OpenGL4/Wrappers
 
-### OpenTK AssemblyInfo files ###
-**/AssemblyInfo.cs
-**/AssemblyInfo.fs
-
 ### Tooling files ""
 tools/
 

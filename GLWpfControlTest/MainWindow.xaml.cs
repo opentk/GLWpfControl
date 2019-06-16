@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using GLWpfControl;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenTkControl;
 
 namespace WPFControlTest {
     /// <summary>

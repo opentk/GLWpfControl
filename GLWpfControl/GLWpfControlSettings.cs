@@ -1,7 +1,6 @@
-using System;
 using OpenTK.Graphics;
 
-namespace OpenTkControl {
+namespace GLWpfControl {
     
     public sealed class GLWpfControlSettings {
         public GraphicsContextFlags GraphicsContextFlags { get; set; } = GraphicsContextFlags.Default;

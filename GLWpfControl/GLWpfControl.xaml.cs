@@ -9,7 +9,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 
-namespace OpenTkControl {
+namespace GLWpfControl {
     /// <summary>
     ///     Provides a native WPF control for OpenTK.
     /// </summary>

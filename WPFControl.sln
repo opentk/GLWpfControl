@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFControl", "WPFControl\WPFControl.csproj", "{06F9FD53-C287-4275-8B98-4B891EA3ABDD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLWpfControl", "GLWpfControl\GLWpfControl.csproj", "{06F9FD53-C287-4275-8B98-4B891EA3ABDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFControlTest", "WPFControlTest\WPFControlTest.csproj", "{98F30B6C-37A6-4FF9-B9B7-C95E10FB39EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLWpfControlTest", "GLWpfControlTest\GLWpfControlTest.csproj", "{98F30B6C-37A6-4FF9-B9B7-C95E10FB39EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
