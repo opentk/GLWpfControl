@@ -21,7 +21,7 @@ namespace WPFControlTest {
         private void OpenTkControl_OnRender() {
             var t = 0.5f + 0.5f*Math.Sin(_stopwatch.Elapsed.TotalSeconds);
             var v = Vector3.Lerp(Vector3.UnitX, Vector3.UnitZ, (float) t);
-            var c = new Color4(v.X, v.Y,v.Z, 1.0f);
+            var c = new Color4(v.X, 0.5f,v.Z, 1.0f);
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.ScissorTest);

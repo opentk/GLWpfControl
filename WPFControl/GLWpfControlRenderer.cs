@@ -94,15 +94,17 @@ namespace OpenTkControl {
         }
 
         public void UpdateImage() {
-            if (_isSoftwareRenderer) {
+            if (true || _isSoftwareRenderer) {
                 UpdateImageSoftware();
             }
             else {
-                UpdateImageSoftware();
+                UpdateImageHardware();
             }
 
             _hasRenderedAFrame = true;
         }
+
+        
 
         private void UpdateImageSoftware() {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBuffer);
@@ -130,5 +132,9 @@ namespace OpenTkControl {
 
             GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
         }
+        private void UpdateImageHardware() {
+            throw new NotImplementedException();
+        }
+        
     }
 }
