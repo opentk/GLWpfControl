@@ -1,0 +1,5 @@
+RESTRICTION: == net452
+NUGET
+  remote: https://api.nuget.org/v3/index.json
+    FAKE (4.64.17)
+    OpenTK (3.0.1)

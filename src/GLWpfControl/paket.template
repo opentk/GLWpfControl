@@ -1,0 +1,17 @@
+type project
+id OpenTK.WPFGLControl
+owners
+    opentk varon
+authors
+    Team OpenTK
+projectUrl
+    https://www.opentk.net
+iconUrl
+    https://raw.githubusercontent.com/opentk/opentk.net/docfx/assets/opentk.png
+licenseUrl
+    https://github.com/varon/GLWpfControl/blob/master/LICENSE.md
+requireLicenseAcceptance
+    false
+copyright
+    Copyright (c) 2019 Team OpenTK.
+include-pdbs true

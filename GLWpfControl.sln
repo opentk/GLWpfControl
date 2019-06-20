@@ -1,10 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F02DE1CD-94DB-4F38-8B0A-833B2A357E2E}"
+ProjectSection(SolutionItems) = preProject
+	build.fsx = build.fsx
+	build.sh = build.sh
+	build.cmd = build.cmd
+	paket.dependencies = paket.dependencies
+	paket.lock = paket.lock
+EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLWpfControl", "src\GLWpfControl\GLWpfControl.csproj", "{06F9FD53-C287-4275-8B98-4B891EA3ABDD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLWpfControlExample", "src\GLWpfControlExample\GLWpfControlExample.csproj", "{98F30B6C-37A6-4FF9-B9B7-C95E10FB39EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{8A911F4A-8A01-4B86-959B-27CA1CDA2C1B}"
+ProjectSection(SolutionItems) = preProject
+	README.md = README.md
+	RELEASE_NOTES.md = RELEASE_NOTES.md
+	src\GLWpfControl\paket.template = src\GLWpfControl\paket.template
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
