@@ -19,21 +19,20 @@ namespace GLWpfControl {
         private readonly int _depthBuffer;
 
         private readonly Image _imageControl;
-        private readonly bool _isSoftwareRenderer;
+        private readonly bool _isHardwareRenderer;
         private readonly int[] _pixelBuffers;
         private bool _hasRenderedAFrame = false;
         
         public int FrameBuffer { get; }
 
-
         public int Width => _bitmap.PixelWidth;
         public int Height => _bitmap.PixelHeight;
         public int PixelBufferObjectCount => _pixelBuffers.Length;
 
-        public GLWpfControlRenderer(int width, int height, Image imageControl, bool isSoftwareRenderer, int pixelBufferCount) {
+        public GLWpfControlRenderer(int width, int height, Image imageControl, bool isHardwareRenderer, int pixelBufferCount) {
 
             _imageControl = imageControl;
-            _isSoftwareRenderer = isSoftwareRenderer;
+            _isHardwareRenderer = isHardwareRenderer;
             // the bitmap we're blitting to in software mode.
             _bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
 
@@ -94,11 +93,11 @@ namespace GLWpfControl {
         }
 
         public void UpdateImage() {
-            if (true || _isSoftwareRenderer) {
-                UpdateImageSoftware();
+            if (false && _isHardwareRenderer) {
+                UpdateImageHardware();
             }
             else {
-                UpdateImageHardware();
+                UpdateImageSoftware();
             }
 
             _hasRenderedAFrame = true;
@@ -133,6 +132,22 @@ namespace GLWpfControl {
             GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
         }
         private void UpdateImageHardware() {
+            // There are 2 options we can use here.
+            // 1. Use a D3DSurface and WGL_NV_DX_interop to perform the rendering.
+            //         This is still performing RTT (render to texture) and isn't as fast as just directly drawing the stuff onto the DX buffer.
+            // 2. Steal the handles using hooks into DirectX, then use that to directly render.
+            //         This is the fastest possible way, but it requires a whole lot of moving parts to get anything working properly.
+                
+            // references for (2):
+                
+            // Accessing WPF's Direct3D internals.
+            // note: see the WPFD3dHack.zip file on the blog post
+            // http://jmorrill.hjtcentral.com/Home/tabid/428/EntryId/438/How-to-get-access-to-WPF-s-internal-Direct3D-guts.aspx
+                
+            // Using API hooks from C# to get d3d internals
+            // this would have to be adapted to WPF, but should/maybe work.
+            // http://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/
+            // https://github.com/spazzarama/Direct3DHook
             throw new NotImplementedException();
         }
         

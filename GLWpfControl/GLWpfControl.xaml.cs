@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Interop;
@@ -12,15 +11,19 @@ using OpenTK.Platform;
 namespace GLWpfControl {
     /// <summary>
     ///     Provides a native WPF control for OpenTK.
+    ///     To use this component, call the <see cref="Start(GLWpfControlSettings)"/> method.
+    ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
     /// </summary>
     public sealed partial class GLWpfControl {
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+        
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
+        
+        private GLWpfControlSettings _settings;
         private GLWpfControlRenderer _renderer;
         private bool _isReadyToRender;
-        private GLWpfControlSettings _settings;
 
         /// Called whenever rendering should occur.
         public event Action Render;
@@ -30,17 +33,15 @@ namespace GLWpfControl {
                 Backend = PlatformBackend.PreferNative
             });
         }
-
+        
         /// <summary>
-        ///     Creates the <see cref="GLWpfControl" />/>
+        ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
         public GLWpfControl() {
             InitializeComponent();
-            if (!DesignerProperties.GetIsInDesignMode(this)) {
-                InitOpenGL();
-            }
         }
 
+        /// Starts the control and rendering, using the settings provided.
         public void Start(GLWpfControlSettings settings) {
             _settings = settings; 
             
@@ -59,7 +60,7 @@ namespace GLWpfControl {
                 }
 
                 OnLoaded();
-                InitOpenGl();
+                InitOpenGL();
             };
             Unloaded += (sender, args) => {
                 if (_context == null) {
@@ -78,12 +79,8 @@ namespace GLWpfControl {
                 
                 var width = (int) ActualWidth;
                 var height = (int) ActualHeight;
-                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseSoftwareRender, _settings.PixelBufferObjectCount);
+                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
             };
-        }
-
-        private void InitOpenGL() {
-            
         }
 
         private void OnCompTargetRender(object sender, EventArgs e) {
@@ -124,14 +121,14 @@ namespace GLWpfControl {
             ReleaseOpenGLResources();
         }
 
-        private void InitOpenGl() {
+        private void InitOpenGL() {
             var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
             _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion, _settings.GraphicsContextFlags);
             _context.LoadAll();
             _context.MakeCurrent(_windowInfo);
             var width = (int) ActualWidth;
             var height = (int) ActualHeight;
-            _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseSoftwareRender, _settings.PixelBufferObjectCount);
+            _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
         }
 
         private void ReleaseOpenGLResources() {
