@@ -1,8 +1,15 @@
 ## GLWpfControl
 
-A native control for WPF in OpenTK.
+A native control for WPF in OpenTK. 
 
 (Probably) faster than GLControl, and solves [the airspace problem](https://stackoverflow.com/questions/8006092/controls-dont-show-over-winforms-host).
+
+## Usage:
+
+1. [Install via NuGet](https://www.nuget.org/packages/OpenTK.GLWpfControl)
+2. See [MainWindow.xaml](https://github.com/varon/GLWpfControl/blob/master/src/GLWpfControlExample/MainWindow.xaml#L11) and [MainWindow.xaml.cs](https://github.com/varon/GLWpfControl/blob/master/src/GLWpfControlExample/MainWindow.xaml.cs#L18) in the example project.
+
+
 
 ## Build instructions
 
