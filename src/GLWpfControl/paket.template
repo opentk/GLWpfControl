@@ -4,6 +4,8 @@ owners
     opentk varon
 authors
     Team OpenTK
+summary
+    A native WPF control for OpenTK 3.X.
 projectUrl
     https://www.opentk.net
 iconUrl
