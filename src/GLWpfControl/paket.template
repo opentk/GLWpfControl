@@ -1,5 +1,8 @@
 type project
-id OpenTK.WPFGLControl
+title
+    OpenTK.GLWpfControl
+id
+    OpenTK.GLWpfControl
 owners
     opentk varon
 authors
@@ -16,4 +19,5 @@ requireLicenseAcceptance
     false
 copyright
     Copyright (c) 2019 Team OpenTK.
+    
 include-pdbs true
