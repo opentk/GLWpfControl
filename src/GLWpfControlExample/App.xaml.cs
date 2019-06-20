@@ -1,4 +1,4 @@
-﻿namespace WPFControlTest {
+﻿namespace GLWpfControlExample {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>

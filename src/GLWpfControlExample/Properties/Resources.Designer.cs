@@ -36,7 +36,7 @@ namespace WPFControlTest.Properties {
             {
                 if ((resourceMan == null)) {
                     global::System.Resources.ResourceManager temp =
-                        new global::System.Resources.ResourceManager("GLWpfControlTest.Properties.Resources", typeof(Resources).Assembly);
+                        new global::System.Resources.ResourceManager("GLWpfControlExample.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
 

@@ -5,7 +5,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace WPFControlTest {
+namespace GLWpfControlExample {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
