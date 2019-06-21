@@ -21,7 +21,7 @@ namespace GLWpfControl
     {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
-        private HwndSource target;
+        private HwndSource _target;
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
 
@@ -33,7 +33,7 @@ namespace GLWpfControl
         public event Action Render;
 
         // The image that the control uses
-        public Image image;
+        private Image _image;
 
         static GLWpfControl()
         {
@@ -60,7 +60,7 @@ namespace GLWpfControl
         public override void OnApplyTemplate()
         {
             if (Template.FindName("PART_VIEW", this) is Image image)
-                this.image = image;
+                _image = image;
             
             base.OnApplyTemplate();
         }
@@ -90,6 +90,7 @@ namespace GLWpfControl
                 OnLoaded();
                 InitOpenGL();
             };
+
             Unloaded += (sender, args) => {
                 if (_context == null)
                 {
@@ -109,7 +110,7 @@ namespace GLWpfControl
 
                 var width = (int)ActualWidth;
                 var height = (int)ActualHeight;
-                _renderer = new GLWpfControlRenderer(width, height, image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+                _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
             };
         }
 
@@ -144,15 +145,15 @@ namespace GLWpfControl
         private void OnLoaded()
         {
             // create target so we're independent of our host
-            target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
+            _target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
 
-            _windowInfo = Utilities.CreateWindowsWindowInfo(target.Handle);
+            _windowInfo = Utilities.CreateWindowsWindowInfo(_target.Handle);
         }
 
         private void OnUnloaded()
         {
             _windowInfo = null;
-            target?.Dispose();
+            _target?.Dispose();
             ReleaseOpenGLResources();
         }
 
@@ -164,7 +165,7 @@ namespace GLWpfControl
             _context.MakeCurrent(_windowInfo);
             var width = (int)ActualWidth;
             var height = (int)ActualHeight;
-            _renderer = new GLWpfControlRenderer(width, height, image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+            _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
         }
 
         private void ReleaseOpenGLResources()
