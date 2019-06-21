@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using OpenTK;
@@ -9,29 +10,39 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 
-namespace GLWpfControl {
+namespace GLWpfControl
+{
     /// <summary>
     ///     Provides a native WPF control for OpenTK.
     ///     To use this component, call the <see cref="Start(GLWpfControlSettings)"/> method.
     ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
     /// </summary>
-    public sealed partial class GLWpfControl {
-
+    public sealed class GLWpfControl : Control
+    {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
         private HwndSource target;
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
-        
+
         private GLWpfControlSettings _settings;
         private GLWpfControlRenderer _renderer;
         private bool _isReadyToRender;
 
         /// Called whenever rendering should occur.
         public event Action Render;
-        
-        static GLWpfControl() {
-            Toolkit.Init(new ToolkitOptions {
+
+        // The image that the control uses
+        public Image image;
+
+        static GLWpfControl()
+        {
+            DefaultStyleKeyProperty
+                .OverrideMetadata(typeof(GLWpfControl),
+                new FrameworkPropertyMetadata(typeof(GLWpfControl)));
+
+            Toolkit.Init(new ToolkitOptions
+            {
                 Backend = PlatformBackend.PreferNative
             });
         }
@@ -44,25 +55,35 @@ namespace GLWpfControl {
         /// <summary>
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
-        public GLWpfControl() {
-            InitializeComponent();
+        public GLWpfControl() { }
+
+        public override void OnApplyTemplate()
+        {
+            if (Template.FindName("PART_VIEW", this) is Image image)
+                this.image = image;
+            
+            base.OnApplyTemplate();
         }
 
         /// Starts the control and rendering, using the settings provided.
-        public void Start(GLWpfControlSettings settings) {
-            _settings = settings; 
-            
+        public void Start(GLWpfControlSettings settings)
+        {
+            _settings = settings;
+
             IsVisibleChanged += (_, args) => {
-                if ((bool) args.NewValue) {
+                if ((bool)args.NewValue)
+                {
                     CompositionTarget.Rendering += OnCompTargetRender;
                 }
-                else {
+                else
+                {
                     CompositionTarget.Rendering -= OnCompTargetRender;
                 }
             };
 
             Loaded += (sender, args) => {
-                if (_context != null) {
+                if (_context != null)
+                {
                     return;
                 }
 
@@ -70,7 +91,8 @@ namespace GLWpfControl {
                 InitOpenGL();
             };
             Unloaded += (sender, args) => {
-                if (_context == null) {
+                if (_context == null)
+                {
                     return;
                 }
 
@@ -79,19 +101,22 @@ namespace GLWpfControl {
             };
 
             SizeChanged += (sender, args) => {
-                if (_renderer == null) {
+                if (_renderer == null)
+                {
                     return;
                 }
                 _renderer.DeleteBuffers();
-                
-                var width = (int) ActualWidth;
-                var height = (int) ActualHeight;
-                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+                var width = (int)ActualWidth;
+                var height = (int)ActualHeight;
+                _renderer = new GLWpfControlRenderer(width, height, image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
             };
         }
 
-        private void OnCompTargetRender(object sender, EventArgs e) {
-            if (_isReadyToRender) {
+        private void OnCompTargetRender(object sender, EventArgs e)
+        {
+            if (_isReadyToRender)
+            {
                 // if we're in the slow path, we skip every second frame. 
                 _isReadyToRender = false;
                 return;
@@ -99,7 +124,8 @@ namespace GLWpfControl {
 
             _isReadyToRender = true;
 
-            if (!ReferenceEquals(GraphicsContext.CurrentContext, _context)) {
+            if (!ReferenceEquals(GraphicsContext.CurrentContext, _context))
+            {
                 _context.MakeCurrent(_windowInfo);
             }
 
@@ -109,35 +135,40 @@ namespace GLWpfControl {
             _renderer.UpdateImage();
             var after = _stopwatch.ElapsedMilliseconds;
             var duration = after - before;
-            if (duration < 10.0) {
-                _isReadyToRender = false;   
+            if (duration < 10.0)
+            {
+                _isReadyToRender = false;
             }
         }
 
-        private void OnLoaded() {
+        private void OnLoaded()
+        {
             // create target so we're independent of our host
             target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
 
             _windowInfo = Utilities.CreateWindowsWindowInfo(target.Handle);
         }
 
-        private void OnUnloaded() {
+        private void OnUnloaded()
+        {
             _windowInfo = null;
             target?.Dispose();
             ReleaseOpenGLResources();
         }
 
-        private void InitOpenGL() {
+        private void InitOpenGL()
+        {
             var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
             _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion, _settings.GraphicsContextFlags);
             _context.LoadAll();
             _context.MakeCurrent(_windowInfo);
-            var width = (int) ActualWidth;
-            var height = (int) ActualHeight;
-            _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+            var width = (int)ActualWidth;
+            var height = (int)ActualHeight;
+            _renderer = new GLWpfControlRenderer(width, height, image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
         }
 
-        private void ReleaseOpenGLResources() {
+        private void ReleaseOpenGLResources()
+        {
             _renderer.DeleteBuffers();
             _context.Dispose();
             _context = null;
