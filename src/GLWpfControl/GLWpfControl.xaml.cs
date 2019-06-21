@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -17,7 +18,8 @@ namespace GLWpfControl {
     public sealed partial class GLWpfControl {
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
-        
+
+        private HwndSource target;
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
         
@@ -113,16 +115,15 @@ namespace GLWpfControl {
         }
 
         private void OnLoaded() {
-            var window = Window.GetWindow(this);
-            if (window is null) {
-                throw new GraphicsException($"{nameof(GLWpfControl)} must exist within a window.");
-            }
+            // create target so we're independent of our host
+            target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
 
-            _windowInfo = Utilities.CreateWindowsWindowInfo(new WindowInteropHelper(window).Handle);
+            _windowInfo = Utilities.CreateWindowsWindowInfo(target.Handle);
         }
 
         private void OnUnloaded() {
             _windowInfo = null;
+            target?.Dispose();
             ReleaseOpenGLResources();
         }
 
