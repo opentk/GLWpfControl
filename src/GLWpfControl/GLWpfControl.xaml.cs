@@ -17,6 +17,8 @@ namespace GLWpfControl {
     /// </summary>
     public sealed partial class GLWpfControl {
 
+        private static readonly int _resizeUpdateInterval = 100;
+
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private long _resizeStartStamp;
 
@@ -79,8 +81,9 @@ namespace GLWpfControl {
             };
 
             SizeChanged += (sender, args) => {
-                if (_renderer == null)
+                if (_renderer == null) {
                     return;
+                }
 
                 _resizeStartStamp = _stopwatch.ElapsedMilliseconds;
             };
@@ -88,9 +91,10 @@ namespace GLWpfControl {
 
         private void OnCompTargetRender(object sender, EventArgs e) {
 
-            if (_resizeStartStamp != 0)
-            {
-                if (_resizeStartStamp + 100 > _stopwatch.ElapsedMilliseconds) return;
+            if (_resizeStartStamp != 0) {
+                if (_resizeStartStamp + _resizeUpdateInterval > _stopwatch.ElapsedMilliseconds) {
+                    return;
+                }
 
                 _renderer.DeleteBuffers();
                 var width = (int) ActualWidth;
