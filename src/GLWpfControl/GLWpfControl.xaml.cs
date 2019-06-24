@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Timers;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -16,8 +17,11 @@ namespace GLWpfControl {
     /// </summary>
     public sealed partial class GLWpfControl {
 
+        private static readonly int _resizeUpdateInterval = 100;
+
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
-        
+        private long _resizeStartStamp;
+
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
         
@@ -80,15 +84,26 @@ namespace GLWpfControl {
                 if (_renderer == null) {
                     return;
                 }
-                _renderer.DeleteBuffers();
-                
-                var width = (int) ActualWidth;
-                var height = (int) ActualHeight;
-                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+                _resizeStartStamp = _stopwatch.ElapsedMilliseconds;
             };
         }
 
         private void OnCompTargetRender(object sender, EventArgs e) {
+
+            if (_resizeStartStamp != 0) {
+                if (_resizeStartStamp + _resizeUpdateInterval > _stopwatch.ElapsedMilliseconds) {
+                    return;
+                }
+
+                _renderer.DeleteBuffers();
+                var width = (int) ActualWidth;
+                var height = (int) ActualHeight;
+                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+                _resizeStartStamp = 0;
+            }
+
             if (_isReadyToRender) {
                 // if we're in the slow path, we skip every second frame. 
                 _isReadyToRender = false;
