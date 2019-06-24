@@ -11,18 +11,18 @@ namespace GLWpfControlExample {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public sealed partial class MainWindow : Window {
-        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+        private TimeSpan _elapsedTime;
 
         public MainWindow() {
             InitializeComponent();
+            _elapsedTime = new TimeSpan();
             var settings = new GLWpfControlSettings();
             OpenTkControl.Start(settings);
         }
 
-        private void OpenTkControl_OnRender() {
-            var t = 0.5f + 0.5f*Math.Sin(_stopwatch.Elapsed.TotalSeconds);
-            var v = Vector3.Lerp(Vector3.UnitX, Vector3.UnitZ, (float) t);
-            var c = new Color4(v.X, 0.5f,v.Z, 1.0f);
+        private void OpenTkControl_OnRender(TimeSpan delta) {
+            _elapsedTime += delta;
+            var c = Color4.FromHsv(new Vector4((float)_elapsedTime.TotalSeconds * 0.1f % 1, 1f, 0.9999f, 1));
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.ScissorTest);
