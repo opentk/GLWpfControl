@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Timers;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -17,7 +18,9 @@ namespace GLWpfControl {
     public sealed partial class GLWpfControl {
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
-        
+        private readonly Timer _resizeTimer = new Timer(100);
+        private bool resizing;
+
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
         
@@ -77,18 +80,37 @@ namespace GLWpfControl {
             };
 
             SizeChanged += (sender, args) => {
-                if (_renderer == null) {
+                if (_renderer == null)
                     return;
-                }
-                _renderer.DeleteBuffers();
-                
-                var width = (int) ActualWidth;
-                var height = (int) ActualHeight;
-                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+                resizing = true;
+                if (_resizeTimer.Enabled)
+                    _resizeTimer.Stop();
+                _resizeTimer.Start();
+            };
+
+            _resizeTimer.Elapsed += (sender, args) => {
+                _resizeTimer.Stop();
+                // the actual process of re-creating the buffer is in the OnCompTargetRender method
+                // The _renderer object cannot be set here, since the timer event runs on a different thread,
+                // which results in an error
             };
         }
 
         private void OnCompTargetRender(object sender, EventArgs e) {
+
+            if (resizing)
+            {
+                if (_resizeTimer.Enabled) return;
+
+                _renderer.DeleteBuffers();
+                var width = (int) ActualWidth;
+                var height = (int) ActualHeight;
+                _renderer = new GLWpfControlRenderer(width, height, Image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+                resizing = false;
+            }
+
             if (_isReadyToRender) {
                 // if we're in the slow path, we skip every second frame. 
                 _isReadyToRender = false;

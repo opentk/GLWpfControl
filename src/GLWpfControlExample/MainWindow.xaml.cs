@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Windows;
 using GLWpfControl;
 using OpenTK;
 using OpenTK.Graphics;
@@ -9,7 +10,7 @@ namespace GLWpfControlExample {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public sealed partial class MainWindow {
+    public sealed partial class MainWindow : Window {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
         public MainWindow() {
