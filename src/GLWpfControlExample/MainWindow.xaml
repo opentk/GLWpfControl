@@ -9,7 +9,7 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
 		<glWpfControl:GLWpfControl x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
-		<Label Content="An overlayed label." HorizontalAlignment="Left" Margin="82,104,0,0" VerticalAlignment="Top"/>
+        <Label Content="An overlayed label." HorizontalAlignment="Left" Margin="82,104,0,0" VerticalAlignment="Top"/>
 		<Button Content="Button" HorizontalAlignment="Left" Margin="350,110,0,0" VerticalAlignment="Top" Width="75"/>
 		<Rectangle Fill="#FFE6931C" HorizontalAlignment="Left" Height="100" Margin="275,165,0,0" Stroke="Black" VerticalAlignment="Top" Width="100"/>
 		<Label Content="WPF &#xD;&#xA;Rectangle" Margin="280,170,147,59" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"/>

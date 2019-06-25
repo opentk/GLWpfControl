@@ -21,6 +21,7 @@ namespace GLWpfControl {
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private long _resizeStartStamp;
+        private TimeSpan _lastFrameStamp;
 
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
@@ -30,7 +31,7 @@ namespace GLWpfControl {
         private bool _isReadyToRender;
 
         /// Called whenever rendering should occur.
-        public event Action Render;
+        public event Action<TimeSpan> Render;
         
         static GLWpfControl() {
             Toolkit.Init(new ToolkitOptions {
@@ -118,8 +119,10 @@ namespace GLWpfControl {
 
             var before = _stopwatch.ElapsedMilliseconds;
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
-            Render?.Invoke();
+            TimeSpan _deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
+            Render?.Invoke(_deltaTime);
             _renderer.UpdateImage();
+            _lastFrameStamp = _stopwatch.Elapsed;
             var after = _stopwatch.ElapsedMilliseconds;
             var duration = after - before;
             if (duration < 10.0) {
