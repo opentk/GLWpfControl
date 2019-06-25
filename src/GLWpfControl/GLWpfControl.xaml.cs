@@ -29,6 +29,7 @@ namespace GLWpfControl {
         private GLWpfControlSettings _settings;
         private GLWpfControlRenderer _renderer;
         private bool _isReadyToRender;
+        private HwndSource _hwnd;
 
         /// Called whenever rendering should occur.
         public event Action<TimeSpan> Render;
@@ -70,7 +71,6 @@ namespace GLWpfControl {
                 }
 
                 OnLoaded();
-                InitOpenGL();
             };
             Unloaded += (sender, args) => {
                 if (_context == null) {
@@ -132,16 +132,17 @@ namespace GLWpfControl {
 
         private void OnLoaded() {
             var window = Window.GetWindow(this);
-            if (window is null) {
-                throw new GraphicsException($"{nameof(GLWpfControl)} must exist within a window.");
-            }
+            var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
+            _hwnd = new HwndSource(0,0,0,0,0,"GLWpfControl", baseHandle);
 
-            _windowInfo = Utilities.CreateWindowsWindowInfo(new WindowInteropHelper(window).Handle);
+            _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
+            InitOpenGL();
         }
 
         private void OnUnloaded() {
-            _windowInfo = null;
             ReleaseOpenGLResources();
+            _windowInfo?.Dispose();
+            _hwnd?.Dispose();
         }
 
         private void InitOpenGL() {
