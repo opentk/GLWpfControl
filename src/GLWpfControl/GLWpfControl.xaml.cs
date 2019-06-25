@@ -109,6 +109,7 @@ namespace GLWpfControl {
             var before = _stopwatch.ElapsedMilliseconds;
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
             TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
+            GL.Viewport(0,0,(int) ActualWidth, (int) ActualHeight);
             Render?.Invoke(deltaTime);
             _renderer.UpdateImage();
             _lastFrameStamp = _stopwatch.Elapsed;
