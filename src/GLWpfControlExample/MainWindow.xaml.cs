@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Windows;
 using GLWpfControl;
 using OpenTK;
 using OpenTK.Graphics;

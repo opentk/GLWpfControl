@@ -106,7 +106,6 @@ namespace GLWpfControl {
                 _context.MakeCurrent(_windowInfo);
             }
 
-            var before = _stopwatch.ElapsedMilliseconds;
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
             TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
             GL.Viewport(0,0,(int) ActualWidth, (int) ActualHeight);
