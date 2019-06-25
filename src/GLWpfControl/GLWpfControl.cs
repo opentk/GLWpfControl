@@ -1,14 +1,13 @@
-﻿using System;
+﻿using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Platform;
+using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform;
 
 namespace GLWpfControl
 {
@@ -17,7 +16,7 @@ namespace GLWpfControl
     ///     To use this component, call the <see cref="Start(GLWpfControlSettings)"/> method.
     ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
     /// </summary>
-    public sealed class GLWpfControl : Control
+    public sealed class GLWpfControl : UIElement
     {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
@@ -31,16 +30,17 @@ namespace GLWpfControl
 
         /// Called whenever rendering should occur.
         public event Action Render;
+        public event Action Ready;
 
         // The image that the control uses
-        private Image _image;
+        private readonly Image _image;
+
+        // Transformations and size 
+        private TranslateTransform _translateTransform;
+        private Rect _imageRectangle;
 
         static GLWpfControl()
         {
-            DefaultStyleKeyProperty
-                .OverrideMetadata(typeof(GLWpfControl),
-                new FrameworkPropertyMetadata(typeof(GLWpfControl)));
-
             Toolkit.Init(new ToolkitOptions
             {
                 Backend = PlatformBackend.PreferNative
@@ -49,20 +49,22 @@ namespace GLWpfControl
 
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
-        /// 
         public int Framebuffer => _renderer?.FrameBuffer ?? 0;
 
         /// <summary>
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
-        public GLWpfControl() { }
-
-        public override void OnApplyTemplate()
+        public GLWpfControl()
         {
-            if (Template.FindName("PART_VIEW", this) is Image image)
-                _image = image;
-            
-            base.OnApplyTemplate();
+            _image = new Image()
+            {
+                Stretch = Stretch.Fill,
+                RenderTransformOrigin = new Point(0.5, 0.5),
+                RenderTransform = new ScaleTransform()
+                {
+                    ScaleY = -1
+                }
+            };
         }
 
         /// Starts the control and rendering, using the settings provided.
@@ -70,7 +72,8 @@ namespace GLWpfControl
         {
             _settings = settings;
 
-            IsVisibleChanged += (_, args) => {
+            IsVisibleChanged += (_, args) =>
+            {
                 if ((bool)args.NewValue)
                 {
                     CompositionTarget.Rendering += OnCompTargetRender;
@@ -81,37 +84,8 @@ namespace GLWpfControl
                 }
             };
 
-            Loaded += (sender, args) => {
-                if (_context != null)
-                {
-                    return;
-                }
-
-                OnLoaded();
-                InitOpenGL();
-            };
-
-            Unloaded += (sender, args) => {
-                if (_context == null)
-                {
-                    return;
-                }
-
-                OnUnloaded();
-                ReleaseOpenGLResources();
-            };
-
-            SizeChanged += (sender, args) => {
-                if (_renderer == null)
-                {
-                    return;
-                }
-                _renderer.DeleteBuffers();
-
-                var width = (int)ActualWidth;
-                var height = (int)ActualHeight;
-                _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
-            };
+            EventManager.RegisterClassHandler(typeof(UIElement), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnLoaded), true);
+            EventManager.RegisterClassHandler(typeof(UIElement), FrameworkElement.UnloadedEvent, new RoutedEventHandler(OnUnloaded), true);
         }
 
         private void OnCompTargetRender(object sender, EventArgs e)
@@ -134,6 +108,9 @@ namespace GLWpfControl
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
             Render?.Invoke();
             _renderer.UpdateImage();
+
+            InvalidateVisual();
+
             var after = _stopwatch.ElapsedMilliseconds;
             var duration = after - before;
             if (duration < 10.0)
@@ -142,29 +119,72 @@ namespace GLWpfControl
             }
         }
 
-        private void OnLoaded()
+        protected override void OnRender(DrawingContext drawingContext)
         {
-            // create target so we're independent of our host
-            _target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
+            // Transforms are applied in reverse order
+            drawingContext.PushTransform(_translateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
+            drawingContext.PushTransform(_image.RenderTransform);           // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
 
-            _windowInfo = Utilities.CreateWindowsWindowInfo(_target.Handle);
+            drawingContext.DrawImage(_image.Source, _imageRectangle);       // Draw the image source
+
+            drawingContext.Pop();                                           // Remove the scale transform
+            drawingContext.Pop();                                           // Remove the translation transform
+
+            base.OnRender(drawingContext);
         }
 
-        private void OnUnloaded()
+        protected override void OnRenderSizeChanged(SizeChangedInfo info)
         {
+            if (_renderer == null)
+            {
+                return;
+            }
+            _renderer.DeleteBuffers();
+
+            var width = (int)info.NewSize.Width;
+            var height = (int)info.NewSize.Height;
+            _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+            base.OnRenderSizeChanged(info);
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs args)
+        {
+            if (_context != null)
+            {
+                return;
+            }
+
+            _target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
+            _windowInfo = Utilities.CreateWindowsWindowInfo(_target.Handle);
+
+            InitOpenGL();
+
+            Ready?.Invoke();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs args)
+        {
+            if (_context == null)
+            {
+                return;
+            }
+
             _windowInfo = null;
             _target?.Dispose();
+
             ReleaseOpenGLResources();
         }
 
         private void InitOpenGL()
         {
             var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
+
             _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion, _settings.GraphicsContextFlags);
             _context.LoadAll();
             _context.MakeCurrent(_windowInfo);
-            var width = (int)ActualWidth;
-            var height = (int)ActualHeight;
+            var width = (int)RenderSize.Width;
+            var height = (int)RenderSize.Height;
             _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
         }
 
