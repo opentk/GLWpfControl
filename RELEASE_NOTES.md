@@ -1,3 +1,6 @@
+### 1.1.1
+    * Automatically set the viewport for the user.
+
 ### 1.1.0
     * Use own HWND for improved performance (Thanks to @Eschryn)
     * Add time delta to the render event.
