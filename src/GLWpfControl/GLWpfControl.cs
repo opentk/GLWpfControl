@@ -125,7 +125,7 @@ namespace GLWpfControl
             drawingContext.PushTransform(_translateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
             drawingContext.PushTransform(_image.RenderTransform);           // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
 
-            drawingContext.DrawImage(_image.Source, _imageRectangle);       // Draw the image source
+            drawingContext.DrawImage(_image.Source, _imageRectangle);       // Draw the image source 
 
             drawingContext.Pop();                                           // Remove the scale transform
             drawingContext.Pop();                                           // Remove the translation transform
@@ -145,6 +145,16 @@ namespace GLWpfControl
             var height = (int)info.NewSize.Height;
             _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
 
+            if (info.HeightChanged)
+            {
+                _imageRectangle.Height = info.NewSize.Height;
+                _translateTransform.Y = info.NewSize.Height;
+            }
+            if (info.WidthChanged)
+            {
+                _imageRectangle.Height = info.NewSize.Height;
+            }
+
             base.OnRenderSizeChanged(info);
         }
 
@@ -159,6 +169,9 @@ namespace GLWpfControl
             _windowInfo = Utilities.CreateWindowsWindowInfo(_target.Handle);
 
             InitOpenGL();
+
+            _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
+            _translateTransform = new TranslateTransform(0, RenderSize.Height);
 
             Ready?.Invoke();
         }
