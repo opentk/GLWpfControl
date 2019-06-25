@@ -152,7 +152,7 @@ namespace GLWpfControl
             }
             if (info.WidthChanged)
             {
-                _imageRectangle.Height = info.NewSize.Height;
+                _imageRectangle.Width = info.NewSize.Width;
             }
 
             base.OnRenderSizeChanged(info);
