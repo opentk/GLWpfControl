@@ -78,7 +78,6 @@ namespace GLWpfControl {
                 }
 
                 OnUnloaded();
-                ReleaseOpenGLResources();
             };
 
             SizeChanged += (sender, args) => {
