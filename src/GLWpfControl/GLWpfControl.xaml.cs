@@ -16,8 +16,7 @@ namespace GLWpfControl {
     ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
     /// </summary>
     public sealed partial class GLWpfControl {
-
-        private static readonly int _resizeUpdateInterval = 100;
+        private const int ResizeUpdateInterval = 100;
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private long _resizeStartStamp;
@@ -28,7 +27,6 @@ namespace GLWpfControl {
         
         private GLWpfControlSettings _settings;
         private GLWpfControlRenderer _renderer;
-        private bool _isReadyToRender;
         private HwndSource _hwnd;
 
         /// Called whenever rendering should occur.
@@ -92,7 +90,7 @@ namespace GLWpfControl {
         private void OnCompTargetRender(object sender, EventArgs e) {
 
             if (_resizeStartStamp != 0) {
-                if (_resizeStartStamp + _resizeUpdateInterval > _stopwatch.ElapsedMilliseconds) {
+                if (_resizeStartStamp + ResizeUpdateInterval > _stopwatch.ElapsedMilliseconds) {
                     return;
                 }
 
@@ -104,29 +102,16 @@ namespace GLWpfControl {
                 _resizeStartStamp = 0;
             }
 
-            if (_isReadyToRender) {
-                // if we're in the slow path, we skip every second frame. 
-                _isReadyToRender = false;
-                return;
-            }
-
-            _isReadyToRender = true;
-
             if (!ReferenceEquals(GraphicsContext.CurrentContext, _context)) {
                 _context.MakeCurrent(_windowInfo);
             }
 
             var before = _stopwatch.ElapsedMilliseconds;
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
-            TimeSpan _deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
-            Render?.Invoke(_deltaTime);
+            TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
+            Render?.Invoke(deltaTime);
             _renderer.UpdateImage();
             _lastFrameStamp = _stopwatch.Elapsed;
-            var after = _stopwatch.ElapsedMilliseconds;
-            var duration = after - before;
-            if (duration < 10.0) {
-                _isReadyToRender = false;   
-            }
         }
 
         private void OnLoaded() {
