@@ -6,8 +6,8 @@ using System.Windows;
 [assembly: AssemblyTitleAttribute("GLWpfControl")]
 [assembly: AssemblyProductAttribute("OpenTK.GLWpfControl")]
 [assembly: AssemblyDescriptionAttribute("A native WPF control for OpenTK 3.X.")]
-[assembly: AssemblyVersionAttribute("1.0.1")]
-[assembly: AssemblyFileVersionAttribute("1.0.1")]
+[assembly: AssemblyVersionAttribute("1.1.1")]
+[assembly: AssemblyFileVersionAttribute("1.1.1")]
 [assembly: CLSCompliantAttribute(true)]
 [assembly: AssemblyCopyrightAttribute("Copyright (c) 2019 Team OpenTK.")]
 [assembly: ThemeInfo(
@@ -20,8 +20,8 @@ namespace System {
         internal const System.String AssemblyTitle = "GLWpfControl";
         internal const System.String AssemblyProduct = "OpenTK.GLWpfControl";
         internal const System.String AssemblyDescription = "A native WPF control for OpenTK 3.X.";
-        internal const System.String AssemblyVersion = "1.0.1";
-        internal const System.String AssemblyFileVersion = "1.0.1";
+        internal const System.String AssemblyVersion = "1.1.1";
+        internal const System.String AssemblyFileVersion = "1.1.1";
         internal const System.Boolean CLSCompliant = true;
         internal const System.String AssemblyCopyright = "Copyright (c) 2019 Team OpenTK.";
     }
