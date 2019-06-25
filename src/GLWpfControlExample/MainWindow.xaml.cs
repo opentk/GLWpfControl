@@ -10,7 +10,7 @@ namespace GLWpfControlExample {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public sealed partial class MainWindow : Window {
+    public sealed partial class MainWindow {
         private TimeSpan _elapsedTime;
 
         public MainWindow() {
