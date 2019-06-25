@@ -12,6 +12,7 @@ namespace GLWpfControlExample {
     /// </summary>
     public sealed partial class MainWindow {
         private TimeSpan _elapsedTime;
+        private Stopwatch _stopwatch = Stopwatch.StartNew();
 
         public MainWindow() {
             InitializeComponent();
@@ -26,7 +27,8 @@ namespace GLWpfControlExample {
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.ScissorTest);
-            GL.Scissor(25, 25, 50, 50);
+            var xPos = 50 + (ActualWidth - 250) * (0.5 + 0.5 * Math.Sin(_stopwatch.Elapsed.TotalSeconds));
+            GL.Scissor((int) xPos, 25, 50, 50);
             GL.ClearColor(Color4.Blue);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Disable(EnableCap.ScissorTest);
