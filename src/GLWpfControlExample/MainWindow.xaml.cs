@@ -11,13 +11,15 @@ namespace GLWpfControlExample {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public sealed partial class MainWindow {
+        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private TimeSpan _elapsedTime;
-        private Stopwatch _stopwatch = Stopwatch.StartNew();
 
         public MainWindow() {
             InitializeComponent();
             _elapsedTime = new TimeSpan();
             var settings = new GLWpfControlSettings();
+            settings.MajorVersion = 2;
+            settings.MinorVersion = 1;
             OpenTkControl.Start(settings);
         }
 
@@ -32,6 +34,13 @@ namespace GLWpfControlExample {
             GL.ClearColor(Color4.Blue);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Disable(EnableCap.ScissorTest);
+            GL.LoadIdentity();
+            GL.Begin(PrimitiveType.Triangles);
+            GL.Color4(1.0f, 0.0f, 0.0f, 1.0f);   GL.Vertex2(0.0f,   1.0f);
+            GL.Color4(0.0f, 1.0f, 0.0f, 1.0f);   GL.Vertex2(0.87f,  -0.5f);
+            GL.Color4(0.0f, 0.0f, 1.0f, 1.0f);   GL.Vertex2(-0.87f, -0.5f);
+            GL.End();
+            GL.Finish();
         }
     }
 }
