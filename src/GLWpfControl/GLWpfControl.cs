@@ -18,18 +18,21 @@ namespace GLWpfControl
     /// </summary>
     public sealed class GLWpfControl : UIElement
     {
-        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+        private const int ResizeUpdateInterval = 100;
 
-        private HwndSource _target;
+        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+        private long _resizeStartStamp;
+        private TimeSpan _lastFrameStamp;
+
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
 
         private GLWpfControlSettings _settings;
         private GLWpfControlRenderer _renderer;
-        private bool _isReadyToRender;
+        private HwndSource _hwnd;
 
         /// Called whenever rendering should occur.
-        public event Action Render;
+        public event Action<TimeSpan> Render;
         public event Action Ready;
 
         // The image that the control uses
@@ -88,35 +91,68 @@ namespace GLWpfControl
             EventManager.RegisterClassHandler(typeof(UIElement), FrameworkElement.UnloadedEvent, new RoutedEventHandler(OnUnloaded), true);
         }
 
-        private void OnCompTargetRender(object sender, EventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs args)
         {
-            if (_isReadyToRender)
+            if (_context != null)
             {
-                // if we're in the slow path, we skip every second frame. 
-                _isReadyToRender = false;
                 return;
             }
 
-            _isReadyToRender = true;
+            var window = Window.GetWindow(this);
+            var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
+            _hwnd = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
+
+            _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
+
+            InitOpenGL();
+
+            _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
+            _translateTransform = new TranslateTransform(0, RenderSize.Height);
+
+            Ready?.Invoke();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs args)
+        {
+            if (_context == null)
+            {
+                return;
+            }
+
+            ReleaseOpenGLResources();
+            _windowInfo?.Dispose();
+            _hwnd?.Dispose();
+        }
+
+        private void OnCompTargetRender(object sender, EventArgs e)
+        {
+            if (_resizeStartStamp != 0)
+            {
+                if (_resizeStartStamp + ResizeUpdateInterval > _stopwatch.ElapsedMilliseconds)
+                {
+                    return;
+                }
+
+                _renderer.DeleteBuffers();
+                var width = (int)RenderSize.Width;
+                var height = (int)RenderSize.Height;
+                _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+
+                _resizeStartStamp = 0;
+            }
 
             if (!ReferenceEquals(GraphicsContext.CurrentContext, _context))
             {
                 _context.MakeCurrent(_windowInfo);
             }
 
-            var before = _stopwatch.ElapsedMilliseconds;
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
-            Render?.Invoke();
+            TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
+            GL.Viewport(0, 0, (int)RenderSize.Width, (int)RenderSize.Height);
+            Render?.Invoke(deltaTime);
             _renderer.UpdateImage();
-
             InvalidateVisual();
-
-            var after = _stopwatch.ElapsedMilliseconds;
-            var duration = after - before;
-            if (duration < 10.0)
-            {
-                _isReadyToRender = false;
-            }
+            _lastFrameStamp = _stopwatch.Elapsed;
         }
 
         protected override void OnRender(DrawingContext drawingContext)
@@ -139,60 +175,27 @@ namespace GLWpfControl
             {
                 return;
             }
-            _renderer.DeleteBuffers();
 
-            var width = (int)info.NewSize.Width;
-            var height = (int)info.NewSize.Height;
-            _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+            _resizeStartStamp = _stopwatch.ElapsedMilliseconds;
 
             if (info.HeightChanged)
             {
                 _imageRectangle.Height = info.NewSize.Height;
                 _translateTransform.Y = info.NewSize.Height;
+                InvalidateVisual();
             }
             if (info.WidthChanged)
             {
                 _imageRectangle.Width = info.NewSize.Width;
+                InvalidateVisual();
             }
 
             base.OnRenderSizeChanged(info);
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs args)
-        {
-            if (_context != null)
-            {
-                return;
-            }
-
-            _target = new HwndSource(0, 0, 0, 0, 0, "GLCONTROL", IntPtr.Zero);
-            _windowInfo = Utilities.CreateWindowsWindowInfo(_target.Handle);
-
-            InitOpenGL();
-
-            _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
-            _translateTransform = new TranslateTransform(0, RenderSize.Height);
-
-            Ready?.Invoke();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs args)
-        {
-            if (_context == null)
-            {
-                return;
-            }
-
-            _windowInfo = null;
-            _target?.Dispose();
-
-            ReleaseOpenGLResources();
-        }
-
         private void InitOpenGL()
         {
             var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-
             _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion, _settings.GraphicsContextFlags);
             _context.LoadAll();
             _context.MakeCurrent(_windowInfo);
