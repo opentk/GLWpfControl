@@ -3,6 +3,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,7 +17,7 @@ namespace GLWpfControl
     ///     To use this component, call the <see cref="Start(GLWpfControlSettings)"/> method.
     ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
     /// </summary>
-    public sealed class GLWpfControl : UIElement
+    public sealed class GLWpfControl : FrameworkElement
     {
         private const int ResizeUpdateInterval = 100;
 
@@ -33,6 +34,10 @@ namespace GLWpfControl
 
         /// Called whenever rendering should occur.
         public event Action<TimeSpan> Render;
+
+        /// <summary>
+        /// Gets called after the control has finished initializing and is ready to render
+        /// </summary>
         public event Action Ready;
 
         // The image that the control uses
@@ -87,8 +92,9 @@ namespace GLWpfControl
                 }
             };
 
-            EventManager.RegisterClassHandler(typeof(UIElement), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnLoaded), true);
-            EventManager.RegisterClassHandler(typeof(UIElement), FrameworkElement.UnloadedEvent, new RoutedEventHandler(OnUnloaded), true);
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+
         }
 
         private void OnLoaded(object sender, RoutedEventArgs args)
@@ -189,8 +195,6 @@ namespace GLWpfControl
                 _imageRectangle.Width = info.NewSize.Width;
                 InvalidateVisual();
             }
-
-            base.OnRenderSizeChanged(info);
         }
 
         private void InitOpenGL()
