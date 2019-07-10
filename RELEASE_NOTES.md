@@ -1,3 +1,6 @@
+### 1.1.2
+    * Possible fix for NPE on renderer access.
+
 ### 1.1.1
     * Automatically set the viewport for the user.
 
