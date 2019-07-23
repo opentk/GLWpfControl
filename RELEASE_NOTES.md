@@ -1,3 +1,9 @@
+### 2.0.0
+    * Moved namespace to OpenTK.Wpf.
+    * GLWpfControl now extends FrameworkElement instead of Control.
+    * Moved to pure-code solution for greater simplicity.
+    * Added some extra-paranoid null checking.
+    
 ### 1.1.2
     * Possible fix for NPE on renderer access.
 
