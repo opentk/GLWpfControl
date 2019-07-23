@@ -139,7 +139,7 @@ namespace GLWpfControl
                     return;
                 }
 
-                _renderer.DeleteBuffers();
+                _renderer?.DeleteBuffers();
                 var width = (int)RenderSize.Width;
                 var height = (int)RenderSize.Height;
                 _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
@@ -156,7 +156,7 @@ namespace GLWpfControl
             TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
             GL.Viewport(0, 0, (int)RenderSize.Width, (int)RenderSize.Height);
             Render?.Invoke(deltaTime);
-            _renderer.UpdateImage();
+            _renderer?.UpdateImage();
             InvalidateVisual();
             _lastFrameStamp = _stopwatch.Elapsed;
         }
@@ -210,7 +210,7 @@ namespace GLWpfControl
 
         private void ReleaseOpenGLResources()
         {
-            _renderer.DeleteBuffers();
+            _renderer?.DeleteBuffers();
             _context.Dispose();
             _context = null;
         }
