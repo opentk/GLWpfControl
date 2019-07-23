@@ -149,7 +149,7 @@ namespace OpenTK.Wpf
 
             if (!ReferenceEquals(GraphicsContext.CurrentContext, _context))
             {
-                _context.MakeCurrent(_windowInfo);
+                _context?.MakeCurrent(_windowInfo);
             }
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
@@ -211,7 +211,7 @@ namespace OpenTK.Wpf
         private void ReleaseOpenGLResources()
         {
             _renderer?.DeleteBuffers();
-            _context.Dispose();
+            _context?.Dispose();
             _context = null;
         }
     }
