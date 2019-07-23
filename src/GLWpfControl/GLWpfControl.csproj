@@ -7,7 +7,7 @@
     <ProjectGuid>{06F9FD53-C287-4275-8B98-4B891EA3ABDD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GLWpfControl</RootNamespace>
+    <RootNamespace>OpenTK.Wpf</RootNamespace>
     <AssemblyName>GLWpfControl</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

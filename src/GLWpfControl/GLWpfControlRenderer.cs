@@ -8,7 +8,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
-namespace GLWpfControl {
+namespace OpenTK.Wpf {
     internal sealed class GLWpfControlRenderer {
         
         [DllImport("kernel32.dll")]

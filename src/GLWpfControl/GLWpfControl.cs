@@ -10,7 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 
-namespace GLWpfControl
+namespace OpenTK.Wpf
 {
     /// <summary>
     ///     Provides a native WPF control for OpenTK.

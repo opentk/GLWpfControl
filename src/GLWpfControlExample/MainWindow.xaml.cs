@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using GLWpfControl;
+using OpenTK.Wpf;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
