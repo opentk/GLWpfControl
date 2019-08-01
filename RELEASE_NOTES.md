@@ -1,3 +1,6 @@
+### 2.0.1
+    * Fix resize events not being raised.
+
 ### 2.0.0
     * Moved namespace to OpenTK.Wpf.
     * GLWpfControl now extends FrameworkElement instead of Control.
