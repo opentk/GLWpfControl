@@ -195,6 +195,7 @@ namespace OpenTK.Wpf
                 _imageRectangle.Width = info.NewSize.Width;
                 InvalidateVisual();
             }
+            base.OnRenderSizeChanged(info);
         }
 
         private void InitOpenGL()
