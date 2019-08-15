@@ -152,7 +152,7 @@ namespace OpenTK.Wpf
                 _context?.MakeCurrent(_windowInfo);
             }
 
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer.FrameBuffer);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer?.FrameBuffer ?? 0);
             TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
             GL.Viewport(0, 0, (int)RenderSize.Width, (int)RenderSize.Height);
             Render?.Invoke(deltaTime);
