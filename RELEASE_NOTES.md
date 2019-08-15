@@ -1,3 +1,6 @@
+### 2.0.3
+    * Improve fix for event-ordering crash on some systems.
+
 ### 2.0.2
     * Possible fix for event-ordering crash on some systems.
 
