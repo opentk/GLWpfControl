@@ -20,6 +20,8 @@ namespace GLWpfControlExample {
             settings.MajorVersion = 2;
             settings.MinorVersion = 1;
             OpenTkControl.Start(settings);
+			InsetControl.Start(settings);
+			
         }
 
         private void OpenTkControl_OnRender(TimeSpan delta) {

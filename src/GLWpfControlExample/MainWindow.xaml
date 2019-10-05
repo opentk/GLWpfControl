@@ -7,11 +7,14 @@
         xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
+	<Grid>
 		<glWpfControl:GLWpfControl x:Name="OpenTkControl" Render="OpenTkControl_OnRender"/>
-        <Label Content="An overlayed label." HorizontalAlignment="Left" Margin="82,104,0,0" VerticalAlignment="Top"/>
+		<Label Content="An overlayed label." HorizontalAlignment="Left" Margin="82,104,0,0" VerticalAlignment="Top"/>
 		<Button Content="Button" HorizontalAlignment="Left" Margin="350,110,0,0" VerticalAlignment="Top" Width="75"/>
 		<Rectangle Fill="#FFE6931C" HorizontalAlignment="Left" Height="100" Margin="275,165,0,0" Stroke="Black" VerticalAlignment="Top" Width="100"/>
 		<Label Content="WPF &#xD;&#xA;Rectangle" Margin="280,170,147,59" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"/>
+		<glWpfControl:GLWpfControl x:Name="InsetControl" Render="OpenTkControl_OnRender" Width="128" Height="123" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+		<Rectangle Fill="#FFE6E61C" HorizontalAlignment="Left" Height="25" Stroke="Black" VerticalAlignment="Bottom" Width="75" Margin="10,0,0,10"/>
+		<Label Content="Nested control" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,10" FontSize="9"/>
 	</Grid>
 </Window>
