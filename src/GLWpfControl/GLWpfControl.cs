@@ -1,14 +1,12 @@
-﻿using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform;
-using System;
-using System.ComponentModel;
+﻿using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Platform;
 
 namespace OpenTK.Wpf
 {
@@ -79,38 +77,46 @@ namespace OpenTK.Wpf
         public void Start(GLWpfControlSettings settings)
         {
             _settings = settings;
-
-            IsVisibleChanged += (_, args) =>
-            {
-                if ((bool)args.NewValue)
-                {
+            IsVisibleChanged += (_, args) => {
+                if ((bool) args.NewValue) {
                     CompositionTarget.Rendering += OnCompTargetRender;
                 }
-                else
-                {
+                else {
                     CompositionTarget.Rendering -= OnCompTargetRender;
                 }
             };
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
-
         }
 
         private void OnLoaded(object sender, RoutedEventArgs args)
         {
-            if (_context != null)
-            {
+            if (_context != null) {
                 return;
             }
+            if (_settings.ContextToUse == null)
+            {
+                var window = Window.GetWindow(this);
+                var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
+                _hwnd = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
+                _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
+                
+                var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
+                _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
+                    _settings.GraphicsContextFlags);
+                _context.LoadAll();
+                _context.MakeCurrent(_windowInfo);
+            }
+            else {
+                _context = _settings.ContextToUse;
+            }
 
-            var window = Window.GetWindow(this);
-            var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
-            _hwnd = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
-
-            _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
-
-            InitOpenGL();
+            if (_renderer == null) {
+                var width = (int)RenderSize.Width;
+                var height = (int)RenderSize.Height;
+                _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+            }
 
             _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
             _translateTransform = new TranslateTransform(0, RenderSize.Height);
@@ -203,22 +209,13 @@ namespace OpenTK.Wpf
             base.OnRenderSizeChanged(info);
         }
 
-        private void InitOpenGL()
-        {
-            var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-            _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion, _settings.GraphicsContextFlags);
-            _context.LoadAll();
-            _context.MakeCurrent(_windowInfo);
-            var width = (int)RenderSize.Width;
-            var height = (int)RenderSize.Height;
-            _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
-        }
-
         private void ReleaseOpenGLResources()
         {
             _renderer?.DeleteBuffers();
-            _context?.Dispose();
-            _context = null;
+            if (!_settings.IsUsingExternalContext) {
+                _context?.Dispose();
+                _context = null;
+            }
         }
     }
 }
