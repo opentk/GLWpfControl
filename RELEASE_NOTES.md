@@ -1,3 +1,6 @@
+### 2.1.0
+	* Allow support for external contexts across multiple controls.
+
 ### 2.0.3
     * Improve fix for event-ordering crash on some systems.
 
