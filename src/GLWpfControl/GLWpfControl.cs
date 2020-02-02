@@ -115,7 +115,7 @@ namespace OpenTK.Wpf
             if (_renderer == null) {
                 var width = (int)RenderSize.Width;
                 var height = (int)RenderSize.Height;
-                _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount);
+                _renderer = new GLWpfControlRenderer(width, height, _image, _settings.UseHardwareRender, _settings.PixelBufferObjectCount, _settings.Samples);
             }
 
             _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
@@ -163,7 +163,8 @@ namespace OpenTK.Wpf
                 _context?.MakeCurrent(_windowInfo);
             }
 
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer?.FrameBuffer ?? 0);
+            _renderer?.BeforeRender();
+            //GL.BindFramebuffer(FramebufferTarget.Framebuffer, _renderer?.FrameBuffer ?? 0);
             TimeSpan deltaTime = _stopwatch.Elapsed - _lastFrameStamp;
             GL.Viewport(0, 0, (int)RenderSize.Width, (int)RenderSize.Height);
             Render?.Invoke(deltaTime);

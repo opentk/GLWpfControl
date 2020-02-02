@@ -17,6 +17,8 @@ namespace OpenTK.Wpf {
         private readonly WriteableBitmap _bitmap;
         private readonly int _colorBuffer;
         private readonly int _depthBuffer;
+        private readonly int _colorBufferMS;
+        private readonly int _depthBufferMS;
 
         private readonly Image _imageControl;
         private readonly bool _isHardwareRenderer;
@@ -24,40 +26,26 @@ namespace OpenTK.Wpf {
         private bool _hasRenderedAFrame = false;
         
         public int FrameBuffer { get; }
+        public int FrameBufferMS { get; }
+        public int Samples { get; }
+        public bool HasSamples => Samples == 4 || Samples == 8 || Samples == 16;
 
         public int Width => _bitmap.PixelWidth;
         public int Height => _bitmap.PixelHeight;
         public int PixelBufferObjectCount => _pixelBuffers.Length;
 
-        public GLWpfControlRenderer(int width, int height, Image imageControl, bool isHardwareRenderer, int pixelBufferCount) {
+        public GLWpfControlRenderer(int width, int height, Image imageControl, bool isHardwareRenderer, int pixelBufferCount, int samples = 4) {
 
             _imageControl = imageControl;
             _isHardwareRenderer = isHardwareRenderer;
             // the bitmap we're blitting to in software mode.
             _bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            Samples = samples;
 
-            // set up the framebuffer
-            FrameBuffer = GL.GenFramebuffer();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBuffer);
+            FrameBuffer = GenerateFramebuffer(false, out _depthBuffer, out _colorBuffer);
 
-            _depthBuffer = GL.GenRenderbuffer();
-            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthBuffer);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, width, height);
-            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment,
-                RenderbufferTarget.Renderbuffer, _depthBuffer);
-
-            _colorBuffer = GL.GenRenderbuffer();
-            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _colorBuffer);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Rgba8, width, height);
-            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-                RenderbufferTarget.Renderbuffer, _colorBuffer);
-
-            var error = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-            if (error != FramebufferErrorCode.FramebufferComplete) {
-                throw new GraphicsErrorException("Error creating frame buffer: " + error);
-            }
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            if(HasSamples)
+                FrameBufferMS = GenerateFramebuffer(true, out _depthBufferMS, out _colorBufferMS);
 
             // generate the pixel buffers
 
@@ -74,10 +62,57 @@ namespace OpenTK.Wpf {
             GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
         }
 
+        private int GenerateFramebuffer(bool multisampled, out int rboDepth, out int rboColor) {
+            // set up the framebuffer
+            int fbo = GL.GenFramebuffer();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
+
+            if (!multisampled)
+            {
+                rboDepth = GL.GenRenderbuffer();
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rboDepth);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, Width, Height);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment,
+                    RenderbufferTarget.Renderbuffer, rboDepth);
+
+                rboColor = GL.GenRenderbuffer();
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rboColor);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Rgba8, Width, Height);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
+                    RenderbufferTarget.Renderbuffer, rboColor); 
+            }
+            else
+            {
+                rboDepth = GL.GenRenderbuffer();
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rboDepth);
+                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Samples, RenderbufferStorage.DepthComponent24, Width, Height);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment,
+                    RenderbufferTarget.Renderbuffer, rboDepth);
+
+                rboColor = GL.GenRenderbuffer();
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rboColor);
+                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Samples, RenderbufferStorage.Rgba8, Width, Height);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
+                    RenderbufferTarget.Renderbuffer, rboColor);
+            }
+
+            var error = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            if (error != FramebufferErrorCode.FramebufferComplete)
+            {
+                throw new GraphicsErrorException("Error creating frame buffer: " + error);
+            }
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            return fbo;
+        }
+
         public void DeleteBuffers() {
             GL.DeleteFramebuffer(FrameBuffer);
+            GL.DeleteFramebuffer(FrameBufferMS);
             GL.DeleteRenderbuffer(_depthBuffer);
             GL.DeleteRenderbuffer(_colorBuffer);
+            GL.DeleteRenderbuffer(_depthBufferMS);
+            GL.DeleteRenderbuffer(_colorBufferMS);
             for (var i = 0; i < _pixelBuffers.Length; i++) {
                 GL.DeleteBuffer(_pixelBuffers[i]);
             }
@@ -90,6 +125,14 @@ namespace OpenTK.Wpf {
                 _pixelBuffers[i - 1] = _pixelBuffers[i];
             }
             _pixelBuffers[_pixelBuffers.Length - 1] = fst;
+        }
+
+        internal void BeforeRender()
+        {
+            if (!HasSamples)
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBuffer);
+            else
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBufferMS);
         }
 
         public void UpdateImage() {
@@ -106,6 +149,13 @@ namespace OpenTK.Wpf {
         
 
         private void UpdateImageSoftware() {
+            if (HasSamples)
+            {
+                GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, FrameBufferMS);
+                GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, FrameBuffer);
+                GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest); 
+            }
+
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBuffer);
             // start the (async) pixel transfer.
             GL.BindBuffer(BufferTarget.PixelPackBuffer, _pixelBuffers[0]);
