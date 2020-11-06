@@ -40,7 +40,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DXInterop.cs" />
     <Compile Include="GLWpfControl.cs" />
     <Compile Include="GLWpfControlRenderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
