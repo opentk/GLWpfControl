@@ -49,7 +49,6 @@ namespace OpenTK.Wpf
         // Transformations and size 
         private Rect _imageRectangle;
 
-
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         public int Framebuffer => _renderer?.FrameBuffer ?? 0;

@@ -1,14 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using SharpDX.Direct3D9;
-using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace OpenTK.Wpf {
     
