@@ -1,3 +1,9 @@
+### 3.0.0
+    * >10x performance increase via DirectX interop. Huge thanks to @Zcore.
+    * Simplified API
+    * Removed software render path
+    * Added automatic context sharing by default
+
 ### 2.1.0
 	* Allow support for external contexts across multiple controls.
 
