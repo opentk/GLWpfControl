@@ -19,7 +19,7 @@ namespace OpenTK.Wpf {
         private readonly Device _dxDevice;
         private readonly Surface _dxSurface;
 
-        private D3DImage _image;
+        private readonly D3DImage _image;
 
         public int FrameBuffer => _glFrameBuffer;
 
@@ -114,10 +114,14 @@ namespace OpenTK.Wpf {
         {
             Wgl.DXLockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _glFrameBuffer);
+            GL.Viewport(0, 0, _image.PixelWidth, _image.PixelHeight);
         }
 
         public void PostRender()
         {
+            // unbind, flush and finish
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Flush();
             GL.Finish(); //TODO: replace with a gl read/fence barrier thing.
             Wgl.DXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -28,6 +29,8 @@ namespace OpenTK.Wpf
 
         // ReSharper disable once NotAccessedField.Local
         private IntPtr _dx9Context;
+        private static IGraphicsContext _commonContext;
+        private static int _activeControlCount = 0;
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
 
@@ -37,6 +40,7 @@ namespace OpenTK.Wpf
 
         /// Called whenever rendering should occur.
         public event Action<TimeSpan> Render;
+
 
         /// <summary>
         /// Gets called after the control has finished initializing and is ready to render
@@ -57,13 +61,13 @@ namespace OpenTK.Wpf
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
         public GLWpfControl() {
-            _dxImage = new D3DImage(72, 72);
+            _dxImage = new D3DImage(96, 96);
         }
 
         /// Starts the control and rendering, using the settings provided.
         public void Start(GLWpfControlSettings settings)
         {
-            _settings = settings;
+            _settings = settings.Copy();
             IsVisibleChanged += (_, args) => {
                 if ((bool) args.NewValue) {
                     CompositionTarget.Rendering += OnCompTargetRender;
@@ -105,19 +109,23 @@ namespace OpenTK.Wpf
         }
 
         private void InitOpenGLContext() {
-            
-            // retrieve window handle/info
-            var window = Window.GetWindow(this);
-            var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
-            _hwnd = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
-            _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
-            
-            // GL init
-            var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-            _context = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
-                _settings.GraphicsContextFlags);
-            _context.LoadAll();
-            _context.MakeCurrent(_windowInfo);
+            if (_commonContext == null) {
+
+                // retrieve window handle/info
+                var window = Window.GetWindow(this);
+                var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
+                _hwnd = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
+                _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
+
+                // GL init
+                var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
+                _commonContext = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
+                    _settings.GraphicsContextFlags);
+                _commonContext.LoadAll();
+                _commonContext.MakeCurrent(_windowInfo);
+            }
+            _context = _commonContext;
+            Interlocked.Increment(ref _activeControlCount);
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs args)
@@ -172,8 +180,11 @@ namespace OpenTK.Wpf
         {
             _renderer?.DeleteBuffers();
             if (!_settings.IsUsingExternalContext) {
-                _context?.Dispose();
                 _context = null;
+                var newCount = Interlocked.Decrement(ref _activeControlCount);
+                if (newCount == 0) {
+                    _commonContext?.Dispose();
+                }
             }
         }
     }
