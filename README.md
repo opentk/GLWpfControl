@@ -3,7 +3,7 @@
 
 A native control for WPF in OpenTK. 
 
-Since 3.0.0, we're using full OpenGL/DirectX interop via OpenGL extensions - [NV_DX_interop](https://www.khronos.org/registry/OpenGL/extensions/NV/WGL_NV_DX_interop.txt):. This is super blazing fast. Likely the fastest implementation out there.
+Since 3.0.0, we're using full OpenGL/DirectX interop via OpenGL extensions - [NV_DX_interop](https://www.khronos.org/registry/OpenGL/extensions/NV/WGL_NV_DX_interop.txt).
 
 This should run almost everywhere with incredible performance and is fully supported on Intel, AMD and Nvidia graphics.
 
