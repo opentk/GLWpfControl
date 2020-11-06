@@ -48,7 +48,7 @@ namespace OpenTK.Wpf
         public event Action Ready;
 
         // The image that the control uses to update stuff
-        private readonly D3DImage _dxImage;
+        private readonly D3DImage _d3dImage;
 
         // Transformations and size 
         private Rect _imageRectangle;
@@ -63,7 +63,7 @@ namespace OpenTK.Wpf
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
         public GLWpfControl() {
-            _dxImage = new D3DImage(96, 96);
+            _d3dImage = new D3DImage(96, 96);
         }
 
         /// Starts the control and rendering, using the settings provided.
@@ -102,7 +102,7 @@ namespace OpenTK.Wpf
             if (_renderer == null) {
                 var width = (int)RenderSize.Width;
                 var height = (int)RenderSize.Height;
-                _renderer = new GLWpfControlRendererDx(width, height, _dxImage);
+                _renderer = new GLWpfControlRendererDx(width, height, _d3dImage);
             }
 
             _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
@@ -163,7 +163,7 @@ namespace OpenTK.Wpf
                 drawingContext.PushTransform(_translateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
                 drawingContext.PushTransform(_flipYTransform);                  // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
 
-                drawingContext.DrawImage(_dxImage, _imageRectangle);            // Draw the image source 
+                drawingContext.DrawImage(_d3dImage, _imageRectangle);            // Draw the image source 
 
                 drawingContext.Pop();                                           // Remove the scale transform
                 drawingContext.Pop();                                           // Remove the translation transform
@@ -184,6 +184,8 @@ namespace OpenTK.Wpf
                 _imageRectangle.Width = info.NewSize.Width;
                 _imageRectangle.Height = info.NewSize.Height;
                 _translateTransform.Y = info.NewSize.Height;
+                _renderer.DeleteBuffers();
+                _renderer = new GLWpfControlRendererDx((int) _imageRectangle.Width, (int) _imageRectangle.Height, _d3dImage);
                 InvalidateVisual();
             }
             base.OnRenderSizeChanged(info);
