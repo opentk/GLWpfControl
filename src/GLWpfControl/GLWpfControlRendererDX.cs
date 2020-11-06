@@ -44,7 +44,7 @@ namespace OpenTK.Wpf {
                     SwapEffect = SwapEffect.Discard,
                     DeviceWindowHandle = IntPtr.Zero,
                     PresentationInterval = PresentInterval.Default,
-                    BackBufferFormat = Format.Unknown,
+                    BackBufferFormat = Format.A8R8G8B8,
                     BackBufferWidth = width,
                     BackBufferHeight = height
                 });
@@ -121,8 +121,6 @@ namespace OpenTK.Wpf {
         {
             // unbind, flush and finish
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.Flush();
-            GL.Finish(); //TODO: replace with a gl read/fence barrier thing.
             Wgl.DXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
         }
         
