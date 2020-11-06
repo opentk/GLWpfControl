@@ -33,6 +33,8 @@ namespace OpenTK.Wpf
         private static int _activeControlCount = 0;
         private IGraphicsContext _context;
         private IWindowInfo _windowInfo;
+        private bool _hasSyncFenceAvailable;
+
 
         private GLWpfControlSettings _settings;
         private GLWpfControlRendererDx _renderer;
@@ -40,6 +42,12 @@ namespace OpenTK.Wpf
 
         /// Called whenever rendering should occur.
         public event Action<TimeSpan> Render;
+        
+        /// Called once per frame after render. This does not synchronize with the copy to the screen.
+        /// This is only for extremely advanced use, where a non-display out task needs to run.
+        /// Examples of these are an async Pixel Buffer Object transfer or Transform Feedback.
+        /// If you do not know what these are, do not use this function.
+        public event Action AsyncRender;
 
 
         /// <summary>
@@ -54,7 +62,6 @@ namespace OpenTK.Wpf
         private Rect _imageRectangle;
         private TranslateTransform _translateTransform;
         private ScaleTransform _flipYTransform;
-
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         public int Framebuffer => _renderer?.FrameBuffer ?? 0;
@@ -70,6 +77,7 @@ namespace OpenTK.Wpf
         public void Start(GLWpfControlSettings settings)
         {
             _settings = settings.Copy();
+            _hasSyncFenceAvailable = _settings.MajorVersion >= 4 || (_settings.MajorVersion == 3 && _settings.MinorVersion >= 2);
             IsVisibleChanged += (_, args) => {
                 if ((bool) args.NewValue) {
                     CompositionTarget.Rendering += OnCompTargetRender;
@@ -102,7 +110,7 @@ namespace OpenTK.Wpf
             if (_renderer == null) {
                 var width = (int)RenderSize.Width;
                 var height = (int)RenderSize.Height;
-                _renderer = new GLWpfControlRendererDx(width, height, _d3dImage);
+                _renderer = new GLWpfControlRendererDx(width, height, _d3dImage, _hasSyncFenceAvailable);
             }
 
             _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
@@ -157,6 +165,7 @@ namespace OpenTK.Wpf
                 _renderer.PreRender();
                 Render?.Invoke(deltaT);
                 _renderer.PostRender();
+                AsyncRender?.Invoke();
                 _renderer.UpdateImage();
                 
                 // Transforms are applied in reverse order
@@ -185,7 +194,7 @@ namespace OpenTK.Wpf
                 _imageRectangle.Height = info.NewSize.Height;
                 _translateTransform.Y = info.NewSize.Height;
                 _renderer.DeleteBuffers();
-                _renderer = new GLWpfControlRendererDx((int) _imageRectangle.Width, (int) _imageRectangle.Height, _d3dImage);
+                _renderer = new GLWpfControlRendererDx((int) _imageRectangle.Width, (int) _imageRectangle.Height, _d3dImage, _hasSyncFenceAvailable);
                 InvalidateVisual();
             }
             base.OnRenderSizeChanged(info);

@@ -18,12 +18,16 @@ namespace OpenTK.Wpf {
         private readonly int _glDepthRenderBuffer;
         private readonly Device _dxDevice;
         private readonly Surface _dxSurface;
-
         private readonly D3DImage _image;
+        
+        private readonly bool _hasSyncFenceAvailable;
+        private IntPtr _syncFence;
 
         public int FrameBuffer => _glFrameBuffer;
 
-        public GLWpfControlRendererDx(int width, int height, D3DImage imageControl) {
+        public GLWpfControlRendererDx(int width, int height, D3DImage imageControl, bool hasSyncFenceAvailable) {
+
+            _hasSyncFenceAvailable = hasSyncFenceAvailable;
 
             _image = imageControl;
             _glHandle = IntPtr.Zero;
@@ -104,7 +108,18 @@ namespace OpenTK.Wpf {
             if (_image == null)
                 return;
 
-            _image.Lock();
+            // wait 10 seconds for the sync to complete.
+            if (_hasSyncFenceAvailable) {
+                // timeout is in nanoseconds
+                var syncRes = GL.ClientWaitSync(_syncFence, ClientWaitSyncFlags.None, 10_000_000);
+                if (syncRes != WaitSyncStatus.ConditionSatisfied) {
+                    throw new TimeoutException("Synchronization failed because the sync could not be completed in a reasonable time.");
+                }
+            }
+            else {
+                GL.Finish();
+            }
+            Wgl.DXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
             _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _dxSurface.NativePointer);
             _image.AddDirtyRect(new Int32Rect(0, 0, _image.PixelWidth, _image.PixelHeight));
             _image.Unlock();
@@ -112,6 +127,7 @@ namespace OpenTK.Wpf {
         
         public void PreRender()
         {
+            _image.Lock();
             Wgl.DXLockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _glFrameBuffer);
             GL.Viewport(0, 0, _image.PixelWidth, _image.PixelHeight);
@@ -121,9 +137,9 @@ namespace OpenTK.Wpf {
         {
             // unbind, flush and finish
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            Wgl.DXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
+            if (_hasSyncFenceAvailable) {
+                _syncFence = GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
+            }
         }
-        
-        
     }
 }
