@@ -52,6 +52,8 @@ namespace OpenTK.Wpf
 
         // Transformations and size 
         private Rect _imageRectangle;
+        private TranslateTransform _translateTransform;
+        private ScaleTransform _flipYTransform;
 
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
@@ -104,6 +106,8 @@ namespace OpenTK.Wpf
             }
 
             _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
+            _translateTransform = new TranslateTransform(0, RenderSize.Height);
+            _flipYTransform = new ScaleTransform(1, -1);
 
             Ready?.Invoke();
         }
@@ -155,7 +159,15 @@ namespace OpenTK.Wpf
                 _renderer.PostRender();
                 _renderer.UpdateImage();
                 
-                drawingContext.DrawImage(_dxImage, _imageRectangle);
+                // Transforms are applied in reverse order
+                drawingContext.PushTransform(_translateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
+                drawingContext.PushTransform(_flipYTransform);                  // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
+
+                drawingContext.DrawImage(_dxImage, _imageRectangle);            // Draw the image source 
+
+                drawingContext.Pop();                                           // Remove the scale transform
+                drawingContext.Pop();                                           // Remove the translation transform
+                
             }
 
             base.OnRender(drawingContext);
@@ -171,6 +183,7 @@ namespace OpenTK.Wpf
             {
                 _imageRectangle.Width = info.NewSize.Width;
                 _imageRectangle.Height = info.NewSize.Height;
+                _translateTransform.Y = info.NewSize.Height;
                 InvalidateVisual();
             }
             base.OnRenderSizeChanged(info);
