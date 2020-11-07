@@ -1,5 +1,8 @@
 RESTRICTION: == net452
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    FAKE (4.64.17)
-    OpenTK (3.0.1)
+    FAKE (4.64.18)
+    OpenTK (3.3.1)
+    SharpDX (4.2)
+    SharpDX.Direct3D9 (4.2)
+      SharpDX (>= 4.2)

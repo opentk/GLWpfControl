@@ -1,3 +1,6 @@
+### 3.0.1
+    * Fix SharpDX.Direct3D9 dependency.
+
 ### 3.0.0
     * >10x performance increase via DirectX interop. Huge thanks to @Zcore.
     * Simplified API
