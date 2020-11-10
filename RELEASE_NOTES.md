@@ -1,3 +1,7 @@
+### 3.1.0
+    * Add support for non-continuous event-based rendering via InvalidateVisual().
+    * Fix Incorrect minor version in OpenGL Settings.
+
 ### 3.0.1
     * Fix SharpDX.Direct3D9 dependency.
 
