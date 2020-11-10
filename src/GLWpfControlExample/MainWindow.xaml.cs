@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Timers;
 using OpenTK.Wpf;
 using OpenTK;
 using OpenTK.Graphics;
@@ -12,6 +13,7 @@ namespace GLWpfControlExample {
     public sealed partial class MainWindow {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private TimeSpan _elapsedTime;
+        private Timer _slowTimer = new Timer(500);
 
         public MainWindow() {
             InitializeComponent();
@@ -22,6 +24,14 @@ namespace GLWpfControlExample {
             OpenTkControl.Start(settings);
             settings.RenderContinuously = false;
 			InsetControl.Start(settings);
+            _slowTimer.Enabled = true;
+            _slowTimer.Start();
+            var localDispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
+            
+            _slowTimer.Elapsed += delegate {
+                localDispatcher.Invoke(() => { InsetControl.InvalidateVisual(); });
+            };
+
         }
 
         private void OpenTkControl_OnRender(TimeSpan delta) {

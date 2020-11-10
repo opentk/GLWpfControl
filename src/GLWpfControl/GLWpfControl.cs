@@ -68,6 +68,14 @@ namespace OpenTK.Wpf
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         public int Framebuffer => _renderer?.FrameBuffer ?? 0;
 
+
+        /// If this control is rendering continuously.
+        /// If this is false, then redrawing will only occur when <see cref="UIElement.InvalidateVisual"/> is called.
+        public bool RenderContinuously {
+            get => _settings.RenderContinuously;
+            set => _settings.RenderContinuously = value;
+        }
+
         /// <summary>
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
@@ -91,12 +99,6 @@ namespace OpenTK.Wpf
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
-        }
-
-
-        /// When <see cref="GLWpfControlSettings.RenderContinuously"/> is false, use this method to redraw this control's content.
-        public void Redraw() {
-            _needsRedraw = true;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs args)
@@ -164,7 +166,7 @@ namespace OpenTK.Wpf
         {
             if (_needsRedraw) {
                 InvalidateVisual();
-                _needsRedraw = _settings.RenderContinuously;
+                _needsRedraw = RenderContinuously;
             }
         }
 
