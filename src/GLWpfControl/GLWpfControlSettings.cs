@@ -13,6 +13,10 @@ namespace OpenTK.Wpf {
         public int MajorVersion { get; set; } = 3;
         public int MinorVersion { get; set; } = 3;
 
+        /// If the render event is fired continuously whenever required.
+        /// Disable this if you want manual control over when the rendered surface is updated.
+        public bool RenderContinuously = true;
+
         /// Creates a copy of the settings.
         internal GLWpfControlSettings Copy() {
             var c = new GLWpfControlSettings {

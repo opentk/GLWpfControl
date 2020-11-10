@@ -35,6 +35,8 @@ namespace OpenTK.Wpf
         private IWindowInfo _windowInfo;
         private bool _hasSyncFenceAvailable;
 
+        private volatile bool _needsRedraw;
+
 
         private GLWpfControlSettings _settings;
         private GLWpfControlRendererDx _renderer;
@@ -89,6 +91,12 @@ namespace OpenTK.Wpf
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
+        }
+
+
+        /// When <see cref="GLWpfControlSettings.RenderContinuously"/> is false, use this method to redraw this control's content.
+        public void Redraw() {
+            _needsRedraw = true;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs args)
@@ -154,7 +162,10 @@ namespace OpenTK.Wpf
 
         private void OnCompTargetRender(object sender, EventArgs e)
         {
-            InvalidateVisual();
+            if (_needsRedraw) {
+                InvalidateVisual();
+                _needsRedraw = _settings.RenderContinuously;
+            }
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
