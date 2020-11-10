@@ -23,7 +23,8 @@ namespace OpenTK.Wpf {
                 ContextToUse = ContextToUse,
                 GraphicsContextFlags = GraphicsContextFlags,
                 MajorVersion = MajorVersion,
-                MinorVersion = MajorVersion
+                MinorVersion = MajorVersion,
+                RenderContinuously = RenderContinuously,
             };
             return c;
         }

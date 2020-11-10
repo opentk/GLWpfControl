@@ -35,7 +35,7 @@ namespace OpenTK.Wpf
         private IWindowInfo _windowInfo;
         private bool _hasSyncFenceAvailable;
 
-        private volatile bool _needsRedraw;
+        private volatile bool _needsRedraw = true;
 
 
         private GLWpfControlSettings _settings;
