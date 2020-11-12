@@ -3,6 +3,7 @@
 <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <UseWPF>true</UseWPF>
+        <RootNamespace>OpenTK.Wpf</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

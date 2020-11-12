@@ -9,6 +9,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Window = System.Windows.Window;
+using WindowState = OpenTK.Windowing.Common.WindowState;
 
 namespace OpenTK.Wpf
 {
@@ -129,17 +130,18 @@ namespace OpenTK.Wpf
 
         private void InitOpenGLContext() {
             if (_commonContext == null) {
-                
                 var nws = NativeWindowSettings.Default;
                 nws.StartFocused = false;
                 nws.StartVisible = false;
                 nws.NumberOfSamples = 0;
-                nws.APIVersion = new Version(3,2);
-                nws.Profile = ContextProfile.Compatability;
+                nws.APIVersion = new Version(_settings.MajorVersion,_settings.MinorVersion);
+                nws.Flags = ContextFlags.Offscreen;
+                nws.Profile = _settings.GraphicsProfile;
+                nws.WindowBorder = WindowBorder.Hidden;
+                nws.WindowState = WindowState.Minimized;
                 _glfwWindow = new NativeWindow(nws) {IsVisible = false};
                 var provider = new GLFWBindingsContext();
                 Wgl.LoadBindings(provider);
-
                 // retrieve window handle/info
                 var window = Window.GetWindow(this);
                 var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;

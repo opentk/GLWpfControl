@@ -6,6 +6,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 
 namespace GLWpfControlExample {
     /// <summary>
@@ -20,8 +21,9 @@ namespace GLWpfControlExample {
             InitializeComponent();
             _elapsedTime = new TimeSpan();
             var settings = new GLWpfControlSettings();
-            settings.MajorVersion = 2;
-            settings.MinorVersion = 1;
+            settings.MajorVersion = 3;
+            settings.MinorVersion = 3;
+            settings.GraphicsProfile = ContextProfile.Compatability;
             OpenTkControl.Start(settings);
             settings.RenderContinuously = false;
 			InsetControl.Start(settings);
