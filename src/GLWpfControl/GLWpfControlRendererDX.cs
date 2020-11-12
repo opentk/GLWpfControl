@@ -1,8 +1,8 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
+using GLWpfControl;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform.Windows;
 using SharpDX.Direct3D9;
 
 namespace OpenTK.Wpf {
@@ -19,6 +19,8 @@ namespace OpenTK.Wpf {
         private readonly Device _dxDevice;
         private readonly Surface _dxSurface;
         private readonly D3DImage _image;
+
+        private readonly WGLInterop _wglInterop;
         
         private readonly bool _hasSyncFenceAvailable;
         private IntPtr _syncFence;
@@ -26,6 +28,7 @@ namespace OpenTK.Wpf {
         public int FrameBuffer => _glFrameBuffer;
 
         public GLWpfControlRendererDx(int width, int height, D3DImage imageControl, bool hasSyncFenceAvailable) {
+            _wglInterop = new WGLInterop();
 
             _hasSyncFenceAvailable = hasSyncFenceAvailable;
 
@@ -66,15 +69,15 @@ namespace OpenTK.Wpf {
             _glFrameBuffer = GL.GenFramebuffer();
             _glSharedTexture = GL.GenTexture();
 
-            _glHandle = Wgl.DXOpenDeviceNV(_dxDevice.NativePointer);
-            Wgl.DXSetResourceShareHandleNV(_dxSurface.NativePointer, _dxSharedhandle);
+            _glHandle = _wglInterop.WglDXOpenDeviceNV(_dxDevice.NativePointer);
+            _wglInterop.WglDXSetResourceShareHandleNV(_dxSurface.NativePointer, _dxSharedhandle);
 
-            var genHandle = Wgl.DXRegisterObjectNV(
+            var genHandle = _wglInterop.WglDXRegisterObjectNV(
                 _glHandle,
                 _dxSurface.NativePointer,
                 (uint)_glSharedTexture,
                 (uint)TextureTarget.Texture2D,
-                WGL_NV_DX_interop.AccessReadWrite);
+                WGLInterop.WGL_ACCESS_READ_WRITE_NV);
             _glDxInteropSharedHandles = new[] { genHandle };
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _glFrameBuffer);
@@ -121,7 +124,7 @@ namespace OpenTK.Wpf {
             // }
             //
             GL.Flush();
-            Wgl.DXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
+            _wglInterop.WglDXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
             _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _dxSurface.NativePointer);
             _image.AddDirtyRect(new Int32Rect(0, 0, _image.PixelWidth, _image.PixelHeight));
             _image.Unlock();
@@ -130,7 +133,7 @@ namespace OpenTK.Wpf {
         public void PreRender()
         {
             _image.Lock();
-            Wgl.DXLockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
+            _wglInterop.WglDXLockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _glFrameBuffer);
             GL.Viewport(0, 0, _image.PixelWidth, _image.PixelHeight);
         }

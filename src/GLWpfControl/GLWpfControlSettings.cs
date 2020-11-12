@@ -1,4 +1,5 @@
 using OpenTK.Graphics;
+using OpenTK.Windowing.Common;
 
 namespace OpenTK.Wpf {
     
@@ -6,9 +7,9 @@ namespace OpenTK.Wpf {
         
         /// May be null. If defined, an external context will be used, of which the caller is responsible
         /// for managing the lifetime and disposal of.
-        public GraphicsContext ContextToUse { get; set; }
+        public IGraphicsContext ContextToUse { get; set; }
         
-        public GraphicsContextFlags GraphicsContextFlags { get; set; } = GraphicsContextFlags.Default;
+        public ContextFlags GraphicsContextFlags { get; set; } = ContextFlags.Default;
         
         public int MajorVersion { get; set; } = 3;
         public int MinorVersion { get; set; } = 3;

@@ -5,6 +5,7 @@ using OpenTK.Wpf;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace GLWpfControlExample {
     /// <summary>

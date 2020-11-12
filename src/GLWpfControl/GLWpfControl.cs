@@ -4,8 +4,9 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using OpenTK.Graphics;
-using OpenTK.Platform;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using Window = System.Windows.Window;
 
 namespace OpenTK.Wpf
 {
@@ -16,13 +17,6 @@ namespace OpenTK.Wpf
     /// </summary>
     public sealed class GLWpfControl : FrameworkElement
     {
-        static GLWpfControl()
-        {
-            Toolkit.Init(new ToolkitOptions
-            {
-                Backend = PlatformBackend.PreferNative
-            });
-        }
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private TimeSpan _lastFrameStamp;
@@ -32,7 +26,6 @@ namespace OpenTK.Wpf
         private static IGraphicsContext _commonContext;
         private static int _activeControlCount = 0;
         private IGraphicsContext _context;
-        private IWindowInfo _windowInfo;
         private bool _hasSyncFenceAvailable;
 
         private volatile bool _needsRedraw = true;
@@ -64,6 +57,8 @@ namespace OpenTK.Wpf
         private Rect _imageRectangle;
         private TranslateTransform _translateTransform;
         private ScaleTransform _flipYTransform;
+        private NativeWindow _glfwWindow;
+
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         public int Framebuffer => _renderer?.FrameBuffer ?? 0;
@@ -132,19 +127,27 @@ namespace OpenTK.Wpf
 
         private void InitOpenGLContext() {
             if (_commonContext == null) {
+                
+                var nws = NativeWindowSettings.Default;
+                nws.StartFocused = false;
+                nws.StartVisible = false;
+                nws.NumberOfSamples = 0;
+                nws.APIVersion = new Version(3,2);
+                nws.Profile = ContextProfile.Compatability;
+                _glfwWindow = new NativeWindow(nws) {IsVisible = false};
 
                 // retrieve window handle/info
                 var window = Window.GetWindow(this);
                 var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
                 _hwnd = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
-                _windowInfo = Utilities.CreateWindowsWindowInfo(_hwnd.Handle);
 
+                _commonContext = _glfwWindow.Context;
                 // GL init
-                var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-                _commonContext = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
-                    _settings.GraphicsContextFlags);
-                _commonContext.LoadAll();
-                _commonContext.MakeCurrent(_windowInfo);
+                // var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
+                // _commonContext = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
+                //     _settings.GraphicsContextFlags);
+                // _commonContext.LoadAll();
+                _commonContext.MakeCurrent();
             }
             _context = _commonContext;
             Interlocked.Increment(ref _activeControlCount);
@@ -158,7 +161,7 @@ namespace OpenTK.Wpf
             }
 
             ReleaseOpenGLResources();
-            _windowInfo?.Dispose();
+            _glfwWindow?.Dispose();
             _hwnd?.Dispose();
         }
 
@@ -220,7 +223,7 @@ namespace OpenTK.Wpf
                 _context = null;
                 var newCount = Interlocked.Decrement(ref _activeControlCount);
                 if (newCount == 0) {
-                    _commonContext?.Dispose();
+                    _glfwWindow?.Dispose();
                 }
             }
         }
