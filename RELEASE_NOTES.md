@@ -1,3 +1,7 @@
+### 4.0.0-pre.1
+    * Dotnet Core Support
+    * Retarget to OpenTK 4.2.0
+
 ### 3.1.0
     * Add support for non-continuous event-based rendering via InvalidateVisual().
     * Fix Incorrect minor version in OpenGL Settings.
