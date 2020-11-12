@@ -4,8 +4,10 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using OpenTK.Graphics.Wgl;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Window = System.Windows.Window;
 
 namespace OpenTK.Wpf
@@ -135,6 +137,8 @@ namespace OpenTK.Wpf
                 nws.APIVersion = new Version(3,2);
                 nws.Profile = ContextProfile.Compatability;
                 _glfwWindow = new NativeWindow(nws) {IsVisible = false};
+                var provider = new GLFWBindingsContext();
+                Wgl.LoadBindings(provider);
 
                 // retrieve window handle/info
                 var window = Window.GetWindow(this);

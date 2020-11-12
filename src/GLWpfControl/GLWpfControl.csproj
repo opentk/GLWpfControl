@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="OpenTK" Version="4.1.0" />
+      <PackageReference Include="OpenTK" Version="4.2.0" />
       <PackageReference Include="SharpDX.Direct3D9" Version="4.2.0" />
     </ItemGroup>
 
