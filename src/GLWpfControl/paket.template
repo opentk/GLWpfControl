@@ -1,0 +1,26 @@
+type project
+title
+    OpenTK.GLWpfControl
+id
+    OpenTK.GLWpfControl
+owners
+    opentk varon
+authors
+    Team OpenTK
+summary
+    A native WPF control for OpenTK 4.2.0+
+projectUrl
+    https://www.opentk.net
+iconUrl
+    https://raw.githubusercontent.com/opentk/opentk.net/docfx/assets/opentk.png
+licenseUrl
+    https://github.com/varon/GLWpfControl/blob/master/LICENSE.md
+requireLicenseAcceptance
+    false
+copyright
+    Copyright (c) 2020 Team OpenTK.
+dependencies
+    OpenTK ~> 4.2.0
+    SharpDX.Direct3D9 ~> 4.2.0
+    
+include-pdbs true

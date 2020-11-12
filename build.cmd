@@ -25,4 +25,6 @@ if "%BuildRunner%" == "MyGet" (
   echo 	* git build >> RELEASE_NOTES.md
 )
 
+dotnet restore
+
 packages\FAKE\tools\FAKE.exe build.fsx %* %BuildTarget%
