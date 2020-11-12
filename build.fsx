@@ -31,7 +31,7 @@ let project = "OpenTK.GLWpfControl"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "A native WPF control for OpenTK 3.X."
+let summary = "A native WPF control for OpenTK 4.X."
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
@@ -43,7 +43,7 @@ let authors = [ "varon" ]
 // Tags for your project (for NuGet package)
 let tags = "WPF OpenTK OpenGL OpenGLES GLES OpenAL C# F# VB .NET Mono Vector Math Game Graphics Sound"
 
-let copyright = "Copyright (c) 2019 Team OpenTK."
+let copyright = "Copyright (c) 2020 Team OpenTK."
 
 // File system information
 let solutionFile  = "GLWpfControl.sln"
