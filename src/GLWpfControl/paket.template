@@ -21,6 +21,5 @@ copyright
     Copyright (c) 2019 Team OpenTK.
 dependencies
     OpenTK >= 3.3.1 < 4.0.0
-    SharpDX.Direct3D9 ~> 4.2.0
     
 include-pdbs true

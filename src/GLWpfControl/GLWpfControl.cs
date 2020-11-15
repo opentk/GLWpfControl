@@ -28,7 +28,6 @@ namespace OpenTK.Wpf
         private TimeSpan _lastFrameStamp;
 
         // ReSharper disable once NotAccessedField.Local
-        private IntPtr _dx9Context;
         private static IGraphicsContext _commonContext;
         private static int _activeControlCount = 0;
         private IGraphicsContext _context;
@@ -106,8 +105,6 @@ namespace OpenTK.Wpf
             if (_context != null) {
                 return;
             }
-            
-            _dx9Context = DxInterop.Direct3DCreate9(DxInterop.D3DSdkVersion);
             
             if (_settings.ContextToUse == null)
             {
