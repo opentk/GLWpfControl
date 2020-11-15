@@ -15,6 +15,7 @@ namespace OpenTK.Wpf {
 
         public int MajorVersion { get; set; } = 3;
         public int MinorVersion { get; set; } = 3;
+        public bool UseSRGB { get; set; } = false;
 
         /// If we are using an external context for the control.
         public bool IsUsingExternalContext => ContextToUse != null;

@@ -51,22 +51,6 @@ namespace OpenTK.Wpf
         /// </summary>
         public event Action Ready;
 
-        private bool useSRGB;
-        /// <summary>
-        /// Enables SRGB in the internal/dx buffer
-        /// </summary>
-        public bool UseSRGB
-        {
-            get => useSRGB;
-            set
-            {
-                if(value == useSRGB)
-                    return;
-                // TODO update the dx buffer, so that srgb can be toggled runtime
-                useSRGB = value;
-            }
-        }
-
         // The image that the control uses to update stuff
         private readonly D3DImage _d3dImage;
 

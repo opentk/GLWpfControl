@@ -28,13 +28,19 @@ namespace GLWpfControlExample
             InitializeComponent();
             _elapsedTime = new TimeSpan();
             OpenTkControl.Visibility = Visibility.Collapsed; // hide the control at the start
-            var settings = new GLWpfControlSettings();
-            settings.MajorVersion = 3;
-            settings.MinorVersion = 3;
-            settings.GraphicsProfile = ContextProfile.Compatability;
+            var settings = new GLWpfControlSettings
+            {
+                MajorVersion = 3,
+                MinorVersion = 3,
+                GraphicsProfile = ContextProfile.Compatability,
+                UseSRGB = true
+            };
             OpenTkControl.Start(settings);
+
             settings.RenderContinuously = false;
+            settings.UseSRGB = false;
             InsetControl.Start(settings);
+
             _slowTimer.Enabled = true;
             _slowTimer.Start();
             var localDispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
