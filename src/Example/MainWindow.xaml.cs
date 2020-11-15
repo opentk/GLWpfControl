@@ -58,8 +58,7 @@ namespace GLWpfControlExample
             GL.Enable(EnableCap.FramebufferSrgb);
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            
-
+         
             GL.Enable(EnableCap.ScissorTest);
             var xPos = 50 + (ActualWidth - 250) * (0.5 + 0.5 * Math.Sin(_stopwatch.Elapsed.TotalSeconds));
             GL.Scissor((int)xPos, 25, 50, 50);
@@ -144,9 +143,7 @@ namespace GLWpfControlExample
                 GL.End();
             }
 
-
             GL.Disable(EnableCap.Blend);
-
             GL.Finish();
 
         }
