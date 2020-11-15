@@ -1,3 +1,6 @@
+### 4.0.0-pre.2
+    * Fix Gamma/Linear color space issue (Thanks @Justin113D)
+
 ### 4.0.0-pre.1
     * Dotnet Core Support
     * Retarget to OpenTK 4.2.0
