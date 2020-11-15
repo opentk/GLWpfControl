@@ -48,7 +48,7 @@ namespace OpenTK.Wpf {
                     SwapEffect = SwapEffect.Discard,
                     DeviceWindowHandle = IntPtr.Zero,
                     PresentationInterval = PresentInterval.Default,
-                    BackBufferFormat = Format.A8R8G8B8,
+                    BackBufferFormat = Format.X8R8G8B8, // this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice. 
                     BackBufferWidth = width,
                     BackBufferHeight = height
                 });
@@ -57,7 +57,7 @@ namespace OpenTK.Wpf {
                 _dxDevice,
                 width,
                 height,
-                Format.A8R8G8B8,
+                Format.X8R8G8B8,// this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice.
                 MultisampleType.None,
                 0,
                 false,
