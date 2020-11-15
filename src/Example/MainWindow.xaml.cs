@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Timers;
+using System.Windows;
 using OpenTK.Wpf;
 using OpenTK;
 using OpenTK.Graphics;
@@ -26,6 +27,7 @@ namespace GLWpfControlExample
         {
             InitializeComponent();
             _elapsedTime = new TimeSpan();
+            OpenTkControl.Visibility = Visibility.Collapsed; // hide the control at the start
             var settings = new GLWpfControlSettings();
             settings.MajorVersion = 3;
             settings.MinorVersion = 3;
@@ -173,9 +175,18 @@ namespace GLWpfControlExample
             brightness = (float)e.NewValue / 10f;
         }
 
-        private void Button_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void ToggleHueScroll(object sender, System.Windows.RoutedEventArgs e)
         {
             updateHue = !updateHue;
+        }
+
+        private void ToggleMainControl(object sender, RoutedEventArgs e) {
+            if (OpenTkControl.Visibility == Visibility.Collapsed) {
+                OpenTkControl.Visibility = Visibility.Visible;
+            }
+            else {
+                OpenTkControl.Visibility = Visibility.Collapsed;
+            }
         }
     }
 }

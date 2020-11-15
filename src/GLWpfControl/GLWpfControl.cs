@@ -95,37 +95,39 @@ namespace OpenTK.Wpf
                 }
             };
 
-            Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
+            Loaded += (a, b) => SetupRendererIfRequired();
+            Unloaded += (a, b) => OnUnloaded();
+            IsVisibleChanged += (a, b) => SetupRendererIfRequired();
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs args)
-        {
-            if (_context != null) {
-                return;
-            }
-            
-            _dx9Context = DxInterop.Direct3DCreate9(DxInterop.D3DSdkVersion);
-            
-            if (_settings.ContextToUse == null)
-            {
-                InitOpenGLContext();
-            }
-            else {
-                _context = _settings.ContextToUse;
+        private void SetupRendererIfRequired() {
+            // we have two cases:
+
+            var shouldSetupContexts = _context == null;
+            if (shouldSetupContexts) {
+                _dx9Context = DxInterop.Direct3DCreate9(DxInterop.D3DSdkVersion);
+                if (_settings.ContextToUse == null) {
+                    InitOpenGLContext();
+                }
+                else {
+                    _context = _settings.ContextToUse;
+                }
             }
 
-            if (_renderer == null) {
-                var width = (int)RenderSize.Width;
-                var height = (int)RenderSize.Height;
+            // if we actually have a surface we can render onto...
+            var shouldSetupRenderer = RenderSize.Width > 0 && RenderSize.Height > 0;
+            if (shouldSetupRenderer) {
+                var width = (int) RenderSize.Width;
+                var height = (int) RenderSize.Height;
                 _renderer = new GLWpfControlRendererDx(width, height, _d3dImage, _hasSyncFenceAvailable);
+                _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
+                _translateTransform = new TranslateTransform(0, RenderSize.Height);
+                _flipYTransform = new ScaleTransform(1, -1);
             }
 
-            _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
-            _translateTransform = new TranslateTransform(0, RenderSize.Height);
-            _flipYTransform = new ScaleTransform(1, -1);
-
-            Ready?.Invoke();
+            if (_renderer != null && _context != null) {
+                Ready?.Invoke();
+            }
         }
 
         private void InitOpenGLContext() {
@@ -159,7 +161,7 @@ namespace OpenTK.Wpf
             Interlocked.Increment(ref _activeControlCount);
         }
 
-        private void OnUnloaded(object sender, RoutedEventArgs args)
+        private void OnUnloaded()
         {
             if (_context == null)
             {
