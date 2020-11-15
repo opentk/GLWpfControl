@@ -59,7 +59,7 @@ namespace OpenTK.Wpf {
             DXInterop.CreateDeviceEx(
                 _dxContextHandle,
                 0,
-                DeviceType.HAL,
+                DeviceType.HAL, // use hardware rasterization
                 IntPtr.Zero,
                 CreateFlags.HardwareVertexProcessing |
                 CreateFlags.Multithreaded |
