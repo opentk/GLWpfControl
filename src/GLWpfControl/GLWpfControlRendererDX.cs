@@ -4,7 +4,7 @@ using System.Windows.Interop;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
 using OpenTK.Platform.Windows;
-using SharpDX.Direct3D9;
+using OpenTK.Wpf.Interop;
 
 namespace OpenTK.Wpf {
     
@@ -13,12 +13,14 @@ namespace OpenTK.Wpf {
         /// arrays used to lock the shared GL object handles.
         private readonly IntPtr[] _glDxInteropSharedHandles;
         private readonly IntPtr _glHandle;
-        private readonly IntPtr _dxSharedhandle;
+        private IntPtr _dxContextHandle;
+        private IntPtr _dxDeviceHandle;
+        private IntPtr _dxSurfaceHandle;
+        private IntPtr _dxSharedHandle;
         private readonly int _glSharedTexture;
         private readonly int _glFrameBuffer;
         private readonly int _glDepthRenderBuffer;
-        private readonly Device _dxDevice;
-        private readonly Surface _dxSurface;
+
         private readonly D3DImage _image;
 
         // private readonly WGLInterop _wglInterop;
@@ -28,54 +30,67 @@ namespace OpenTK.Wpf {
 
         public int FrameBuffer => _glFrameBuffer;
 
-        public GLWpfControlRendererDx(int width, int height, D3DImage imageControl, bool hasSyncFenceAvailable) {
+        public GLWpfControlRendererDx(int width, int height, D3DImage imageControl, bool hasSyncFenceAvailable) 
+        {
             // _wglInterop = new WGLInterop();
-
             _hasSyncFenceAvailable = hasSyncFenceAvailable;
 
             _image = imageControl;
             _glHandle = IntPtr.Zero;
-            _dxSharedhandle = IntPtr.Zero;
-            
-            _dxDevice = new Device(DxInterop.Direct3DCreate9(DxInterop.D3DSdkVersion));
-            _dxDevice = new DeviceEx(
-                new Direct3DEx(),
+            _dxSharedHandle = IntPtr.Zero;
+
+            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out _dxContextHandle);
+
+            var deviceParameters = new PresentationParameters
+            {
+                Windowed = 1,
+                SwapEffect = SwapEffect.Discard,
+                DeviceWindowHandle = IntPtr.Zero,
+                PresentationInterval = 0,
+                BackBufferFormat = Format.X8R8G8B8, // this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice. 
+                BackBufferWidth = width,
+                BackBufferHeight = height,
+                AutoDepthStencilFormat = Format.Unknown,
+                BackBufferCount = 1,
+                EnableAutoDepthStencil = 0,
+                Flags = 0,
+                FullScreen_RefreshRateInHz = 0,
+                MultiSampleQuality = 0,
+                MultiSampleType = MultisampleType.None
+            };
+
+            DXInterop.CreateDeviceEx(
+                _dxContextHandle,
                 0,
-                DeviceType.Hardware,
+                DeviceType.HAL, // use hardware rasterization
                 IntPtr.Zero,
                 CreateFlags.HardwareVertexProcessing |
                 CreateFlags.Multithreaded |
                 CreateFlags.PureDevice,
-                new PresentParameters()
-                {
-                    Windowed = true,
-                    SwapEffect = SwapEffect.Discard,
-                    DeviceWindowHandle = IntPtr.Zero,
-                    PresentationInterval = PresentInterval.Default,
-                    BackBufferFormat = Format.X8R8G8B8, // this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice. 
-                    BackBufferWidth = width,
-                    BackBufferHeight = height
-                });
-
-            _dxSurface = Surface.CreateRenderTarget(
-                _dxDevice,
+                ref deviceParameters,
+                IntPtr.Zero,
+                out _dxDeviceHandle);
+            
+            DXInterop.CreateRenderTarget(
+                _dxDeviceHandle,
                 width,
                 height,
                 Format.X8R8G8B8,// this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice.
                 MultisampleType.None,
                 0,
                 false,
-                ref _dxSharedhandle);
+                out _dxSurfaceHandle,
+                ref _dxSharedHandle);
 
             _glFrameBuffer = GL.GenFramebuffer();
             _glSharedTexture = GL.GenTexture();
 
-            _glHandle = Wgl.DXOpenDeviceNV(_dxDevice.NativePointer);
-            Wgl.DXSetResourceShareHandleNV(_dxSurface.NativePointer, _dxSharedhandle);
+            _glHandle = Wgl.DXOpenDeviceNV(_dxDeviceHandle);
+            Wgl.DXSetResourceShareHandleNV(_dxSurfaceHandle, _dxSharedHandle);
 
             var genHandle = Wgl.DXRegisterObjectNV(
                 _glHandle,
-                _dxSurface.NativePointer,
+                _dxSurfaceHandle,
                 (uint)_glSharedTexture,
                 (uint)TextureTarget.Texture2D,
                 WGL_NV_DX_interop.AccessReadWrite);
@@ -94,8 +109,8 @@ namespace OpenTK.Wpf {
             GL.FramebufferRenderbuffer(
                 FramebufferTarget.Framebuffer,
                 FramebufferAttachment.DepthAttachment,
-                 RenderbufferTarget.Renderbuffer,
-                 _glDepthRenderBuffer);
+                RenderbufferTarget.Renderbuffer,
+                _glDepthRenderBuffer);
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
@@ -104,8 +119,9 @@ namespace OpenTK.Wpf {
             GL.DeleteFramebuffer(_glFrameBuffer);
             GL.DeleteRenderbuffer(_glDepthRenderBuffer);
             GL.DeleteTexture(_glSharedTexture);
-            _dxSurface.Dispose();
-            _dxDevice.Dispose();
+
+            //TODO: Release unmanaged resources
+
         }
 
         public void UpdateImage() {
@@ -126,7 +142,7 @@ namespace OpenTK.Wpf {
             //
             GL.Flush();
             Wgl.DXUnlockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
-            _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _dxSurface.NativePointer);
+            _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _dxSurfaceHandle);
             _image.AddDirtyRect(new Int32Rect(0, 0, _image.PixelWidth, _image.PixelHeight));
             _image.Unlock();
         }
