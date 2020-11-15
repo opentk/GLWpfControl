@@ -37,8 +37,3 @@ NUGET
     OpenTK.Windowing.GraphicsLibraryFramework (4.2)
       OpenTK.Core (>= 4.2 < 4.3)
       OpenTK.redist.glfw (>= 3.3.0-pre20200830200122 < 3.4.0-pre)
-    SharpDX (4.2)
-      NETStandard.Library (>= 1.6.1)
-    SharpDX.Direct3D9 (4.2)
-      NETStandard.Library (>= 1.6.1)
-      SharpDX (>= 4.2)
