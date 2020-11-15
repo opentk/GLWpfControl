@@ -1,3 +1,6 @@
+### 4.0.0-pre.3
+    * Fix crash if control was to collapsed on startup.
+
 ### 4.0.0-pre.2
     * Fix Gamma/Linear color space issue (Thanks @Justin113D)
 
