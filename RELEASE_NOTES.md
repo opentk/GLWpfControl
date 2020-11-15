@@ -1,3 +1,6 @@
+### 3.1.1
+    * Backport of fix gamma/colour space issues (Thanks @Justin113D)
+
 ### 3.1.0
     * Add support for non-continuous event-based rendering via InvalidateVisual().
     * Fix Incorrect minor version in OpenGL Settings.
