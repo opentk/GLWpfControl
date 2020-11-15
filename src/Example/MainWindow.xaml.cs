@@ -55,8 +55,10 @@ namespace GLWpfControlExample
         private void DrawStuff()
         {
             var c = Color4.FromHsv(new Vector4((float)_elapsedTime.TotalSeconds * 0.1f % 1, 1f, brightness, 1));
+            GL.Enable(EnableCap.FramebufferSrgb);
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            
 
             GL.Enable(EnableCap.ScissorTest);
             var xPos = 50 + (ActualWidth - 250) * (0.5 + 0.5 * Math.Sin(_stopwatch.Elapsed.TotalSeconds));
@@ -152,6 +154,7 @@ namespace GLWpfControlExample
         private void InsetControl_OnRender(TimeSpan delta)
         {
             var c = Color4.FromHsv(new Vector4((float)_elapsedTime.TotalSeconds * 0.35f % 1, 0.75f, 0.75f, 1));
+            GL.Disable(EnableCap.FramebufferSrgb);
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.LoadIdentity();

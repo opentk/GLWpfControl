@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="600" Width="800">
     <Grid>
-        <glWpfControl:GLWpfControl x:Name="OpenTkControl" Render="OpenTkControl_OnRender" />
+        <glWpfControl:GLWpfControl x:Name="OpenTkControl" Render="OpenTkControl_OnRender" UseSRGB="True"/>
         <Label Content="Set Brightness" HorizontalAlignment="Right" Margin="0,358,35,0" VerticalAlignment="Top" />
         <Border Background="#FFE6931C" HorizontalAlignment="Right" VerticalAlignment="Top" Height="100" Width="110" Margin="0,41,10,0" BorderBrush="Black" BorderThickness="2">
             <Label Content="WPF &#xD;&#xA;Border" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
@@ -16,8 +16,9 @@
         <Slider Orientation="Vertical" HorizontalAlignment="Right" Margin="0,177,10,40" Width="20" Value="10" RangeBase.ValueChanged="Slider_ValueChanged" />
 
         <glWpfControl:GLWpfControl x:Name="InsetControl" Render="InsetControl_OnRender" Width="128" Height="123" HorizontalAlignment="Left"
-                                   VerticalAlignment="Bottom"/>
-        
+                                   VerticalAlignment="Bottom" UseSRGB="False"/>
+        <Label Content="no SRGB" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="30" Width="50"/>
+
         <Button Content="Toggle OpenTK Control" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="110" Height="26" Click="ToggleMainControl"/>
     </Grid>
 </Window>
