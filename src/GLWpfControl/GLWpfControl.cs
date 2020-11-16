@@ -113,21 +113,13 @@ namespace OpenTK.Wpf
 
             // if we actually have a surface we can render onto...
             var presentationSource = PresentationSource.FromVisual(this);
+            // presentationSource must be checked for null: when the window is closed, IsVisibleChanged event is triggered
+            // and FromVisual method returns null due to disposal of visual.
             var shouldSetupRenderer = RenderSize.Width > 0 && RenderSize.Height > 0 && presentationSource != null;
-            if (shouldSetupRenderer) {
-
-                if(_d3dImage == null) {
-                    if(_settings.UseDeviceDpi) {
-                        var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
-                        _d3dImage = new D3DImage(96.0 * transformToDevice.M11, 96.0 * transformToDevice.M22);
-                    }
-                    else {
-                        _d3dImage = new D3DImage(96.0, 96.0);
-                    }
-                }
-
+            if (shouldSetupRenderer)
+            {
+                EnsureD3DImage(presentationSource);
                 var deviceSize = GetDevicePixelSize(RenderSize.Width, RenderSize.Height);
-
                 var deviceWidth = (int)deviceSize.Width;
                 var deviceHeight = (int)deviceSize.Height;
 
@@ -139,6 +131,22 @@ namespace OpenTK.Wpf
 
             if (_renderer != null && _context != null) {
                 Ready?.Invoke();
+            }
+        }
+
+        private void EnsureD3DImage(PresentationSource presentationSource)
+        {
+            if (_d3dImage == null)
+            {
+                if (_settings.UseDeviceDpi)
+                {
+                    var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
+                    _d3dImage = new D3DImage(96.0 * transformToDevice.M11, 96.0 * transformToDevice.M22);
+                }
+                else
+                {
+                    _d3dImage = new D3DImage(96.0, 96.0);
+                }
             }
         }
 
