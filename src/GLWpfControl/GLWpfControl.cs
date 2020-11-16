@@ -115,10 +115,15 @@ namespace OpenTK.Wpf
             var presentationSource = PresentationSource.FromVisual(this);
             var shouldSetupRenderer = RenderSize.Width > 0 && RenderSize.Height > 0 && presentationSource != null;
             if (shouldSetupRenderer) {
-                var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
 
                 if(_d3dImage == null) {
-                    _d3dImage = new D3DImage(96.0 * transformToDevice.M11, 96.0 * transformToDevice.M22);
+                    if(_settings.UseDeviceDpi) {
+                        var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
+                        _d3dImage = new D3DImage(96.0 * transformToDevice.M11, 96.0 * transformToDevice.M22);
+                    }
+                    else {
+                        _d3dImage = new D3DImage(96.0, 96.0);
+                    }
                 }
 
                 var deviceSize = GetDevicePixelSize(RenderSize.Width, RenderSize.Height);
@@ -248,6 +253,10 @@ namespace OpenTK.Wpf
 
         private Size GetDevicePixelSize(double width, double height)
         {
+            if (!_settings.UseDeviceDpi) {
+                return new Size(width, height);
+            }
+
             // inspired from https://stackoverflow.com/questions/3286175/how-do-i-convert-a-wpf-size-to-physical-pixels
             Matrix transformToDevice;
             var source = PresentationSource.FromVisual(this);
