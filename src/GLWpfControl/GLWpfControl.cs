@@ -73,6 +73,14 @@ namespace OpenTK.Wpf
             set => _settings.RenderContinuously = value;
         }
 
+        /// Pixel size of the underlying OpenGL framebuffer.
+        /// It could differ from UIElement.RenderSize if UseDeviceDpi setting is set.
+        /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
+        public Size FramebufferSize {
+            get; 
+            private set; 
+        }
+
         /// <summary>
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
@@ -127,6 +135,8 @@ namespace OpenTK.Wpf
                 _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
                 _translateTransform = new TranslateTransform(0, RenderSize.Height);
                 _flipYTransform = new ScaleTransform(1, -1);
+
+                FramebufferSize = new Size(deviceWidth, deviceHeight);
             }
 
             if (_renderer != null && _context != null) {
@@ -241,6 +251,8 @@ namespace OpenTK.Wpf
 
                 var deviceSize = GetDevicePixelSize(_imageRectangle.Width, _imageRectangle.Height);
                 _renderer = new GLWpfControlRendererDx((int)deviceSize.Width, (int)deviceSize.Height, _d3dImage, _hasSyncFenceAvailable);
+
+                FramebufferSize = new Size((int)deviceSize.Width, (int)deviceSize.Height);
 
                 InvalidateVisual();
             }
