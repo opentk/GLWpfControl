@@ -53,7 +53,7 @@ namespace OpenTK.Wpf
         public event Action Ready;
 
         // The image that the control uses to update stuff
-        private readonly D3DImage _d3dImage;
+        private D3DImage _d3dImage;
 
         // Transformations and size 
         private Rect _imageRectangle;
@@ -76,11 +76,18 @@ namespace OpenTK.Wpf
             set => _settings.RenderContinuously = value;
         }
 
+        /// Pixel size of the underlying OpenGL framebuffer.
+        /// It could differ from UIElement.RenderSize if UseDeviceDpi setting is set.
+        /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
+        public Size FramebufferSize {
+            get; 
+            private set; 
+        }
+
         /// <summary>
         ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
         public GLWpfControl() {
-            _d3dImage = new D3DImage(96, 96);
         }
 
         /// Starts the control and rendering, using the settings provided.
@@ -115,15 +122,22 @@ namespace OpenTK.Wpf
             }
 
             // if we actually have a surface we can render onto...
-            var shouldSetupRenderer = RenderSize.Width > 0 && RenderSize.Height > 0;
-            if (shouldSetupRenderer) {
-                var width = (int) RenderSize.Width;
-                var height = (int) RenderSize.Height;
+            var presentationSource = PresentationSource.FromVisual(this);
+            // presentationSource must be checked for null: when the window is closed, IsVisibleChanged event is triggered
+            // and FromVisual method returns null due to disposal of visual.
+            var shouldSetupRenderer = RenderSize.Width > 0 && RenderSize.Height > 0 && presentationSource != null;
+            if (shouldSetupRenderer)
+            {
+                EnsureD3DImage(presentationSource);
+                var deviceSize = GetDevicePixelSize(RenderSize.Width, RenderSize.Height);
+                var deviceWidth = (int)deviceSize.Width;
+                var deviceHeight = (int)deviceSize.Height;
 
                 if (_renderer != null)
                     _renderer.DeleteBuffers();
 
-                _renderer = new GLWpfControlRendererDx(width, height, _d3dImage, _hasSyncFenceAvailable);
+                _renderer = new GLWpfControlRendererDx(deviceWidth, deviceHeight, _d3dImage, _hasSyncFenceAvailable);
+                FramebufferSize = new Size(deviceWidth, deviceHeight);
                 _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
                 _translateTransform.Y = RenderSize.Height;
             }
@@ -131,6 +145,22 @@ namespace OpenTK.Wpf
             if (_renderer != null && _context != null && !readyEventTriggered) {
                 readyEventTriggered = true;
                 Ready?.Invoke();
+            }
+        }
+
+        private void EnsureD3DImage(PresentationSource presentationSource)
+        {
+            if (_d3dImage == null)
+            {
+                if (_settings.UseDeviceDpi)
+                {
+                    var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
+                    _d3dImage = new D3DImage(96.0 * transformToDevice.M11, 96.0 * transformToDevice.M22);
+                }
+                else
+                {
+                    _d3dImage = new D3DImage(96.0, 96.0);
+                }
             }
         }
 
@@ -231,5 +261,24 @@ namespace OpenTK.Wpf
                 }
             }
         }
+
+        private Size GetDevicePixelSize(double width, double height)
+        {
+            if (!_settings.UseDeviceDpi) {
+                return new Size(width, height);
+            }
+
+            // inspired from https://stackoverflow.com/questions/3286175/how-do-i-convert-a-wpf-size-to-physical-pixels
+            Matrix transformToDevice;
+            var source = PresentationSource.FromVisual(this);
+            if (source != null)
+                transformToDevice = source.CompositionTarget.TransformToDevice;
+            else
+                using (var s = new HwndSource(new HwndSourceParameters()))
+                    transformToDevice = s.CompositionTarget.TransformToDevice;
+
+            return (Size)transformToDevice.Transform(new Vector(width, height));
+        }
+
     }
 }
