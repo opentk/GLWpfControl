@@ -57,9 +57,12 @@ namespace OpenTK.Wpf
 
         // Transformations and size 
         private Rect _imageRectangle;
-        private TranslateTransform _translateTransform;
-        private ScaleTransform _flipYTransform;
+        private readonly TranslateTransform _translateTransform = new TranslateTransform();
+        private readonly ScaleTransform _flipYTransform = new ScaleTransform(1, -1);
         private NativeWindow _glfwWindow;
+
+        // Flag to check if ready event has been already triggered
+        private bool readyEventTriggered = false;
 
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
@@ -96,7 +99,6 @@ namespace OpenTK.Wpf
 
             Loaded += (a, b) => SetupRendererIfRequired();
             Unloaded += (a, b) => OnUnloaded();
-            IsVisibleChanged += (a, b) => SetupRendererIfRequired();
         }
 
         private void SetupRendererIfRequired() {
@@ -117,13 +119,17 @@ namespace OpenTK.Wpf
             if (shouldSetupRenderer) {
                 var width = (int) RenderSize.Width;
                 var height = (int) RenderSize.Height;
+
+                if (_renderer != null)
+                    _renderer.DeleteBuffers();
+
                 _renderer = new GLWpfControlRendererDx(width, height, _d3dImage, _hasSyncFenceAvailable);
                 _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
-                _translateTransform = new TranslateTransform(0, RenderSize.Height);
-                _flipYTransform = new ScaleTransform(1, -1);
+                _translateTransform.Y = RenderSize.Height;
             }
 
-            if (_renderer != null && _context != null) {
+            if (_renderer != null && _context != null && !readyEventTriggered) {
+                readyEventTriggered = true;
                 Ready?.Invoke();
             }
         }
@@ -206,17 +212,9 @@ namespace OpenTK.Wpf
         
         protected override void OnRenderSizeChanged(SizeChangedInfo info)
         {
-            if (_renderer == null)
+            if ((info.WidthChanged || info.HeightChanged) && (info.NewSize.Width > 0 && info.NewSize.Height > 0))
             {
-                return;
-            }
-            if (info.WidthChanged || info.HeightChanged)
-            {
-                _imageRectangle.Width = info.NewSize.Width;
-                _imageRectangle.Height = info.NewSize.Height;
-                _translateTransform.Y = info.NewSize.Height;
-                _renderer.DeleteBuffers();
-                _renderer = new GLWpfControlRendererDx((int) _imageRectangle.Width, (int) _imageRectangle.Height, _d3dImage, _hasSyncFenceAvailable);
+                SetupRendererIfRequired();
                 InvalidateVisual();
             }
             base.OnRenderSizeChanged(info);
