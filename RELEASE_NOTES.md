@@ -1,3 +1,9 @@
+### 4.0.0-pre.4
+    * Add support for DPI Scaling + optional config values to ignore this. (@marcotod1410)
+    * Added Framebuffer Size to API. (@ marcotod1410)
+    * Fix render initialization if not visible at the start (@marcotod1410)
+    * Remove dependency on SharpDX and replace with custom bindings (@bezo97)
+
 ### 4.0.0-pre.3
     * Fix crash if control was to collapsed on startup.
 
