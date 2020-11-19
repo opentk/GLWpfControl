@@ -76,7 +76,7 @@ namespace OpenTK.Wpf
         }
 
         /// <summary>
-        ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
+        /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
         public GLWpfControl() {
             _d3dImage = new D3DImage(96, 96);
@@ -98,22 +98,24 @@ namespace OpenTK.Wpf
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
-        }
 
-        private void OnLoaded(object sender, RoutedEventArgs args)
-        {
-            if (_context != null) {
+            if (_context != null)
+            {
                 return;
             }
-            
+
             if (_settings.ContextToUse == null)
             {
                 InitOpenGLContext();
             }
-            else {
+            else
+            {
                 _context = _settings.ContextToUse;
             }
+        }
 
+        private void OnLoaded(object sender, RoutedEventArgs args)
+        {
             if (_renderer == null) {
                 var width = (int)RenderSize.Width;
                 var height = (int)RenderSize.Height;
