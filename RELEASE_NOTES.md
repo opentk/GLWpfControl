@@ -1,3 +1,6 @@
+### 4.0.0-pre.6
+    * Update to OpenTK 4.3.0
+
 ### 4.0.0-pre.5
     * Fix for one-frame delay on startup (no more flashing screen) (@bezo97)
 
