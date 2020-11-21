@@ -85,7 +85,7 @@ namespace OpenTK.Wpf
         }
 
         /// <summary>
-        ///     Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
+        /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
         public GLWpfControl() {
         }
@@ -106,20 +106,24 @@ namespace OpenTK.Wpf
 
             Loaded += (a, b) => SetupRendererIfRequired();
             Unloaded += (a, b) => OnUnloaded();
-        }
 
-        private void SetupRendererIfRequired() {
             // we have two cases:
-
             var shouldSetupContexts = _context == null;
-            if (shouldSetupContexts) { 
-                if (_settings.ContextToUse == null) {
+            if (shouldSetupContexts)
+            {
+                if (_settings.ContextToUse == null)
+                {
                     InitOpenGLContext();
                 }
-                else {
+                else
+                {
                     _context = _settings.ContextToUse;
                 }
             }
+
+        }
+
+        private void SetupRendererIfRequired() {
 
             // if we actually have a surface we can render onto...
             var presentationSource = PresentationSource.FromVisual(this);
