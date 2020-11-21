@@ -1,3 +1,6 @@
+### 4.0.0-pre.5
+    * Fix for one-frame delay on startup (no more flashing screen) (@bezo97)
+
 ### 4.0.0-pre.4
     * Add support for DPI Scaling + optional config values to ignore this. (@marcotod1410)
     * Added Framebuffer Size to API. (@ marcotod1410)
