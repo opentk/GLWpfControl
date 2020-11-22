@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
@@ -246,6 +247,11 @@ namespace OpenTK.Wpf
         
         protected override void OnRenderSizeChanged(SizeChangedInfo info)
         {
+            var isInDesignMode = DesignerProperties.GetIsInDesignMode(this);
+            if (isInDesignMode) {
+                return;
+            }
+            
             if ((info.WidthChanged || info.HeightChanged) && (info.NewSize.Width > 0 && info.NewSize.Height > 0))
             {
                 SetupRendererIfRequired();
