@@ -1,3 +1,6 @@
+### 4.0.0-pre.7
+    * Fix design mode crash in Visual Studio.
+
 ### 4.0.0-pre.6
     * Update to OpenTK 4.3.0
 
