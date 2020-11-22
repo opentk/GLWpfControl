@@ -11,15 +11,15 @@ namespace OpenTK.Wpf {
     /// Renderer that uses DX_Interop for a fast-path.
     internal sealed class GLWpfControlRendererDx {
         /// arrays used to lock the shared GL object handles.
-        private readonly IntPtr[] _glDxInteropSharedHandles;
+        private IntPtr[] _glDxInteropSharedHandles;
         private readonly IntPtr _glHandle;
         private IntPtr _dxContextHandle;
         private IntPtr _dxDeviceHandle;
         private IntPtr _dxSurfaceHandle;
         private IntPtr _dxSharedHandle;
-        private readonly int _glSharedTexture;
-        private readonly int _glFrameBuffer;
-        private readonly int _glDepthRenderBuffer;
+        private int _glSharedTexture;
+        private int _glFrameBuffer;
+        private int _glDepthRenderBuffer;
 
         private readonly D3DImage _image;
 
@@ -30,7 +30,11 @@ namespace OpenTK.Wpf {
 
         public int FrameBuffer => _glFrameBuffer;
 
-        public GLWpfControlRendererDx(int width, int height, D3DImage imageControl, bool hasSyncFenceAvailable) 
+        private int width;
+        private int height;
+        private bool recreatingSurfaceNeeded = true;
+
+        public GLWpfControlRendererDx(int initialWidth, int initialHeight, D3DImage imageControl, bool hasSyncFenceAvailable) 
         {
             // _wglInterop = new WGLInterop();
             _hasSyncFenceAvailable = hasSyncFenceAvailable;
@@ -48,8 +52,8 @@ namespace OpenTK.Wpf {
                 DeviceWindowHandle = IntPtr.Zero,
                 PresentationInterval = 0,
                 BackBufferFormat = Format.X8R8G8B8, // this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice. 
-                BackBufferWidth = width,
-                BackBufferHeight = height,
+                BackBufferWidth = 1,
+                BackBufferHeight = 1,
                 AutoDepthStencilFormat = Format.Unknown,
                 BackBufferCount = 1,
                 EnableAutoDepthStencil = 0,
@@ -70,7 +74,22 @@ namespace OpenTK.Wpf {
                 ref deviceParameters,
                 IntPtr.Zero,
                 out _dxDeviceHandle);
-            
+
+            _glHandle = Wgl.DXOpenDeviceNV(_dxDeviceHandle);
+
+            width = initialWidth;
+            height = initialHeight;
+
+            EnsureSurfaceCreated();
+        }
+
+        private void EnsureSurfaceCreated()
+        {
+            if (!recreatingSurfaceNeeded)
+                return; 
+
+            DeleteBuffers();
+
             DXInterop.CreateRenderTarget(
                 _dxDeviceHandle,
                 width,
@@ -82,11 +101,10 @@ namespace OpenTK.Wpf {
                 out _dxSurfaceHandle,
                 ref _dxSharedHandle);
 
+            Wgl.DXSetResourceShareHandleNV(_dxSurfaceHandle, _dxSharedHandle);
+
             _glFrameBuffer = GL.GenFramebuffer();
             _glSharedTexture = GL.GenTexture();
-
-            _glHandle = Wgl.DXOpenDeviceNV(_dxDeviceHandle);
-            Wgl.DXSetResourceShareHandleNV(_dxSurfaceHandle, _dxSharedHandle);
 
             var genHandle = Wgl.DXRegisterObjectNV(
                 _glHandle,
@@ -94,6 +112,7 @@ namespace OpenTK.Wpf {
                 (uint)_glSharedTexture,
                 (uint)TextureTarget.Texture2D,
                 WGL_NV_DX_interop.AccessReadWrite);
+
             _glDxInteropSharedHandles = new[] { genHandle };
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _glFrameBuffer);
@@ -113,15 +132,33 @@ namespace OpenTK.Wpf {
                 _glDepthRenderBuffer);
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+            recreatingSurfaceNeeded = false;
         }
 
         public void DeleteBuffers() {
-            GL.DeleteFramebuffer(_glFrameBuffer);
-            GL.DeleteRenderbuffer(_glDepthRenderBuffer);
-            GL.DeleteTexture(_glSharedTexture);
+            
+            if(_dxSurfaceHandle != IntPtr.Zero)
+            {
+                Wgl.DXUnregisterObjectNV(_glHandle, _glDxInteropSharedHandles[0]);
+                _glDxInteropSharedHandles = null;
 
-            //TODO: Release unmanaged resources
+                _dxSurfaceHandle = IntPtr.Zero;
+                _dxSharedHandle = IntPtr.Zero;
+            }
 
+            if (_glFrameBuffer != 0)
+                GL.DeleteFramebuffer(_glFrameBuffer);
+
+            if(_glDepthRenderBuffer != 0)
+                GL.DeleteRenderbuffer(_glDepthRenderBuffer);
+
+            if(_glSharedTexture != 0)
+                GL.DeleteTexture(_glSharedTexture);
+
+            _glFrameBuffer = 0;
+            _glDepthRenderBuffer = 0;
+            _glSharedTexture = 0;
         }
 
         public void UpdateImage() {
@@ -149,6 +186,8 @@ namespace OpenTK.Wpf {
         
         public void PreRender()
         {
+            EnsureSurfaceCreated();
+
             _image.Lock();
             Wgl.DXLockObjectsNV(_glHandle, 1, _glDxInteropSharedHandles);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _glFrameBuffer);
@@ -162,6 +201,16 @@ namespace OpenTK.Wpf {
             // if (_hasSyncFenceAvailable) {
             //     _syncFence = GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
             // }
+        }
+
+        public void Resize(int renderWidth, int renderHeight)
+        {
+            if (renderWidth == width && renderHeight == height)
+                return;
+
+            width = renderWidth;
+            height = renderHeight;
+            recreatingSurfaceNeeded = true;
         }
     }
 }
