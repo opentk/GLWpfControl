@@ -30,11 +30,11 @@ namespace OpenTK.Wpf {
 
         public int FrameBuffer => _glFrameBuffer;
 
-        private int width;
-        private int height;
+        private int width = 1;
+        private int height = 1;
         private bool recreatingSurfaceNeeded = true;
 
-        public GLWpfControlRendererDx(int initialWidth, int initialHeight, D3DImage imageControl, bool hasSyncFenceAvailable) 
+        public GLWpfControlRendererDx(D3DImage imageControl, bool hasSyncFenceAvailable) 
         {
             // _wglInterop = new WGLInterop();
             _hasSyncFenceAvailable = hasSyncFenceAvailable;
@@ -76,11 +76,6 @@ namespace OpenTK.Wpf {
                 out _dxDeviceHandle);
 
             _glHandle = Wgl.DXOpenDeviceNV(_dxDeviceHandle);
-
-            width = initialWidth;
-            height = initialHeight;
-
-            EnsureSurfaceCreated();
         }
 
         private void EnsureSurfaceCreated()
