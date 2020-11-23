@@ -81,7 +81,9 @@ namespace OpenTK.Wpf {
         private void EnsureSurfaceCreated()
         {
             if (!recreatingSurfaceNeeded)
-                return; 
+            {
+                return;
+            }
 
             DeleteBuffers();
 
@@ -143,14 +145,21 @@ namespace OpenTK.Wpf {
             }
 
             if (_glFrameBuffer != 0)
+            {
                 GL.DeleteFramebuffer(_glFrameBuffer);
+            }
 
             if(_glDepthRenderBuffer != 0)
+            {
                 GL.DeleteRenderbuffer(_glDepthRenderBuffer);
+            }
+                
 
             if(_glSharedTexture != 0)
+            {
                 GL.DeleteTexture(_glSharedTexture);
-
+            }
+                
             _glFrameBuffer = 0;
             _glDepthRenderBuffer = 0;
             _glSharedTexture = 0;
@@ -158,7 +167,10 @@ namespace OpenTK.Wpf {
 
         public void UpdateImage() {
             if (_image == null)
+            {
                 return;
+            }
+                
 
             // // wait 10 seconds for the sync to complete.
             // if (_hasSyncFenceAvailable) {
@@ -198,10 +210,12 @@ namespace OpenTK.Wpf {
             // }
         }
 
-        public void Resize(int renderWidth, int renderHeight)
+        public void SetRenderBufferSize(int renderWidth, int renderHeight)
         {
             if (renderWidth == width && renderHeight == height)
+            {
                 return;
+            }
 
             width = renderWidth;
             height = renderHeight;

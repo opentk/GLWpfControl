@@ -139,9 +139,11 @@ namespace OpenTK.Wpf
                 var deviceHeight = (int)deviceSize.Height;
 
                 if(_renderer == null)
+                {
                     _renderer = new GLWpfControlRendererDx(_d3dImage, _hasSyncFenceAvailable);
+                }
 
-                _renderer.Resize(deviceWidth, deviceHeight);
+                _renderer.SetRenderBufferSize(deviceWidth, deviceHeight);
 
                 FramebufferSize = new Size(deviceWidth, deviceHeight);
                 _imageRectangle = new Rect(0, 0, RenderSize.Width, RenderSize.Height);
