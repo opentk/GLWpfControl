@@ -39,7 +39,7 @@ namespace OpenTK.Wpf
         
         [CanBeNull] private GLWpfControlSettings _settings;
         [CanBeNull] private GLWpfControlRenderer _renderer;
-        private bool _needsRedraw = true;
+        private bool _needsRedraw;
 
         // -----------------------------------
         // Properties
@@ -81,6 +81,7 @@ namespace OpenTK.Wpf
                 throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
             }
             _settings = settings.Copy();
+            _needsRedraw = settings.RenderContinuously;
             _renderer = new GLWpfControlRenderer(_settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
             _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
@@ -93,7 +94,10 @@ namespace OpenTK.Wpf
                 }
             };
 
-            Loaded += (a, b) => SetupRenderSize();
+            Loaded += (a, b) => {
+                SetupRenderSize();
+                InvalidateVisual();
+            };
             Unloaded += (a, b) => OnUnloaded();
             Ready?.Invoke();
         }
