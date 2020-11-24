@@ -1,3 +1,15 @@
+### 4.0.0-pre.9
+    * Fix crash for tabbed window
+    * Total rewrite of the backend
+    * All memory leaks removed
+    * Faster loading
+    * Faster resizing
+    * Less memory usage
+    * Reduced duplicate rendering
+    * New design time preview
+    * Simpler examples
+    * Update to OpenTK 4.3.0
+
 ### 4.0.0-pre.8
     * Total rewrite of the backend
     * All memory leaks removed
