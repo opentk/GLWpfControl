@@ -82,6 +82,7 @@ namespace OpenTK.Wpf
             _settings = settings.Copy();
             _renderer = new GLWpfControlRenderer(_settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
+            _renderer.GLAsyncRender += timeDelta => AsyncRender?.Invoke();
             IsVisibleChanged += (_, args) => {
                 if ((bool) args.NewValue) {
                     CompositionTarget.Rendering += OnCompTargetRender;
@@ -93,6 +94,7 @@ namespace OpenTK.Wpf
 
             Loaded += (a, b) => SetupRenderSize();
             Unloaded += (a, b) => OnUnloaded();
+            Ready?.Invoke();
         }
         
         private void SetupRenderSize() {

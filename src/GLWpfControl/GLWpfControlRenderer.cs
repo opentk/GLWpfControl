@@ -17,6 +17,7 @@ namespace OpenTK.Wpf
         private readonly DxGlContext _context;
         
         public event Action<TimeSpan> GLRender;
+        public event Action GLAsyncRender;
         
         private DxGLFramebuffer _framebuffer;
 
@@ -30,13 +31,11 @@ namespace OpenTK.Wpf
         public int Height => _framebuffer?.Width ?? 0;
         
         private TimeSpan _lastFrameStamp;
-        private GLWpfControlSettings _settings;
 
 
         public GLWpfControlRenderer(GLWpfControlSettings settings)
         {
             _context = new DxGlContext(settings);
-            _settings = settings;
         }
 
 
@@ -45,7 +44,7 @@ namespace OpenTK.Wpf
                 _framebuffer?.Dispose();
                 _framebuffer = null;
                 if (width > 0 && height > 0) {
-                    _framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleX);
+                    _framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY);
                 }
             }
         }
@@ -59,6 +58,9 @@ namespace OpenTK.Wpf
             _lastFrameStamp = curFrameStamp;
             PreRender();
             GLRender?.Invoke(deltaT);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Flush();
+            GLAsyncRender?.Invoke();
             PostRender();
             
             // Transforms are applied in reverse order
@@ -82,17 +84,13 @@ namespace OpenTK.Wpf
             GL.Viewport(0, 0, _framebuffer.Width, _framebuffer.Height);
         }
 
-        /// Completes the rendering, unbinds, and gets stuff ready for blitting the image over.
+        /// Sets up the framebuffer and prepares stuff for usage in directx.
         public void PostRender()
         {
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.Flush();
             Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle);
             _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.Width, _framebuffer.Height));
             _framebuffer.D3dImage.Unlock();
         }
-        
-        
     }
 }
