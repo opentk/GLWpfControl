@@ -1,3 +1,14 @@
+### 4.0.0-pre.8
+    * Total rewrite of the backend
+    * All memory leaks removed
+    * Faster loading
+    * Faster resizing
+    * Less memory usage
+    * Reduced duplicate rendering
+    * New design time preview
+    * Simpler examples
+    * Update to OpenTK 4.3.0
+
 ### 4.0.0-pre.7
     * Fix design mode crash in Visual Studio.
 
@@ -22,6 +33,9 @@
 ### 4.0.0-pre.1
     * Dotnet Core Support
     * Retarget to OpenTK 4.2.0
+
+### 3.1.1
+    * Backport of fix gamma/colour space issues (Thanks @Justin113D)
 
 ### 3.1.0
     * Add support for non-continuous event-based rendering via InvalidateVisual().

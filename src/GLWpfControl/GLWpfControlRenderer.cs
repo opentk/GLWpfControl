@@ -24,10 +24,10 @@ namespace OpenTK.Wpf
         public int FrameBufferHandle => _framebuffer.GLFramebufferHandle;
 
         /// The OpenGL Framebuffer width
-        public int Width => _framebuffer?.Width ?? 0;
+        public int Width => _framebuffer?.FramebufferWidth ?? 0;
         
         /// The OpenGL Framebuffer height
-        public int Height => _framebuffer?.Width ?? 0;
+        public int Height => _framebuffer?.FramebufferWidth ?? 0;
         
         private TimeSpan _lastFrameStamp;
 
@@ -75,20 +75,20 @@ namespace OpenTK.Wpf
         }
 
         /// Sets up the framebuffer, directx stuff for rendering. 
-        public void PreRender()
+        private void PreRender()
         {
             _framebuffer.D3dImage.Lock();
             Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer.GLFramebufferHandle);
-            GL.Viewport(0, 0, _framebuffer.Width, _framebuffer.Height);
+            GL.Viewport(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight);
         }
 
         /// Sets up the framebuffer and prepares stuff for usage in directx.
-        public void PostRender()
+        private void PostRender()
         {
             Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle);
-            _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.Width, _framebuffer.Height));
+            _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight));
             _framebuffer.D3dImage.Unlock();
         }
     }
