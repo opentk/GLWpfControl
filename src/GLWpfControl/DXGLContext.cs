@@ -3,13 +3,11 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using JetBrains.Annotations;
-using OpenTK.Graphics.Wgl;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Graphics;
+using OpenTK.Platform;
+using OpenTK.Platform.Windows;
 using OpenTK.Wpf.Interop;
 using Window = System.Windows.Window;
-using WindowState = OpenTK.Windowing.Common.WindowState;
 
 namespace OpenTK.Wpf {
     
@@ -95,20 +93,6 @@ namespace OpenTK.Wpf {
             } 
             
             else {
-                var nws = NativeWindowSettings.Default;
-                nws.StartFocused = false;
-                nws.StartVisible = false;
-                nws.NumberOfSamples = 0;
-                // if we ask GLFW for 1.0, we should get the highest level context available with full compat.
-                nws.APIVersion = new Version(settings.MajorVersion, settings.MinorVersion);
-                nws.Flags = ContextFlags.Offscreen | settings.GraphicsContextFlags;
-                // we have to ask for any compat in this case.
-                nws.Profile = settings.GraphicsProfile;
-                // nws.WindowBorder = WindowBorder.Hidden;
-                // nws.WindowState = WindowState.Minimized;
-                var glfwWindow = new NativeWindow(nws) {IsVisible = false};
-                var provider = new GLFWBindingsContext();
-                Wgl.LoadBindings(provider);
                 // we're already in a window context, so we can just cheat by creating a new dependency object here rather than passing any around.
                 var depObject = new DependencyObject();
                 // retrieve window handle/info
@@ -116,15 +100,24 @@ namespace OpenTK.Wpf {
                 var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
                 var hwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
 
-                _sharedContext = glfwWindow.Context;
+                var windowInfo = Utilities.CreateWindowsWindowInfo(hwndSource.Handle);
+                
+                var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
+                
+                var gfxCtx = new GraphicsContext(mode, windowInfo, settings.MajorVersion, settings.MinorVersion,settings.GraphicsContextFlags);
+                gfxCtx.LoadAll();
+                gfxCtx.MakeCurrent(windowInfo);
+                
+                _sharedContext = gfxCtx;
                 _sharedContextSettings = settings;
-                _sharedContextResources = new IDisposable[] {hwndSource, glfwWindow};
+                _sharedContextResources = new IDisposable[] {hwndSource, windowInfo, gfxCtx};
+                
                 // GL init
                 // var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
                 // _commonContext = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
                 //     _settings.GraphicsContextFlags);
                 // _commonContext.LoadAll();
-                _sharedContext.MakeCurrent();
+                _sharedContext.MakeCurrent(windowInfo);
             }
             Interlocked.Increment(ref _sharedContextReferenceCount);
             return _sharedContext;
