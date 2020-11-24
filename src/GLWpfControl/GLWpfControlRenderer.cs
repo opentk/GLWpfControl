@@ -76,7 +76,7 @@ namespace OpenTK.Wpf
         }
 
         /// Sets up the framebuffer, directx stuff for rendering. 
-        public void PreRender()
+        private void PreRender()
         {
             _framebuffer.D3dImage.Lock();
             Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
@@ -85,7 +85,7 @@ namespace OpenTK.Wpf
         }
 
         /// Sets up the framebuffer and prepares stuff for usage in directx.
-        public void PostRender()
+        private void PostRender()
         {
             Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle);
