@@ -7,6 +7,7 @@
     * Reduced duplicate rendering
     * New design time preview
     * Simpler examples
+    * Update to OpenTK 4.3.0
 
 ### 4.0.0-pre.7
     * Fix design mode crash in Visual Studio.
