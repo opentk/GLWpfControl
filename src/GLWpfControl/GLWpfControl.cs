@@ -136,7 +136,13 @@ namespace OpenTK.Wpf
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
-            _renderer?.Render(drawingContext);
+            var isDesignMode = DesignerProperties.GetIsInDesignMode(this);
+            if (isDesignMode) {
+                DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
+            }
+            else {
+                _renderer?.Render(drawingContext);
+            }
             base.OnRender(drawingContext);
         }
         
