@@ -1,23 +1,45 @@
-﻿<Window x:Class="GLWpfControlExample.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
+﻿<Window
+    x:Class="Example.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+    mc:Ignorable="d"
+    Title="MainWindow"
+    Width="800"
+    Height="800">
     <Grid>
-        <glWpfControl:GLWpfControl x:Name="OpenTkControl" Render="OpenTkControl_OnRender" />
-        <Label Content="Set Brightness" HorizontalAlignment="Right" Margin="0,358,35,0" VerticalAlignment="Top" />
-        <Border Background="#FFE6931C" HorizontalAlignment="Right" VerticalAlignment="Top" Height="100" Width="110" Margin="0,41,10,0" BorderBrush="Black" BorderThickness="2">
-            <Label Content="WPF &#xD;&#xA;Border" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <glWpfControl:GLWpfControl
+            x:Name="OpenTkControl"
+            Render="OpenTkControl_OnRender" />
+        <Border
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="10"
+            BorderBrush="CornflowerBlue"
+            BorderThickness="2">
+            <Label
+                Background="#FFE6931C"
+                Content="Overlaid label with border"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center" />
         </Border>
-        <Button Content="Toggle Hue Scroll" HorizontalAlignment="Right" Margin="0,146,10,0" VerticalAlignment="Top" Width="110" Height="26" Click="ToggleHueScroll"/>
-        <Slider Orientation="Vertical" HorizontalAlignment="Right" Margin="0,177,10,40" Width="20" Value="10" RangeBase.ValueChanged="Slider_ValueChanged" />
-
-        <glWpfControl:GLWpfControl x:Name="InsetControl" Render="InsetControl_OnRender" Width="128" Height="123" HorizontalAlignment="Left"
-                                   VerticalAlignment="Bottom"/>
-        
-        <Button Content="Toggle OpenTK Control" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="110" Height="26" Click="ToggleMainControl"/>
+        <glWpfControl:GLWpfControl
+            x:Name="InsetControl"
+            Render="InsetControl_OnRender"
+            Width="128"
+            Height="128"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            Margin="10,0,0,60" />
+        <Button
+            Content="Redraw Inset Control"
+            HorizontalAlignment="Left"
+            Margin="10"
+            VerticalAlignment="Bottom"
+            Padding="0,10,0, 10"
+            Click="RedrawButton_OnClick"
+            Width="128" />
     </Grid>
 </Window>
