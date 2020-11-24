@@ -2,10 +2,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media;
 using JetBrains.Annotations;
-using OpenTK.Windowing.Desktop;
 
 namespace OpenTK.Wpf
 {
@@ -79,10 +77,13 @@ namespace OpenTK.Wpf
         /// Starts the control and rendering, using the settings provided.
         public void Start(GLWpfControlSettings settings)
         {
+            if (_settings != null) {
+                throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
+            }
             _settings = settings.Copy();
             _renderer = new GLWpfControlRenderer(_settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
-            _renderer.GLAsyncRender += timeDelta => AsyncRender?.Invoke();
+            _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
             IsVisibleChanged += (_, args) => {
                 if ((bool) args.NewValue) {
                     CompositionTarget.Rendering += OnCompTargetRender;
