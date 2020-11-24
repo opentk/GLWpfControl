@@ -8,9 +8,11 @@ namespace OpenTK.Wpf.Interop
         public const uint DefaultSdkVersion = 32;
         private const int CreateDeviceEx_Offset = 20;
         private const int CreateRenderTarget_Offset = 28;
+        private const int Release_Offset = 2;
 
         private delegate int NativeCreateDeviceEx(IntPtr contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IntPtr deviceHandle);
         private delegate int NativeCreateRenderTarget(IntPtr deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool lockable, out IntPtr surfaceHandle, ref IntPtr sharedHandle);
+        private delegate uint NativeRelease(IntPtr resourceHandle);
 
         [DllImport("d3d9.dll")]
         public static extern int Direct3DCreate9Ex(uint SdkVersion, out IntPtr ctx);
@@ -29,6 +31,14 @@ namespace OpenTK.Wpf.Interop
             IntPtr functionPointer = Marshal.ReadIntPtr(vTable, CreateRenderTarget_Offset * IntPtr.Size);
             NativeCreateRenderTarget method = Marshal.GetDelegateForFunctionPointer<NativeCreateRenderTarget>(functionPointer);
             return method(deviceHandle, width, height, format, multisample, multisampleQuality, lockable, out surfaceHandle, ref sharedHandle);
+        }
+
+        public static uint Release(IntPtr resourceHandle)
+        {
+            IntPtr vTable = Marshal.ReadIntPtr(resourceHandle, 0);
+            IntPtr functionPointer = Marshal.ReadIntPtr(vTable, Release_Offset * IntPtr.Size);
+            NativeRelease method = Marshal.GetDelegateForFunctionPointer<NativeRelease>(functionPointer);
+            return method(resourceHandle);
         }
 
     }
