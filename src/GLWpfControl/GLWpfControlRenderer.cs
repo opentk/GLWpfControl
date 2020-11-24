@@ -18,7 +18,6 @@ namespace OpenTK.Wpf
         
         public event Action<TimeSpan> GLRender;
         
-        
         private DxGLFramebuffer _framebuffer;
 
         /// The OpenGL framebuffer handle.

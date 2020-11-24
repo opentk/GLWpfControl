@@ -22,7 +22,7 @@ namespace OpenTK.Wpf
 
         /// Called whenever rendering should occur.
         public event Action<TimeSpan> Render;
-        
+
         /// Called once per frame after render. This does not synchronize with the copy to the screen.
         /// This is only for extremely advanced use, where a non-display out task needs to run.
         /// Examples of these are an async Pixel Buffer Object transfer or Transform Feedback.
@@ -81,6 +81,7 @@ namespace OpenTK.Wpf
         {
             _settings = settings.Copy();
             _renderer = new GLWpfControlRenderer(_settings);
+            _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
             IsVisibleChanged += (_, args) => {
                 if ((bool) args.NewValue) {
                     CompositionTarget.Rendering += OnCompTargetRender;
