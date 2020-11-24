@@ -39,7 +39,7 @@ namespace OpenTK.Wpf
         
         [CanBeNull] private GLWpfControlSettings _settings;
         [CanBeNull] private GLWpfControlRenderer _renderer;
-        private bool _needsRedraw;
+        private bool _needsRedraw = true;
 
         // -----------------------------------
         // Properties

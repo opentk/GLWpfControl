@@ -25,7 +25,7 @@ namespace Example {
 
         private void RedrawButton_OnClick(object sender, RoutedEventArgs e) {
             // re-draw the inset control when the button is clicked.
-            // InsetControl.InvalidateVisual();
+            InsetControl.InvalidateVisual();
         }
     }
 }
