@@ -117,6 +117,7 @@ namespace OpenTK.Wpf {
                 var hwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
 
                 _sharedContext = glfwWindow.Context;
+                _sharedContextSettings = settings;
                 _sharedContextResources = new IDisposable[] {hwndSource, glfwWindow};
                 // GL init
                 // var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
