@@ -20,6 +20,6 @@ requireLicenseAcceptance
 copyright
     Copyright (c) 2020 Team OpenTK.
 dependencies
-    OpenTK ~> 4.2.0
+    OpenTK ~> 4.3.0
     
 include-pdbs true
