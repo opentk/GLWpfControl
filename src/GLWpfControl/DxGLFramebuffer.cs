@@ -20,9 +20,15 @@ namespace OpenTK.Wpf {
         private DxGlContext DxGlContext { get; }
         
         /// The width of this buffer in pixels
-        public int Width { get; }
+        public int FramebufferWidth { get; }
         
         /// The height of this buffer in pixels
+        public int FramebufferHeight { get; }
+
+        /// The width of the element in device-independent pixels
+        public int Width { get; }
+
+        /// The height of the element in device-independent pixels
         public int Height { get; }
         
         /// The DirectX Render target (framebuffer) handle.
@@ -51,12 +57,14 @@ namespace OpenTK.Wpf {
             DxGlContext = context;
             Width = width;
             Height = height;
+            FramebufferWidth = (int)Math.Ceiling(width * dpiScaleX);
+            FramebufferHeight = (int)Math.Ceiling(height * dpiScaleY);
             
             var dxSharedHandle = IntPtr.Zero; // Unused windows-vista legacy sharing handle. Must always be null.
             DXInterop.CreateRenderTarget(
                 context.DxDeviceHandle,
-                Width,
-                Height,
+                FramebufferWidth,
+                FramebufferHeight,
                 Format.X8R8G8B8,// this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice.
                 MultisampleType.None,
                 0,
@@ -89,7 +97,7 @@ namespace OpenTK.Wpf {
 
             GLDepthRenderBufferHandle = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLDepthRenderBufferHandle);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, Width, Height);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, FramebufferWidth, FramebufferHeight);
             GL.FramebufferRenderbuffer(
                 FramebufferTarget.Framebuffer,
                 FramebufferAttachment.DepthAttachment,
