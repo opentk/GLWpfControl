@@ -1,27 +1,14 @@
-### 4.0.0-pre.7
-    * Fix design mode crash in Visual Studio.
-
-### 4.0.0-pre.6
-    * Update to OpenTK 4.3.0
-
-### 4.0.0-pre.5
-    * Fix for one-frame delay on startup (no more flashing screen) (@bezo97)
-
-### 4.0.0-pre.4
-    * Add support for DPI Scaling + optional config values to ignore this. (@marcotod1410)
-    * Added Framebuffer Size to API. (@ marcotod1410)
-    * Fix render initialization if not visible at the start (@marcotod1410)
-    * Remove dependency on SharpDX and replace with custom bindings (@bezo97)
-
-### 4.0.0-pre.3
-    * Fix crash if control was to collapsed on startup.
-
-### 4.0.0-pre.2
-    * Fix Gamma/Linear color space issue (Thanks @Justin113D)
-
-### 4.0.0-pre.1
-    * Dotnet Core Support
-    * Retarget to OpenTK 4.2.0
+### 3.2.0
+    * Full backport & sync of all changes from 4.x.
+    * Greatly improved backend
+    * All memory leaks removed
+    * Faster loading
+    * Faster resizing
+    * Less memory usage
+    * Reduced duplicate rendering
+    * New design time preview
+    * Fixed crash when initialized inside a tab control
+    * Simpler examples
 
 ### 3.1.0
     * Add support for non-continuous event-based rendering via InvalidateVisual().
