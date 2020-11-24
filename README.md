@@ -1,14 +1,17 @@
 ## GLWpfControl
 ![Nuget](https://img.shields.io/nuget/v/OpenTK.GLWpfControl.svg?color=green)
 
-A native control for WPF in OpenTK. 
+A native control for WPF in OpenTK 3.x and 4.x.
 
-Since 3.0.0, we're using full OpenGL/DirectX interop via OpenGL extensions - [NV_DX_interop](https://www.khronos.org/registry/OpenGL/extensions/NV/WGL_NV_DX_interop.txt).
+Supported configurations:
+- .Net Framework for OpenTK 3.x (the 3.x series NuGet packages)
+- .Net Core for OpenTK 4.x (the 4.x series NuGet packages)
 
-This should run almost everywhere with incredible performance and is fully supported on Intel, AMD and Nvidia graphics.
+Since version 3.0.0, we're using full OpenGL/DirectX interop via OpenGL extensions - [NV_DX_interop](https://www.khronos.org/registry/OpenGL/extensions/NV/WGL_NV_DX_interop.txt). This should run almost everywhere with **AMAZING PERFORMANCE** and is fully supported on Intel, AMD and Nvidia graphics.
 
 This offers a way more clean solution than embedding GLControl and totally solves [the airspace problem](https://stackoverflow.com/questions/8006092/controls-dont-show-over-winforms-host). As controls can be layered, nested and structured over your 3D view.
 
+This package is intended to supercede the legacy *GLControl* completely, and we strongly encourage upgrading to this native WPF control instead.
 
 ## Getting started:
 
