@@ -112,12 +112,14 @@ namespace OpenTK.Wpf
 
             if (_settings.UseDeviceDpi) {
                 var presentationSource = PresentationSource.FromVisual(this);
-                Debug.Assert(presentationSource != null, nameof(presentationSource) + " != null");
-                Debug.Assert(presentationSource.CompositionTarget != null, "presentationSource.CompositionTarget != null");
-                
-                var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
-                dpiScaleX = transformToDevice.M11;
-                dpiScaleY = transformToDevice.M22;
+                // this can be null in the case of not having any visual on screen, such as a tabbed view.
+                if (presentationSource != null) {
+                    Debug.Assert(presentationSource.CompositionTarget != null, "presentationSource.CompositionTarget != null");
+
+                    var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
+                    dpiScaleX = transformToDevice.M11;
+                    dpiScaleY = transformToDevice.M22;
+                }
             }
             _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY);
         }
