@@ -1,4 +1,4 @@
-## GLWpfControl
+## GLWpfControl - A fast OpenGL Control for WPF.
 ![Nuget](https://img.shields.io/nuget/v/OpenTK.GLWpfControl.svg?color=green)
 
 A native control for WPF in OpenTK 3.x and 4.x.
