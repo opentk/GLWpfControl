@@ -1,3 +1,6 @@
+### 3.2.1
+    * Fix crash due to context mangling in tabbed views
+
 ### 3.2.0
     * Full backport & sync of all changes from 4.x.
     * Greatly improved backend
