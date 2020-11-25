@@ -1,3 +1,6 @@
+### 4.0.0-pre.10
+    * Fix crash due to context mangling in tabbed views
+
 ### 4.0.0-pre.9
     * Fix crash for tabbed window
     * Total rewrite of the backend
