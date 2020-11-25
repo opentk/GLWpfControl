@@ -130,6 +130,10 @@ namespace OpenTK.Wpf {
             return _sharedContext;
         }
 
+        public void MakeCurrent() {
+            _sharedContext.MakeCurrent();
+        }
+
         public void Dispose() {
             // we only dispose of the graphics context if we're using the shared one.
             if (ReferenceEquals(_sharedContext, GraphicsContext)) {

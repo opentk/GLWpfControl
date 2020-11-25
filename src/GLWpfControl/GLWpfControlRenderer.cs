@@ -56,11 +56,16 @@ namespace OpenTK.Wpf
             var curFrameStamp = _stopwatch.Elapsed;
             var deltaT = curFrameStamp - _lastFrameStamp;
             _lastFrameStamp = curFrameStamp;
+            // Console.WriteLine("PreRender...");
             PreRender();
+            // Console.WriteLine("Render...");
             GLRender?.Invoke(deltaT);
+            // Console.WriteLine("Unbinding framebuffer & flushing");
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Flush();
+            // Console.WriteLine("Async render...");
             GLAsyncRender?.Invoke();
+            // Console.WriteLine("PostRender...");
             PostRender();
             
             // Transforms are applied in reverse order
