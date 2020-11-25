@@ -1,3 +1,6 @@
+### 3.2.2
+    * Fix for resource deallocation issue
+
 ### 3.2.1
     * Fix crash due to context mangling in tabbed views
 
