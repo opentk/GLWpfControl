@@ -1,3 +1,6 @@
+### 4.0.0-pre.11
+    * Fix for resource deallocation issue.
+
 ### 4.0.0-pre.10
     * Fix crash due to context mangling in tabbed views
 

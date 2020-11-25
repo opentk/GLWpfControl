@@ -114,7 +114,7 @@ namespace OpenTK.Wpf {
         
         
         public void Dispose() {
-            GL.DeleteBuffer(GLFramebufferHandle);
+            GL.DeleteFramebuffer(GLFramebufferHandle);
             GL.DeleteRenderbuffer(GLDepthRenderBufferHandle);
             GL.DeleteTexture(GLSharedTextureHandle);
             Wgl.DXUnregisterObjectNV(DxGlContext.GlDeviceHandle, DxInteropRegisteredHandle);
