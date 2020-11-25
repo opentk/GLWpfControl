@@ -126,7 +126,7 @@ namespace OpenTK.Wpf
 
         private void OnUnloaded()
         {
-            _renderer?.SetSize(0,0, 1, 1);
+            // _renderer?.SetSize(0,0, 1, 1);
         }
 
         private void OnCompTargetRender(object sender, EventArgs e)
