@@ -40,7 +40,7 @@ namespace OpenTK.Wpf
 
 
         public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY) {
-            if (_framebuffer == null || _framebuffer.Width != width && _framebuffer.Height != height) {
+            if (_framebuffer == null || _framebuffer.Width != width || _framebuffer.Height != height) {
                 _framebuffer?.Dispose();
                 _framebuffer = null;
                 if (width > 0 && height > 0) {
@@ -68,7 +68,7 @@ namespace OpenTK.Wpf
             drawingContext.PushTransform(_framebuffer.FlipYTransform);                  // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
 
             // dpi scaled rectangle from the image
-            var rect = new Rect(0, 0, _framebuffer.D3dImage.Width, _framebuffer.D3dImage.Height);
+            var rect = new Rect(0, 0, _framebuffer.Width, _framebuffer.Height);
             drawingContext.DrawImage(_framebuffer.D3dImage, rect);            // Draw the image source 
 
             drawingContext.Pop();                                                       // Remove the scale transform
