@@ -28,7 +28,7 @@ namespace OpenTK.Wpf
         public int Width => _framebuffer?.FramebufferWidth ?? 0;
         
         /// The OpenGL Framebuffer height
-        public int Height => _framebuffer?.FramebufferWidth ?? 0;
+        public int Height => _framebuffer?.FramebufferHeight ?? 0;
         
         private TimeSpan _lastFrameStamp;
 
