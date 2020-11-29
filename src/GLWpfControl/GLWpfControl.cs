@@ -68,6 +68,8 @@ namespace OpenTK.Wpf
         /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
         public int FrameBufferHeight => _renderer?.Height ?? 0;
 
+        private TimeSpan lastRenderTime = TimeSpan.FromSeconds(-1);
+
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
@@ -131,6 +133,17 @@ namespace OpenTK.Wpf
 
         private void OnCompTargetRender(object sender, EventArgs e)
         {
+            var currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
+            if(currentRenderTime == lastRenderTime)
+            {
+                // It's possible for Rendering to call back twice in the same frame
+                // so only render when we haven't already rendered in this frame.
+                // Reference: https://docs.microsoft.com/en-us/dotnet/desktop/wpf/advanced/walkthrough-hosting-direct3d9-content-in-wpf?view=netframeworkdesktop-4.8#to-import-direct3d9-content
+                return;
+            }
+
+            lastRenderTime = currentRenderTime.Value;
+
             if (_needsRedraw) {
                 InvalidateVisual();
                 _needsRedraw = RenderContinuously;
