@@ -40,7 +40,7 @@ namespace OpenTK.Wpf
 
 
         public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY) {
-            if (_framebuffer == null || _framebuffer.Width != width && _framebuffer.Height != height) {
+            if (_framebuffer == null || _framebuffer.Width != width || _framebuffer.Height != height) {
                 _framebuffer?.Dispose();
                 _framebuffer = null;
                 if (width > 0 && height > 0) {
