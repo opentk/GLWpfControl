@@ -143,7 +143,7 @@ namespace OpenTK.Wpf
                 DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
             }
             else {
-                _renderer?.Render(drawingContext);
+                _renderer?.Render(drawingContext, PointToScreen(new Point(0,0)));
             }
             base.OnRender(drawingContext);
         }

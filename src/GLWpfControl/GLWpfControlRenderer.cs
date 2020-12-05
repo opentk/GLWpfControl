@@ -44,19 +44,20 @@ namespace OpenTK.Wpf
                 _framebuffer?.Dispose();
                 _framebuffer = null;
                 if (width > 0 && height > 0) {
-                    _framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY);
+                    _framebuffer = new DxGLFramebuffer(_context.Device, width, height, dpiScaleX, dpiScaleY);
                 }
             }
         }
 
-        public void Render(DrawingContext drawingContext) {
+        public void Render(DrawingContext drawingContext, Point point) {
             if (_framebuffer == null) {
                 return;
             }
             var curFrameStamp = _stopwatch.Elapsed;
             var deltaT = curFrameStamp - _lastFrameStamp;
             _lastFrameStamp = curFrameStamp;
-            PreRender();
+
+            PreRender(point);
             GLRender?.Invoke(deltaT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Flush();
@@ -76,10 +77,24 @@ namespace OpenTK.Wpf
         }
 
         /// Sets up the framebuffer, directx stuff for rendering. 
-        private void PreRender()
+        private void PreRender(Point point)
         {
+            // TODO: checking for the correct adapter is expensive and should not be made during the Render phase.
+            // It's safe to do it periodically (eg: a timer).
+
+            // check to set the device related to the adapter that is displaying the control
+            _context.SetDeviceFromCurrentAdapter(point);
+
+            if(_framebuffer.Device != _context.Device) // if the surface is related to a device that does not match the current adapter
+            {
+                // recreate a framebuffer with the current device and the same size as the previous one
+                var newFramebuffer = new DxGLFramebuffer(_context.Device, _framebuffer.Width, _framebuffer.Height, _framebuffer.DpiScaleX, _framebuffer.DpiScaleY);
+                _framebuffer.Dispose();
+                _framebuffer = newFramebuffer;
+            }
+
             _framebuffer.D3dImage.Lock();
-            Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
+            Wgl.DXLockObjectsNV(_context.Device.GLDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer.GLFramebufferHandle);
             GL.Viewport(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight);
         }
@@ -87,7 +102,7 @@ namespace OpenTK.Wpf
         /// Sets up the framebuffer and prepares stuff for usage in directx.
         private void PostRender()
         {
-            Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
+            Wgl.DXUnlockObjectsNV(_context.Device.GLDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle);
             _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight));
             _framebuffer.D3dImage.Unlock();
