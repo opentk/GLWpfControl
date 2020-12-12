@@ -18,8 +18,19 @@ namespace OpenTK.Wpf
         // EVENTS
         // -----------------------------------
 
+        private event Action<TimeSpan> InternalRender;
+
         /// Called whenever rendering should occur.
-        public event Action<TimeSpan> Render;
+        public event Action<TimeSpan> Render {
+            add
+            {
+                if (_settings == null) {
+                    throw new InvalidOperationException($"The {nameof(Render)} may only be bound after {nameof(Start)} has been called on this {nameof(GLWpfControl)}.");
+                }
+                InternalRender += value;
+            }
+            remove => InternalRender -= value;
+        }
 
         /// Called once per frame after render. This does not synchronize with the copy to the screen.
         /// This is only for extremely advanced use, where a non-display out task needs to run.
@@ -85,7 +96,7 @@ namespace OpenTK.Wpf
             _settings = settings.Copy();
             _needsRedraw = settings.RenderContinuously;
             _renderer = new GLWpfControlRenderer(_settings);
-            _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
+            _renderer.GLRender += timeDelta => InternalRender?.Invoke(timeDelta);
             _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
             IsVisibleChanged += (_, args) => {
                 if ((bool) args.NewValue) {
