@@ -133,8 +133,9 @@ namespace OpenTK.Wpf
         {
             if (_needsRedraw) {
                 InvalidateVisual();
-                _needsRedraw = RenderContinuously;
             }
+
+            _needsRedraw = RenderContinuously;
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
