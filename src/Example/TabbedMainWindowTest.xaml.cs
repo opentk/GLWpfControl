@@ -11,9 +11,9 @@ namespace Example {
     {
         public TabbedMainWindowTest() {
             InitializeComponent();
-            var mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 6, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
+            var mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
             Control1.Start(mainSettings);
-            var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 6, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
+            var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
             Control2.Start(insetSettings);
             GLDebugLog.Message += OnMessage;
         }
