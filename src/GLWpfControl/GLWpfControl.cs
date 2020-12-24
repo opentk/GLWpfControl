@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using JetBrains.Annotations;
@@ -156,9 +157,13 @@ namespace OpenTK.Wpf
             if (isDesignMode) {
                 DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
             }
-            else {
-                _renderer?.Render(drawingContext);
+            else if(_renderer != null) {
+                _renderer.Render(drawingContext);
             }
+            else {
+                UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
+            }
+
             base.OnRender(drawingContext);
         }
         
