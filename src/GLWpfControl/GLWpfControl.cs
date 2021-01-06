@@ -12,8 +12,10 @@ namespace OpenTK.Wpf
     ///     Provides a native WPF control for OpenTK.
     ///     To use this component, call the <see cref="Start(GLWpfControlSettings)"/> method.
     ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
+    ///
+    ///     Please do not extend this class. It has no support for that.
     /// </summary>
-    public sealed class GLWpfControl : FrameworkElement
+    public class GLWpfControl : FrameworkElement
     {
         // -----------------------------------
         // EVENTS
