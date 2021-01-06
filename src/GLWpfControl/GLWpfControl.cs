@@ -100,7 +100,6 @@ namespace OpenTK.Wpf
             };
 
             Loaded += (a, b) => {
-                SetupRenderSize();
                 InvalidateVisual();
             };
             Unloaded += (a, b) => OnUnloaded();
@@ -160,7 +159,8 @@ namespace OpenTK.Wpf
                 DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
             }
             else if(_renderer != null) {
-                _renderer.Render(drawingContext);
+                SetupRenderSize();
+                _renderer?.Render(drawingContext);
             }
             else {
                 UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
@@ -178,7 +178,6 @@ namespace OpenTK.Wpf
             
             if ((info.WidthChanged || info.HeightChanged) && (info.NewSize.Width > 0 && info.NewSize.Height > 0))
             {
-                SetupRenderSize();
                 InvalidateVisual();
             }
             base.OnRenderSizeChanged(info);
