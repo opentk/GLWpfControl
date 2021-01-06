@@ -1,3 +1,8 @@
+### 3.2.3
+    * Fix resizing
+    * Unseal GLWpfControl
+    * Fix crash on framebuffer access before inits
+
 ### 3.2.2
     * Fix for resource deallocation issue
 
