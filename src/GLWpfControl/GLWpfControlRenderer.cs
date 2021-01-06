@@ -22,13 +22,13 @@ namespace OpenTK.Wpf
         private DxGLFramebuffer _framebuffer;
 
         /// The OpenGL framebuffer handle.
-        public int FrameBufferHandle => _framebuffer.GLFramebufferHandle;
+        public int FrameBufferHandle => _framebuffer?.GLFramebufferHandle ?? 0;
 
         /// The OpenGL Framebuffer width
         public int Width => _framebuffer?.FramebufferWidth ?? 0;
         
         /// The OpenGL Framebuffer height
-        public int Height => _framebuffer?.FramebufferWidth ?? 0;
+        public int Height => _framebuffer?.FramebufferHeight ?? 0;
         
         private TimeSpan _lastFrameStamp;
 
@@ -40,7 +40,7 @@ namespace OpenTK.Wpf
 
 
         public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY) {
-            if (_framebuffer == null || _framebuffer.Width != width && _framebuffer.Height != height) {
+            if (_framebuffer == null || _framebuffer.Width != width || _framebuffer.Height != height) {
                 _framebuffer?.Dispose();
                 _framebuffer = null;
                 if (width > 0 && height > 0) {
