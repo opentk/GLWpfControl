@@ -1,3 +1,8 @@
+### 4.0.0
+    * Fix resizing
+    * Unseal GLWpfControl
+    * Fix crash on framebuffer access before inits
+
 ### 4.0.0-pre.12
     * Improved rendering performance by avoiding duplicate render calls (@marcotod1410)
     * Fix FrameBufferWidth property returning height incorrectly.
