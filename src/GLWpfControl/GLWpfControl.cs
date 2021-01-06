@@ -71,7 +71,7 @@ namespace OpenTK.Wpf
         /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
         public int FrameBufferHeight => _renderer?.Height ?? 0;
 
-        private TimeSpan lastRenderTime = TimeSpan.FromSeconds(-1);
+        private TimeSpan _lastRenderTime = TimeSpan.FromSeconds(-1);
 
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
@@ -137,7 +137,7 @@ namespace OpenTK.Wpf
         private void OnCompTargetRender(object sender, EventArgs e)
         {
             var currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
-            if(currentRenderTime == lastRenderTime)
+            if(currentRenderTime == _lastRenderTime)
             {
                 // It's possible for Rendering to call back twice in the same frame
                 // so only render when we haven't already rendered in this frame.
@@ -145,7 +145,7 @@ namespace OpenTK.Wpf
                 return;
             }
 
-            lastRenderTime = currentRenderTime.Value;
+            _lastRenderTime = currentRenderTime.Value;
 
             if (_needsRedraw) {
                 InvalidateVisual();
