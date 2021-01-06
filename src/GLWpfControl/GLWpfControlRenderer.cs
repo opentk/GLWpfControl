@@ -22,7 +22,7 @@ namespace OpenTK.Wpf
         private DxGLFramebuffer _framebuffer;
 
         /// The OpenGL framebuffer handle.
-        public int FrameBufferHandle => _framebuffer.GLFramebufferHandle;
+        public int FrameBufferHandle => _framebuffer?.GLFramebufferHandle ?? 0;
 
         /// The OpenGL Framebuffer width
         public int Width => _framebuffer?.FramebufferWidth ?? 0;
