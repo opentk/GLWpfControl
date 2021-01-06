@@ -5,8 +5,8 @@ using System.Reflection;
 [assembly: AssemblyTitleAttribute("GLWpfControl")]
 [assembly: AssemblyProductAttribute("OpenTK.GLWpfControl")]
 [assembly: AssemblyDescriptionAttribute("A native WPF control for OpenTK 4.X.")]
-[assembly: AssemblyVersionAttribute("3.2.2")]
-[assembly: AssemblyFileVersionAttribute("3.2.2")]
+[assembly: AssemblyVersionAttribute("3.2.3")]
+[assembly: AssemblyFileVersionAttribute("3.2.3")]
 [assembly: CLSCompliantAttribute(true)]
 [assembly: AssemblyCopyrightAttribute("Copyright (c) 2020 Team OpenTK.")]
 namespace System {
@@ -14,8 +14,8 @@ namespace System {
         internal const System.String AssemblyTitle = "GLWpfControl";
         internal const System.String AssemblyProduct = "OpenTK.GLWpfControl";
         internal const System.String AssemblyDescription = "A native WPF control for OpenTK 4.X.";
-        internal const System.String AssemblyVersion = "3.2.2";
-        internal const System.String AssemblyFileVersion = "3.2.2";
+        internal const System.String AssemblyVersion = "3.2.3";
+        internal const System.String AssemblyFileVersion = "3.2.3";
         internal const System.Boolean CLSCompliant = true;
         internal const System.String AssemblyCopyright = "Copyright (c) 2020 Team OpenTK.";
     }
