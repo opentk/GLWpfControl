@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using JetBrains.Annotations;
@@ -11,8 +12,10 @@ namespace OpenTK.Wpf
     ///     Provides a native WPF control for OpenTK.
     ///     To use this component, call the <see cref="Start(GLWpfControlSettings)"/> method.
     ///     Bind to the <see cref="Render"/> event only after <see cref="Start(GLWpfControlSettings)"/> is called.
+    ///
+    ///     Please do not extend this class. It has no support for that.
     /// </summary>
-    public sealed class GLWpfControl : FrameworkElement
+    public class GLWpfControl : FrameworkElement
     {
         // -----------------------------------
         // EVENTS
@@ -68,6 +71,8 @@ namespace OpenTK.Wpf
         /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
         public int FrameBufferHeight => _renderer?.Height ?? 0;
 
+        private TimeSpan _lastRenderTime = TimeSpan.FromSeconds(-1);
+
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
@@ -95,7 +100,6 @@ namespace OpenTK.Wpf
             };
 
             Loaded += (a, b) => {
-                SetupRenderSize();
                 InvalidateVisual();
             };
             Unloaded += (a, b) => OnUnloaded();
@@ -131,10 +135,22 @@ namespace OpenTK.Wpf
 
         private void OnCompTargetRender(object sender, EventArgs e)
         {
+            var currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
+            if(currentRenderTime == _lastRenderTime)
+            {
+                // It's possible for Rendering to call back twice in the same frame
+                // so only render when we haven't already rendered in this frame.
+                // Reference: https://docs.microsoft.com/en-us/dotnet/desktop/wpf/advanced/walkthrough-hosting-direct3d9-content-in-wpf?view=netframeworkdesktop-4.8#to-import-direct3d9-content
+                return;
+            }
+
+            _lastRenderTime = currentRenderTime.Value;
+
             if (_needsRedraw) {
                 InvalidateVisual();
-                _needsRedraw = RenderContinuously;
             }
+
+            _needsRedraw = RenderContinuously;
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
@@ -142,9 +158,14 @@ namespace OpenTK.Wpf
             if (isDesignMode) {
                 DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
             }
-            else {
-                _renderer?.Render(drawingContext, PointToScreen(new Point(0,0)));
+            else if(_renderer != null) {
+                SetupRenderSize();
+                _renderer?.Render(drawingContext);
             }
+            else {
+                UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
+            }
+
             base.OnRender(drawingContext);
         }
         
@@ -157,7 +178,6 @@ namespace OpenTK.Wpf
             
             if ((info.WidthChanged || info.HeightChanged) && (info.NewSize.Width > 0 && info.NewSize.Height > 0))
             {
-                SetupRenderSize();
                 InvalidateVisual();
             }
             base.OnRenderSizeChanged(info);
