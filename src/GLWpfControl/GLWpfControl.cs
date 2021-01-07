@@ -160,7 +160,7 @@ namespace OpenTK.Wpf
             }
             else if(_renderer != null) {
                 SetupRenderSize();
-                _renderer?.Render(drawingContext);
+                _renderer?.Render(drawingContext, PointToScreen(new Point(0, 0)));
             }
             else {
                 UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
