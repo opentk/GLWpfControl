@@ -113,8 +113,12 @@ namespace OpenTK.Wpf {
         public void SetDeviceFromCurrentAdapter(Point point)
         {
             var monitor = User32Interop.MonitorFromPoint(new POINT((int)point.X, (int)point.Y), MonitorOptions.MONITOR_DEFAULTTONULL);
-            
-            D3DDevice dev = null;
+
+            // Keep the default adapter device if no adapter is displaying the given point.
+            // In this (worst and unlikely) case, nothing will be drawn, but it won't lead in 
+            // NullReference exceptions for null devices.
+
+            D3DDevice dev = _devices[0];  
 
             for(int i = 0; i < _adapterCount; i++)
             {

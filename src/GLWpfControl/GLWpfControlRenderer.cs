@@ -38,6 +38,26 @@ namespace OpenTK.Wpf
             _context = new DxGlContext(settings);
         }
 
+        /// <summary>
+        /// Informs the renderer with the location it is drawing onto.
+        /// Since a device is created for each adapter, this is needed in order to select
+        /// the device associated with the adapter that displays the control.
+        /// </summary>
+        /// <param name="point"></param>
+        public void SetActiveDeviceFromLocation(Point point)
+        {
+            // check to set the device related to the adapter that is displaying the control
+            _context.SetDeviceFromCurrentAdapter(point);
+            
+            // if the surface is related to a device that does not match the current adapter
+            if (_framebuffer != null && _framebuffer.Device != _context.Device)
+            {
+                // remove the framebuffer, so that it is created in following SetSize() calls
+                // with the correct device
+                _framebuffer.Dispose();
+                _framebuffer = null;
+            }
+        }
 
         public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY) {
             if (_framebuffer == null || _framebuffer.Width != width || _framebuffer.Height != height) {
@@ -49,7 +69,7 @@ namespace OpenTK.Wpf
             }
         }
 
-        public void Render(DrawingContext drawingContext, Point point) {
+        public void Render(DrawingContext drawingContext) {
             if (_framebuffer == null) {
                 return;
             }
@@ -57,7 +77,7 @@ namespace OpenTK.Wpf
             var deltaT = curFrameStamp - _lastFrameStamp;
             _lastFrameStamp = curFrameStamp;
 
-            PreRender(point);
+            PreRender();
             GLRender?.Invoke(deltaT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Flush();
@@ -77,22 +97,8 @@ namespace OpenTK.Wpf
         }
 
         /// Sets up the framebuffer, directx stuff for rendering. 
-        private void PreRender(Point point)
+        private void PreRender()
         {
-            // TODO: checking for the correct adapter is expensive and should not be made during the Render phase.
-            // It's safe to do it periodically (eg: a timer).
-
-            // check to set the device related to the adapter that is displaying the control
-            _context.SetDeviceFromCurrentAdapter(point);
-
-            if(_framebuffer.Device != _context.Device) // if the surface is related to a device that does not match the current adapter
-            {
-                // recreate a framebuffer with the current device and the same size as the previous one
-                var newFramebuffer = new DxGLFramebuffer(_context.Device, _framebuffer.Width, _framebuffer.Height, _framebuffer.DpiScaleX, _framebuffer.DpiScaleY);
-                _framebuffer.Dispose();
-                _framebuffer = newFramebuffer;
-            }
-
             _framebuffer.D3dImage.Lock();
             Wgl.DXLockObjectsNV(_context.Device.GLDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer.GLFramebufferHandle);

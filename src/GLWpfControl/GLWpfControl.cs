@@ -125,6 +125,8 @@ namespace OpenTK.Wpf
                     dpiScaleY = transformToDevice.M22;
                 }
             }
+            
+            _renderer?.SetActiveDeviceFromLocation(PointToScreen(new Point(0, 0)));
             _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY);
         }
 
@@ -160,7 +162,7 @@ namespace OpenTK.Wpf
             }
             else if(_renderer != null) {
                 SetupRenderSize();
-                _renderer?.Render(drawingContext, PointToScreen(new Point(0, 0)));
+                _renderer?.Render(drawingContext);
             }
             else {
                 UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
