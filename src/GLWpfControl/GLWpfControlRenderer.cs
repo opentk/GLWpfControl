@@ -5,7 +5,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
-using OpenTK.Wpf.Interop;
 
 namespace OpenTK.Wpf
 {
@@ -56,41 +55,34 @@ namespace OpenTK.Wpf
             var curFrameStamp = _stopwatch.Elapsed;
             var deltaT = curFrameStamp - _lastFrameStamp;
             _lastFrameStamp = curFrameStamp;
-            PreRender();
+
+            // Set up framebuffer
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer.GLFramebufferHandle);
+            GL.Viewport(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight);
             GLRender?.Invoke(deltaT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Flush();
             GLAsyncRender?.Invoke();
-            PostRender();
-            
+
+            // Copy dirty area to front buffer
+            _framebuffer.D3dImage.Lock();
+            _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle);
+            _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight));
+            _framebuffer.D3dImage.Unlock();
+
             // Transforms are applied in reverse order
             drawingContext.PushTransform(_framebuffer.TranslateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
             drawingContext.PushTransform(_framebuffer.FlipYTransform);                  // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
 
             // dpi scaled rectangle from the image
             var rect = new Rect(0, 0, _framebuffer.D3dImage.Width, _framebuffer.D3dImage.Height);
+            Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new[] { _framebuffer.DxInteropRegisteredHandle });
             drawingContext.DrawImage(_framebuffer.D3dImage, rect);            // Draw the image source 
+            Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new[] { _framebuffer.DxInteropRegisteredHandle }); // Enable GL access to the framebuffer
 
             drawingContext.Pop();                                                       // Remove the scale transform
             drawingContext.Pop();                                                       // Remove the translation transform
         }
 
-        /// Sets up the framebuffer, directx stuff for rendering. 
-        private void PreRender()
-        {
-            _framebuffer.D3dImage.Lock();
-            Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer.GLFramebufferHandle);
-            GL.Viewport(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight);
-        }
-
-        /// Sets up the framebuffer and prepares stuff for usage in directx.
-        private void PostRender()
-        {
-            Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new [] {_framebuffer.DxInteropRegisteredHandle});
-            _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle);
-            _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight));
-            _framebuffer.D3dImage.Unlock();
-        }
     }
 }
