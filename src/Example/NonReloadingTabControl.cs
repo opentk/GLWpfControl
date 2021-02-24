@@ -1,7 +1,4 @@
-﻿// Prevent TabControl unload&re-create TabItem
-// https://stackoverflow.com/questions/9794151/stop-tabcontrol-from-recreating-its-children
-
-using System;
+﻿using System;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +7,8 @@ using System.Windows.Controls.Primitives;
 namespace Example
 {
     /// Special TabControl that does not unload/re-create items when it is used.
+    /// // Prevent TabControl unload&re-create TabItem
+    /// https://stackoverflow.com/questions/9794151/stop-tabcontrol-from-recreating-its-children
     [TemplatePart(Name = "PART_ItemsHolder", Type = typeof(Panel))]
     public class NonReloadingTabControl : TabControl
     {
