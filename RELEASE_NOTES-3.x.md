@@ -1,3 +1,8 @@
+### 3.3.0
+    * Add NonReloadingTabControl.
+    * Add example with new NonReloadingTabControl.
+
+
 ### 3.2.3
     * Fix resizing
     * Unseal GLWpfControl
