@@ -10,58 +10,22 @@
     Title="MainWindow"
     Width="800"
     Height="800">
-    <Window.Resources>
-        <Style TargetType="{x:Type local:TabControlEx}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type TabControl}">
-                        <Grid Background="{TemplateBinding Background}" ClipToBounds="True" KeyboardNavigation.TabNavigation="Local" SnapsToDevicePixels="True">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="ColumnDefinition0" />
-                                <ColumnDefinition x:Name="ColumnDefinition1" Width="0" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition x:Name="RowDefinition0" Height="Auto" />
-                                <RowDefinition x:Name="RowDefinition1" Height="*" />
-                            </Grid.RowDefinitions>
-                            <DockPanel Margin="2,2,0,0" LastChildFill="False">
-                                <TabPanel x:Name="HeaderPanel" Margin="0,0,0,-1" VerticalAlignment="Bottom" Panel.ZIndex="1" DockPanel.Dock="Left"
-                                  IsItemsHost="True" KeyboardNavigation.TabIndex="1" />
-                            </DockPanel>
-                            <Border x:Name="ContentPanel" Grid.Row="1" Grid.Column="0"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            KeyboardNavigation.DirectionalNavigation="Contained" KeyboardNavigation.TabIndex="2" KeyboardNavigation.TabNavigation="Local">
-                                <Grid x:Name="PART_ItemsHolder" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-    <local:TabControlEx
-  IsSynchronizedWithCurrentItem="True">
+    <local:NonReloadingTabControl>
 		<TabItem Header="Blank 1">
 		</TabItem>
 		<TabItem Header="Control 1">
-			<Grid Background="#FFE5E5E5">
-				<glWpfControl:GLWpfControl
-				x:Name="Control1"
-				Render="Control1_OnRender" />
-			</Grid>
+			<glWpfControl:GLWpfControl
+			x:Name="Control1"
+			Render="Control1_OnRender" />
 		</TabItem>
 		<TabItem Header="Control 2">
-			<Grid Background="#FFE5E5E5">
-				<glWpfControl:GLWpfControl
-					x:Name="Control2"
-					Render="Control2_OnRender" />
-			</Grid>
+			<glWpfControl:GLWpfControl
+				x:Name="Control2"
+				Render="Control2_OnRender" />
 		</TabItem>
 		<TabItem Header="Blank 3">
 		</TabItem>
 		<TabItem Header="Blank 4">
 		</TabItem>
-	</local:TabControlEx>
+	</local:NonReloadingTabControl>
 </Window>

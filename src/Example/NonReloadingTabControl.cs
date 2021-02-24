@@ -9,12 +9,13 @@ using System.Windows.Controls.Primitives;
 
 namespace Example
 {
+    /// Special TabControl that does not unload/re-create items when it is used.
     [TemplatePart(Name = "PART_ItemsHolder", Type = typeof(Panel))]
-    public class TabControlEx : TabControl
+    public class NonReloadingTabControl : TabControl
     {
         private Panel ItemsHolderPanel = null;
 
-        public TabControlEx()
+        public NonReloadingTabControl()
             : base()
         {
             // This is necessary so that we get the initial databound selected item
