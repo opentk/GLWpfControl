@@ -1,0 +1,31 @@
+﻿<Window
+    x:Class="Example.TabbedMainWindowTest"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Example"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+    mc:Ignorable="d"
+    Title="MainWindow"
+    Width="800"
+    Height="800">
+    <glWpfControl:NonReloadingTabControl>
+		<TabItem Header="Blank 1">
+		</TabItem>
+		<TabItem Header="Control 1">
+			<glWpfControl:GLWpfControl
+			x:Name="Control1"
+			Render="Control1_OnRender" />
+		</TabItem>
+		<TabItem Header="Control 2">
+			<glWpfControl:GLWpfControl
+				x:Name="Control2"
+				Render="Control2_OnRender" />
+		</TabItem>
+		<TabItem Header="Blank 3">
+		</TabItem>
+		<TabItem Header="Blank 4">
+		</TabItem>
+	</glWpfControl:NonReloadingTabControl>
+</Window>
