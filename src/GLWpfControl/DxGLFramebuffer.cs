@@ -97,11 +97,17 @@ namespace OpenTK.Wpf {
 
             GLDepthRenderBufferHandle = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLDepthRenderBufferHandle);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, FramebufferWidth, FramebufferHeight);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, FramebufferWidth, FramebufferHeight);
+            
             GL.FramebufferRenderbuffer(
                 FramebufferTarget.Framebuffer,
                 FramebufferAttachment.DepthAttachment,
                 RenderbufferTarget.Renderbuffer,
+                GLDepthRenderBufferHandle);
+            GL.FramebufferRenderbuffer(
+                FramebufferTarget.Framebuffer,
+                FramebufferAttachment.StencilAttachment,
+                RenderbufferTarget.Renderbuffer, 
                 GLDepthRenderBufferHandle);
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
