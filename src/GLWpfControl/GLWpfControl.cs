@@ -119,7 +119,7 @@ namespace OpenTK.Wpf
 
         private void OnLocationCheckTimerTick(object sender, EventArgs e)
         {
-            _renderer?.SetActiveDeviceFromLocation(PointToScreen(new Point(0, 0)));
+            _renderer?.SetMonitorFromPoint(PointToScreen(new Point(0, 0)));
         }
 
         private void SetupRenderSize() {

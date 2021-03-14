@@ -12,6 +12,7 @@ namespace OpenTK.Wpf.Interop
         private const int TestCooperativeLevel_Offset = 3;
         private const int Release_Offset = 2;
         private const int GetAdapterMonitor_Offset = 15;
+        private const int CheckDeviceState_Offset = 128;
 
         private delegate int NativeCreateDeviceEx(IntPtr contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IntPtr deviceHandle);
         private delegate uint NativeGetAdapterCount(IntPtr contextHandle);
@@ -19,6 +20,7 @@ namespace OpenTK.Wpf.Interop
         private delegate uint NativeRelease(IntPtr resourceHandle);
         private delegate uint NativeTestCooperativeLevel(IntPtr deviceHandle);
         private delegate IntPtr NativeGetAdapterMonitor(IntPtr contextHandle, uint index);
+        private delegate int NativeCheckDeviceState(IntPtr deviceHandle, IntPtr hwndDestinationWindow);
 
         [DllImport("d3d9.dll")]
         public static extern int Direct3DCreate9Ex(uint SdkVersion, out IntPtr ctx);
@@ -71,6 +73,14 @@ namespace OpenTK.Wpf.Interop
             IntPtr functionPointer = Marshal.ReadIntPtr(vTable, GetAdapterMonitor_Offset * IntPtr.Size);
             NativeGetAdapterMonitor method = Marshal.GetDelegateForFunctionPointer<NativeGetAdapterMonitor>(functionPointer);
             return method(contextHandle, index);
+        }
+
+        public static int CheckDeviceState(IntPtr deviceHandle, IntPtr hwndWindow)
+        {
+            IntPtr vTable = Marshal.ReadIntPtr(deviceHandle, 0);
+            IntPtr functionPointer = Marshal.ReadIntPtr(vTable, CheckDeviceState_Offset * IntPtr.Size);
+            NativeCheckDeviceState method = Marshal.GetDelegateForFunctionPointer<NativeCheckDeviceState>(functionPointer);
+            return method(deviceHandle, hwndWindow);
         }
 
     }

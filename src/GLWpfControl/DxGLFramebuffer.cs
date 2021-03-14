@@ -127,6 +127,10 @@ namespace OpenTK.Wpf {
             GL.DeleteTexture(GLSharedTextureHandle);
             Wgl.DXUnregisterObjectNV(Device.GLDeviceHandle, DxInteropRegisteredHandle);
             DXInterop.Release(DxRenderTargetHandle);
+            
+            D3dImage.Lock();
+            D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, IntPtr.Zero);
+            D3dImage.Unlock();
         }
     }
 }

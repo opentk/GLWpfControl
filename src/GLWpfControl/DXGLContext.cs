@@ -110,24 +110,36 @@ namespace OpenTK.Wpf {
             return _sharedContext;
         }
 
-        public void SetDeviceFromCurrentAdapter(Point point)
+        public void SetDeviceFromMonitor(IntPtr monitor)
         {
-            var monitor = User32Interop.MonitorFromPoint(new POINT((int)point.X, (int)point.Y), MonitorOptions.MONITOR_DEFAULTTONULL);
-
-            // Keep the default adapter device if no adapter is displaying the given point.
+            // Keep the default adapter device if monitor is null.
             // In this (worst and unlikely) case, nothing will be drawn, but it won't lead in 
             // NullReference exceptions for null devices.
+            if(monitor == IntPtr.Zero)
+            {
+                Device = _devices[0];
+                return;
+            }
 
-            D3DDevice dev = _devices[0];  
+            D3DDevice dev = null;
 
-            for(int i = 0; i < _adapterCount; i++)
+            for (int i = 0; i < _adapterCount; i++)
             {
                 var d3dMonitor = DXInterop.GetAdapterMonitor(DxContextHandle, (uint)i);
-                if(d3dMonitor == monitor)
+                if (d3dMonitor == monitor)
                 {
                     dev = _devices[i];
                     break;
                 }
+            }
+
+            if (dev == null)
+            {
+                // This can happen when the control runs on a laptop with an external display in duplicated mode
+                // and the user closes the lid (see issue #39).
+                // In this particular case, only recreating the context will be useful.
+
+                throw new AdapterMonitorNotFoundException("Adapter was not found for given monitor handle");
             }
 
             Device = dev;
