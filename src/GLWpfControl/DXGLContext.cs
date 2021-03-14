@@ -146,6 +146,13 @@ namespace OpenTK.Wpf {
         }
 
         public void Dispose() {
+
+            Device = null;
+            foreach(var dev in _devices)
+            {
+                dev.Dispose();
+            }
+
             // we only dispose of the graphics context if we're using the shared one.
             if (ReferenceEquals(_sharedContext, GraphicsContext)) {
                 if (Interlocked.Decrement(ref _sharedContextReferenceCount) == 0) {
