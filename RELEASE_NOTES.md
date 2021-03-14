@@ -1,3 +1,7 @@
+### 4.1.0
+    * Add NonReloadingTabControl.
+    * Add example with new NonReloadingTabControl.
+
 ### 4.0.0
     * Fix resizing
     * Unseal GLWpfControl
