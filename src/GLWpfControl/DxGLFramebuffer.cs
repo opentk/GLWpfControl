@@ -17,7 +17,7 @@ namespace OpenTK.Wpf {
     /// Prior to releasing references. 
     internal sealed class DxGLFramebuffer : IDisposable {
 
-        private DxGlContext DxGlContext { get; }
+        public D3DDevice Device { get; }
         
         /// The width of this buffer in pixels
         public int FramebufferWidth { get; }
@@ -46,6 +46,10 @@ namespace OpenTK.Wpf {
         /// Specific wgl_dx_interop handle that marks the framebuffer as ready for interop.
         public IntPtr DxInteropRegisteredHandle { get; }
 
+        public double DpiScaleX { get; }
+
+        public double DpiScaleY { get; }
+
         
         public D3DImage D3dImage { get; }
 
@@ -53,16 +57,19 @@ namespace OpenTK.Wpf {
         public ScaleTransform FlipYTransform { get; }
 
 
-        public DxGLFramebuffer([NotNull] DxGlContext context, int width, int height, double dpiScaleX, double dpiScaleY) {
-            DxGlContext = context;
+        public DxGLFramebuffer([NotNull] D3DDevice device, int width, int height, double dpiScaleX, double dpiScaleY) {
+            Device = device;
             Width = width;
             Height = height;
+            DpiScaleX = dpiScaleX;
+            DpiScaleY = dpiScaleY;
+
             FramebufferWidth = (int)Math.Ceiling(width * dpiScaleX);
             FramebufferHeight = (int)Math.Ceiling(height * dpiScaleY);
             
             var dxSharedHandle = IntPtr.Zero; // Unused windows-vista legacy sharing handle. Must always be null.
             DXInterop.CreateRenderTarget(
-                context.DxDeviceHandle,
+                device.Handle,
                 FramebufferWidth,
                 FramebufferHeight,
                 Format.X8R8G8B8,// this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice.
@@ -80,7 +87,7 @@ namespace OpenTK.Wpf {
             GLSharedTextureHandle = GL.GenTexture();
 
             var genHandle = Wgl.DXRegisterObjectNV(
-                context.GlDeviceHandle,
+                device.GLDeviceHandle,
                 dxRenderTargetHandle,
                 (uint)GLSharedTextureHandle,
                 (uint)TextureTarget.Texture2D,
@@ -124,8 +131,12 @@ namespace OpenTK.Wpf {
             GL.DeleteFramebuffer(GLFramebufferHandle);
             GL.DeleteRenderbuffer(GLDepthRenderBufferHandle);
             GL.DeleteTexture(GLSharedTextureHandle);
-            Wgl.DXUnregisterObjectNV(DxGlContext.GlDeviceHandle, DxInteropRegisteredHandle);
+            Wgl.DXUnregisterObjectNV(Device.GLDeviceHandle, DxInteropRegisteredHandle);
             DXInterop.Release(DxRenderTargetHandle);
+            
+            D3dImage.Lock();
+            D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, IntPtr.Zero);
+            D3dImage.Unlock();
         }
     }
 }

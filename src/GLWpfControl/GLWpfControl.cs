@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using JetBrains.Annotations;
 
 namespace OpenTK.Wpf
@@ -73,6 +74,8 @@ namespace OpenTK.Wpf
 
         private TimeSpan _lastRenderTime = TimeSpan.FromSeconds(-1);
 
+        private DispatcherTimer _controlLocationCheckTimer;
+
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
@@ -103,9 +106,27 @@ namespace OpenTK.Wpf
                 InvalidateVisual();
             };
             Unloaded += (a, b) => OnUnloaded();
+
+            _controlLocationCheckTimer = new DispatcherTimer()
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+            _controlLocationCheckTimer.Tick += OnLocationCheckTimerTick;
+            _controlLocationCheckTimer.Start();
+
             Ready?.Invoke();
         }
-        
+
+        private void OnLocationCheckTimerTick(object sender, EventArgs e)
+        {
+            var presentationSource = PresentationSource.FromVisual(this);
+            
+            if(presentationSource != null)
+            {
+                _renderer?.SetMonitorFromPoint(PointToScreen(new Point(0, 0)));
+            }
+        }
+
         private void SetupRenderSize() {
             if (_renderer == null || _settings == null) {
                 return;
@@ -125,6 +146,7 @@ namespace OpenTK.Wpf
                     dpiScaleY = transformToDevice.M22;
                 }
             }
+            
             _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY);
         }
 

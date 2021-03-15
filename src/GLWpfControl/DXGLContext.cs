@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
@@ -18,16 +20,16 @@ namespace OpenTK.Wpf {
         
         /// The directX context. This is basically the root of all DirectX state.
         public IntPtr DxContextHandle { get; }
-        
-        /// The directX device handle. This is the graphics card we're running on.
-        public IntPtr DxDeviceHandle { get; }
+
+        public D3DDevice Device { get; private set; }
+
+        private readonly uint _adapterCount;
+
+        private readonly List<D3DDevice> _devices;
         
         /// The OpenGL Context. This is basically the root of all OpenGL state.
         public IGraphicsContext GraphicsContext { get; }
         
-        /// An OpenGL handle to the DirectX device. Created and used by the WGL_dx_interop extension.
-        public IntPtr GlDeviceHandle { get; }
-
         /// The shared context we (may) want to lazily create/use.
         private static IGraphicsContext _sharedContext;
         private static GLWpfControlSettings _sharedContextSettings;
@@ -38,49 +40,27 @@ namespace OpenTK.Wpf {
 
 
         public DxGlContext([NotNull] GLWpfControlSettings settings) {
-            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out var dxContextHandle);
-            DxContextHandle = dxContextHandle;
-
-            var deviceParameters = new PresentationParameters
-            {
-                Windowed = 1,
-                SwapEffect = SwapEffect.Discard,
-                DeviceWindowHandle = IntPtr.Zero,
-                PresentationInterval = 0,
-                BackBufferFormat = Format.X8R8G8B8, // this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice. 
-                BackBufferWidth = 1,
-                BackBufferHeight = 1,
-                AutoDepthStencilFormat = Format.Unknown,
-                BackBufferCount = 1,
-                EnableAutoDepthStencil = 0,
-                Flags = 0,
-                FullScreen_RefreshRateInHz = 0,
-                MultiSampleQuality = 0,
-                MultiSampleType = MultisampleType.None
-            };
-
-            DXInterop.CreateDeviceEx(
-                dxContextHandle,
-                0,
-                DeviceType.HAL, // use hardware rasterization
-                IntPtr.Zero,
-                CreateFlags.HardwareVertexProcessing |
-                CreateFlags.Multithreaded |
-                CreateFlags.PureDevice,
-                ref deviceParameters,
-                IntPtr.Zero,
-                out var dxDeviceHandle);
-            DxDeviceHandle = dxDeviceHandle;
-
+            
             // if the graphics context is null, we use the shared context.
-            if (settings.ContextToUse != null) {
+            if (settings.ContextToUse != null)
+            {
                 GraphicsContext = settings.ContextToUse;
             }
-            else {
+            else
+            {
                 GraphicsContext = GetOrCreateSharedOpenGLContext(settings);
             }
 
-            GlDeviceHandle = Wgl.DXOpenDeviceNV(dxDeviceHandle);
+            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out var dxContextHandle);
+            DxContextHandle = dxContextHandle;
+
+            _adapterCount = DXInterop.GetAdapterCount(dxContextHandle);
+
+            _devices = Enumerable.Range(0, (int)_adapterCount)
+                .Select(i => D3DDevice.CreateDevice(dxContextHandle, i))
+                .ToList();
+
+            Device = _devices.First();
         }
 
         private static IGraphicsContext GetOrCreateSharedOpenGLContext(GLWpfControlSettings settings) {
@@ -130,7 +110,49 @@ namespace OpenTK.Wpf {
             return _sharedContext;
         }
 
+        public void SetDeviceFromMonitor(IntPtr monitor)
+        {
+            // Keep the default adapter device if monitor is null.
+            // In this (worst and unlikely) case, nothing will be drawn, but it won't lead in 
+            // NullReference exceptions for null devices.
+            if(monitor == IntPtr.Zero)
+            {
+                Device = _devices[0];
+                return;
+            }
+
+            D3DDevice dev = null;
+
+            for (int i = 0; i < _adapterCount; i++)
+            {
+                var d3dMonitor = DXInterop.GetAdapterMonitor(DxContextHandle, (uint)i);
+                if (d3dMonitor == monitor)
+                {
+                    dev = _devices[i];
+                    break;
+                }
+            }
+
+            if (dev == null)
+            {
+                // This can happen when the control runs on a laptop with an external display in duplicated mode
+                // and the user closes the lid (see issue #39).
+                // In this particular case, only recreating the context will be useful.
+
+                throw new AdapterMonitorNotFoundException("Adapter was not found for given monitor handle");
+            }
+
+            Device = dev;
+        }
+
         public void Dispose() {
+
+            Device = null;
+            foreach(var dev in _devices)
+            {
+                dev.Dispose();
+            }
+
             // we only dispose of the graphics context if we're using the shared one.
             if (ReferenceEquals(_sharedContext, GraphicsContext)) {
                 if (Interlocked.Decrement(ref _sharedContextReferenceCount) == 0) {
