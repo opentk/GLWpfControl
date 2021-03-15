@@ -23,7 +23,7 @@ This package is intended to supercede the legacy *GLControl* completely, and we 
             xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
             ... >    
     ```
-3. Add the control into a container (Grid, StackPanel, etc.) and add a handler dethod to the render event.
+3. Add the control into a container (Grid, StackPanel, etc.) and add a handler method to the render event.
 
     ```XML
         <Grid>
