@@ -17,6 +17,9 @@ namespace OpenTK.Wpf {
         /// for managing the lifetime and disposal of.
         public IGraphicsContext ContextToUse { get; set; }
 
+        /// May ne null. If so, default bindings context will be used.
+        public IBindingsContext BindingsContext { get; set; }
+
         public ContextFlags GraphicsContextFlags { get; set; } = ContextFlags.Default;
         public ContextProfile GraphicsProfile { get; set; } = ContextProfile.Any;
 
@@ -30,6 +33,7 @@ namespace OpenTK.Wpf {
         internal GLWpfControlSettings Copy() {
             var c = new GLWpfControlSettings {
                 ContextToUse = ContextToUse,
+                BindingsContext = BindingsContext,
                 GraphicsContextFlags = GraphicsContextFlags,
                 GraphicsProfile = GraphicsProfile,
                 MajorVersion = MajorVersion,
