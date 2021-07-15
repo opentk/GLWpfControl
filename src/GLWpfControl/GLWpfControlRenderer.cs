@@ -58,7 +58,7 @@ namespace OpenTK.Wpf
             PreRender();
             GLRender?.Invoke(deltaT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.Flush();
+            GL.Finish();
             GLAsyncRender?.Invoke();
             PostRender();
             
