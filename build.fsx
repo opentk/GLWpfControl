@@ -67,7 +67,7 @@ let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/opentk"
 // --------------------------------------------------------------------------------------
 
 // Read additional information from the release notes document
-let release = LoadReleaseNotes "RELEASE_NOTES.md"
+let release = LoadReleaseNotes "RELEASE_NOTES-3.x.md"
 
 // Helper active pattern for project types
 let (|Fsproj|Csproj|Vbproj|) (projFileName:string) =

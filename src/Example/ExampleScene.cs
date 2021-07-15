@@ -1,7 +1,8 @@
 using System;
 using System.Diagnostics;
+using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
 
 namespace Example {
     /// Example class handling the rendering for OpenGL.

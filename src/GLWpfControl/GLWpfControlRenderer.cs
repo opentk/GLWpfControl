@@ -4,8 +4,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Graphics.Wgl;
-using OpenTK.Wpf.Interop;
+using OpenTK.Platform.Windows;
 
 namespace OpenTK.Wpf
 {
@@ -59,7 +58,7 @@ namespace OpenTK.Wpf
             PreRender();
             GLRender?.Invoke(deltaT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            GL.Flush();
+            GL.Finish();
             GLAsyncRender?.Invoke();
             PostRender();
             

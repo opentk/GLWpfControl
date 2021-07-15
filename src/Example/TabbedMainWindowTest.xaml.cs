@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
-using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
 
 namespace Example {
@@ -11,9 +9,10 @@ namespace Example {
     {
         public TabbedMainWindowTest() {
             InitializeComponent();
-            var mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
+            
+            var mainSettings = new GLWpfControlSettings {MajorVersion = 2, MinorVersion = 1};
             Control1.Start(mainSettings);
-            var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
+            var insetSettings = new GLWpfControlSettings {MajorVersion = 2, MinorVersion = 1};
             Control2.Start(insetSettings);
         }
 

@@ -1,6 +1,7 @@
 using System;
 using JetBrains.Annotations;
-using OpenTK.Windowing.Common;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 
 namespace OpenTK.Wpf {
     public sealed class GLWpfControlSettings {
@@ -17,8 +18,8 @@ namespace OpenTK.Wpf {
         /// for managing the lifetime and disposal of.
         public IGraphicsContext ContextToUse { get; set; }
 
-        public ContextFlags GraphicsContextFlags { get; set; } = ContextFlags.Default;
-        public ContextProfile GraphicsProfile { get; set; } = ContextProfile.Any;
+        public GraphicsContextFlags GraphicsContextFlags { get; set; } = GraphicsContextFlags.Default;
+        public ContextProfileMask GraphicsProfile { get; set; }
 
         public int MajorVersion { get; set; } = 3;
         public int MinorVersion { get; set; } = 3;

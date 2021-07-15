@@ -8,7 +8,7 @@ owners
 authors
     Team OpenTK
 summary
-    A native WPF control for OpenTK 4.2.0+
+    A native WPF control for OpenTK 3.x
 projectUrl
     https://www.opentk.net
 iconUrl
@@ -20,6 +20,6 @@ requireLicenseAcceptance
 copyright
     Copyright (c) 2020 Team OpenTK.
 dependencies
-    OpenTK ~> 4.3.0
+    OpenTK ~> 3.3.0
     
 include-pdbs true
