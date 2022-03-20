@@ -17,7 +17,7 @@ namespace OpenTK.Wpf {
         /// for managing the lifetime and disposal of.
         public IGraphicsContext ContextToUse { get; set; }
 
-        /// May ne null. If so, default bindings context will be used.
+        /// May be null. If so, default bindings context will be used.
         public IBindingsContext BindingsContext { get; set; }
 
         public ContextFlags GraphicsContextFlags { get; set; } = ContextFlags.Default;
