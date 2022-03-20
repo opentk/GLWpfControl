@@ -107,7 +107,7 @@ namespace OpenTK.Wpf {
                 nws.WindowBorder = WindowBorder.Hidden;
                 nws.WindowState = WindowState.Minimized;
                 var glfwWindow = new NativeWindow(nws);
-                var provider = new GLFWBindingsContext();
+                var provider = settings.BindingsContext ?? new GLFWBindingsContext();
                 Wgl.LoadBindings(provider);
                 // we're already in a window context, so we can just cheat by creating a new dependency object here rather than passing any around.
                 var depObject = new DependencyObject();
