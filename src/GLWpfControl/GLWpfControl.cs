@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using JetBrains.Annotations;
+using OpenTK.Wpf.Interop;
 
 namespace OpenTK.Wpf
 {
@@ -125,12 +126,13 @@ namespace OpenTK.Wpf
                     dpiScaleY = transformToDevice.M22;
                 }
             }
-            _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY);
+            var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
+            _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY, format);
         }
 
         private void OnUnloaded()
         {
-            _renderer?.SetSize(0,0, 1, 1);
+            _renderer?.SetSize(0,0, 1, 1, Format.X8R8G8B8);
         }
 
         private void OnCompTargetRender(object sender, EventArgs e)

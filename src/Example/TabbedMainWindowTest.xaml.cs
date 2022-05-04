@@ -15,6 +15,8 @@ namespace Example {
             Control1.Start(mainSettings);
             var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug};
             Control2.Start(insetSettings);
+            var transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 5, GraphicsProfile = ContextProfile.Compatability, GraphicsContextFlags = ContextFlags.Debug, TransparentBackground = true};
+            Control3.Start(transparentSettings);
         }
 
         private void OpenTkControl_OnRender(TimeSpan delta) {
@@ -27,6 +29,11 @@ namespace Example {
 
         private void Control1_OnRender(TimeSpan delta) {
 	        ExampleScene.Render();
+        }
+
+        private void Control3_OnRender(TimeSpan delta)
+        {
+            ExampleScene.Render(0.0f);
         }
     }
 }

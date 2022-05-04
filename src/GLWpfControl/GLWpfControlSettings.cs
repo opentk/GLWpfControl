@@ -13,6 +13,10 @@ namespace OpenTK.Wpf {
         /// This setting may be useful to get extra performance on mobile platforms.
         public bool UseDeviceDpi { get; set; } = true;
 
+        // If this parameter is set to true, the alpha channel of the color passed to the function GL.ClearColor
+        // will determine the level of transparency of this control
+        public bool TransparentBackground { get; set; } = false;
+
         /// May be null. If defined, an external context will be used, of which the caller is responsible
         /// for managing the lifetime and disposal of.
         public IGraphicsContext ContextToUse { get; set; }
@@ -39,7 +43,8 @@ namespace OpenTK.Wpf {
                 MajorVersion = MajorVersion,
                 MinorVersion = MinorVersion,
                 RenderContinuously = RenderContinuously,
-                UseDeviceDpi = UseDeviceDpi
+                UseDeviceDpi = UseDeviceDpi,
+                TransparentBackground = TransparentBackground
             };
             return c;
         }
