@@ -65,7 +65,7 @@ namespace OpenTK.Wpf {
                 context.DxDeviceHandle,
                 FramebufferWidth,
                 FramebufferHeight,
-                format,// this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice.
+                format,
                 MultisampleType.None,
                 0,
                 false,
