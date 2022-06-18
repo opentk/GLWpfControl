@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using JetBrains.Annotations;
 using OpenTK.Wpf.Interop;
@@ -35,7 +37,6 @@ namespace OpenTK.Wpf
         /// Gets called after the control has finished initializing and is ready to render
         /// </summary>
         public event Action Ready;
-        
 
         // -----------------------------------
         // Fields
@@ -77,7 +78,8 @@ namespace OpenTK.Wpf
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
         /// </summary>
-        public GLWpfControl() {
+        public GLWpfControl() : base()
+        {
         }
 
         /// Starts the control and rendering, using the settings provided.
@@ -99,6 +101,10 @@ namespace OpenTK.Wpf
                     CompositionTarget.Rendering -= OnCompTargetRender;
                 }
             };
+
+            // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
+            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), true);
+            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), true);
 
             Loaded += (a, b) => {
                 InvalidateVisual();
@@ -134,6 +140,28 @@ namespace OpenTK.Wpf
         {
             _renderer?.SetSize(0,0, 1, 1, Format.X8R8G8B8);
         }
+
+        // Raise the events so they're received if you subscribe to the base control's events
+        // There are others that should probably be sent -- focus doesn't seem to work for whatever reason
+        internal void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.OriginalSource != this)
+            {
+                KeyEventArgs args = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key);
+                args.RoutedEvent = Keyboard.KeyDownEvent;
+                RaiseEvent(args);
+            }
+        }
+        internal void OnKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.OriginalSource != this)
+            {
+                KeyEventArgs args = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key);
+                args.RoutedEvent = Keyboard.KeyUpEvent;
+                RaiseEvent(args);
+            }
+        }
+
 
         private void OnCompTargetRender(object sender, EventArgs e)
         {
