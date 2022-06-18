@@ -1,38 +1,57 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32516.85
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F02DE1CD-94DB-4F38-8B0A-833B2A357E2E}"
-ProjectSection(SolutionItems) = preProject
-	build.fsx = build.fsx
-	build.sh = build.sh
-	build.cmd = build.cmd
-	paket.dependencies = paket.dependencies
-	paket.lock = paket.lock
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		build.cmd = build.cmd
+		build.fsx = build.fsx
+		build.sh = build.sh
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{8A911F4A-8A01-4B86-959B-27CA1CDA2C1B}"
-ProjectSection(SolutionItems) = preProject
-	README.md = README.md
-	RELEASE_NOTES.md = RELEASE_NOTES.md
-	src\GLWpfControl\paket.template = src\GLWpfControl\paket.template
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		src\GLWpfControl\paket.template = src\GLWpfControl\paket.template
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLWpfControl", "src\GLWpfControl\GLWpfControl.csproj", "{E201C66F-F247-4E23-AB4D-0EB50005091D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLWpfControl", "src\GLWpfControl\GLWpfControl.csproj", "{E201C66F-F247-4E23-AB4D-0EB50005091D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "src\Example\Example.csproj", "{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example", "src\Example\Example.csproj", "{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Debug|x64.ActiveCfg = Debug|x64
+		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Debug|x64.Build.0 = Debug|x64
 		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Release|x64.ActiveCfg = Release|x64
+		{E201C66F-F247-4E23-AB4D-0EB50005091D}.Release|x64.Build.0 = Release|x64
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Debug|x64.ActiveCfg = Debug|x64
+		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Debug|x64.Build.0 = Debug|x64
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|x64.ActiveCfg = Release|x64
+		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {97CD4768-306D-4862-9FE0-1ED5261AA0D4}
 	EndGlobalSection
 EndGlobal

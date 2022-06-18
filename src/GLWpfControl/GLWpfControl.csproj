@@ -1,7 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-
-<PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <RootNamespace>OpenTK.Wpf</RootNamespace>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -12,4 +11,7 @@
       <PackageReference Include="OpenTK" Version="4.7.1" />
     </ItemGroup>
 
+    <PropertyGroup >
+      <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
+    </PropertyGroup>
 </Project>
