@@ -3,7 +3,7 @@
     * Change the dependency on OpenTK to be >= 4.3.0 < 5.0.0. (@NogginBops)
     * Add ability to pass a custom `IBindingsContext` in `GLWpfControlSettings`. (@Kaktusbot)
     * Add stencil buffer to the framebuffer. (@Svabik)
-    * Fixed issue where remote desktop would fail due to having to use a software implementation of OpenGL.
+    * Fixed issue where remote desktop would fail due to having to use a software implementation of OpenGL. (@marcotod1410)
     * Fixed so that `KeyDownEvent` and `KeyUpEvent` properly work in the control. (@BBoldenow)
 
 ## 4.1.0
