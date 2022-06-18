@@ -39,12 +39,12 @@ namespace OpenTK.Wpf
         }
 
 
-        public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY) {
+        public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY, Format format) {
             if (_framebuffer == null || _framebuffer.Width != width || _framebuffer.Height != height) {
                 _framebuffer?.Dispose();
                 _framebuffer = null;
                 if (width > 0 && height > 0) {
-                    _framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY);
+                    _framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY, format);
                 }
             }
         }

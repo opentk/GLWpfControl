@@ -16,9 +16,9 @@ namespace Example {
             GL.Enable(EnableCap.ScissorTest);
         }
 
-        public static void Render() {
+        public static void Render(float alpha = 1.0f) {
             var hue = (float) _stopwatch.Elapsed.TotalSeconds * 0.15f % 1;
-            var c = Color4.FromHsv(new Vector4(hue, 0.75f, 0.75f, 1));
+            var c = Color4.FromHsv(new Vector4(alpha * hue, alpha * 0.75f, alpha * 0.75f, alpha));
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.LoadIdentity();

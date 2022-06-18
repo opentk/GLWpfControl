@@ -53,7 +53,7 @@ namespace OpenTK.Wpf {
         public ScaleTransform FlipYTransform { get; }
 
 
-        public DxGLFramebuffer([NotNull] DxGlContext context, int width, int height, double dpiScaleX, double dpiScaleY) {
+        public DxGLFramebuffer([NotNull] DxGlContext context, int width, int height, double dpiScaleX, double dpiScaleY, Format format) {
             DxGlContext = context;
             Width = width;
             Height = height;
@@ -65,7 +65,7 @@ namespace OpenTK.Wpf {
                 context.DxDeviceHandle,
                 FramebufferWidth,
                 FramebufferHeight,
-                Format.X8R8G8B8,// this is like A8 R8 G8 B8, but avoids issues with Gamma correction being applied twice.
+                format,
                 MultisampleType.None,
                 0,
                 false,
