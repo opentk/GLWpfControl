@@ -19,7 +19,8 @@ requireLicenseAcceptance
     false
 copyright
     Copyright (c) 2020 Team OpenTK.
-dependencies
-    OpenTK ~> 3.3.0
     
 include-pdbs true
+
+dependencies
+    OpenTK ~> 3.3.0
