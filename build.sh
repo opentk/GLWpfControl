@@ -1,9 +1,39 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -eu
-set -o pipefail
+set -e -o
 
-cd `dirname $0`
+function version_compare() {
+    ver1=(${1//./ })
+    ver2=(${2//./ })
+
+    len1=${#ver1[@]}
+    len2=${#ver2[@]}
+
+    vlen=$(($len1 < $len2 ? $len1 : $len2))
+    
+    for ((i=0;i<vlen;i++))
+    do
+        if [ ${ver1[$i]} -gt ${ver2[$i]} ]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+MINIMAL_DOTNET_VERSION=6.0.200
+
+EXIT_CODE=0
+
+CURRENT_DOTNET_VERSION=$(dotnet --version 2> /dev/null) || EXIT_CODE=$?
+
+if (($EXIT_CODE == 0)) && version_compare "$MINIMAL_DOTNET_VERSION" "$CURRENT_DOTNET_VERSION"; then
+    echo "dotnet command already installed"
+else
+    # Install .NET Core (https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script)
+    curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version 3.1.100
+
+    PATH="~/.dotnet:$PATH"
+fi
 
 FSIARGS=""
 OS=${OS:-"unknown"}
@@ -29,8 +59,5 @@ then
   mozroots --import --sync --quiet
 fi
 
-run .paket/paket.exe restore
-
-[ ! -e build.fsx ] && run .paket/paket.exe update
-[ ! -e build.fsx ] && run packages/FAKE/tools/FAKE.exe init.fsx
-run packages/FAKE/tools/FAKE.exe "$@" $FSIARGS build.fsx
+dotnet tool restore
+dotnet fake run $FSIARGS build.fsx $@
