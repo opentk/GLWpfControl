@@ -1,3 +1,7 @@
+## 4.2.1
+
+* Fix broken nuget package in `4.2.0`.
+
 ## 4.2.0
     * Add ability to make the control transparent by setting `GLWpfControlSettings.TransparentBackground` to true. (@luiscuenca)
     * Change the dependency on OpenTK to be >= 4.3.0 < 5.0.0. (@NogginBops)
