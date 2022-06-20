@@ -1,3 +1,7 @@
+## 4.2.2
+
+* Fix issue where `4.2.1` was only compatible with `netcoreapp3.1-windows` and nothing else.
+
 ## 4.2.1
 
 * Fix broken nuget package in `4.2.0`.
