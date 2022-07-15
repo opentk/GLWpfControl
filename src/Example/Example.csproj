@@ -5,6 +5,7 @@
         <TargetFramework>netcoreapp3.1-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <StartupObject>Example.App</StartupObject>
     </PropertyGroup>
 
     <ItemGroup>
