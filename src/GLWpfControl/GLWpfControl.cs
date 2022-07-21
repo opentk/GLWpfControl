@@ -88,7 +88,7 @@ namespace OpenTK.Wpf
             if (_settings != null) {
                 throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
             }
-            _settings = settings.Copy();
+            _settings = (GLWpfControlSettings)settings.Clone();
             _needsRedraw = settings.RenderContinuously;
             _renderer = new GLWpfControlRenderer(_settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);

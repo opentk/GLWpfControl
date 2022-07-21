@@ -10,7 +10,6 @@ namespace OpenTK.Wpf
 {
     internal static class UnstartedControlHelper
     {
-
         public static void DrawUnstartedControlHelper(GLWpfControl control, DrawingContext drawingContext)
         {
             if (control.Visibility == Visibility.Visible && control.ActualWidth > 0 && control.ActualHeight > 0)
@@ -38,7 +37,5 @@ namespace OpenTK.Wpf
                 drawingContext.DrawText(ft, new Point(0, 0));
             }
         }
-
-
     }
 }

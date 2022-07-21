@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using OpenTK.Windowing.Common;
 
 namespace OpenTK.Wpf {
-    public sealed class GLWpfControlSettings {
+    public sealed class GLWpfControlSettings : ICloneable {
         /// If the render event is fired continuously whenever required.
         /// Disable this if you want manual control over when the rendered surface is updated.
         public bool RenderContinuously { get; set; } = true;
@@ -33,22 +33,6 @@ namespace OpenTK.Wpf {
         /// If we are using an external context for the control.
         public bool IsUsingExternalContext => ContextToUse != null;
         
-        /// Creates a copy of the settings.
-        internal GLWpfControlSettings Copy() {
-            var c = new GLWpfControlSettings {
-                ContextToUse = ContextToUse,
-                BindingsContext = BindingsContext,
-                GraphicsContextFlags = GraphicsContextFlags,
-                GraphicsProfile = GraphicsProfile,
-                MajorVersion = MajorVersion,
-                MinorVersion = MinorVersion,
-                RenderContinuously = RenderContinuously,
-                UseDeviceDpi = UseDeviceDpi,
-                TransparentBackground = TransparentBackground
-            };
-            return c;
-        }
-
         /// Determines if two settings would result in the same context being created.
         [Pure]
         internal static bool WouldResultInSameContext([NotNull] GLWpfControlSettings a, [NotNull] GLWpfControlSettings b) {
@@ -70,6 +54,11 @@ namespace OpenTK.Wpf {
 
             return true;
 
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }
