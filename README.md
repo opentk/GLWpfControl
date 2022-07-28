@@ -54,7 +54,7 @@ This package is intended to supercede the legacy *GLControl* completely, and we 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
     }
     ```
-For additional examples, see [MainWindow.xaml](https://github.com/varon/GLWpfControl/blob/master/src/GLWpfControlExample/MainWindow.xaml#L11) and [MainWindow.xaml.cs](https://github.com/varon/GLWpfControl/blob/master/src/GLWpfControlExample/MainWindow.xaml.cs#L18) in the example project.
+For additional examples, see [MainWindow.xaml](https://github.com/opentk/GLWpfControl/blob/master/src/Example/MainWindow.xaml) and [MainWindow.xaml.cs](https://github.com/opentk/GLWpfControl/blob/master/src/Example/MainWindow.xaml.cs) in the example project.
 
 
 
