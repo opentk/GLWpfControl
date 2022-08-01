@@ -8,7 +8,6 @@ namespace OpenTK.Wpf.Interop
         Multithreaded = 4,
         PureDevice = 16,
         HardwareVertexProcessing = 64,
-
     }
 
     internal enum DeviceType
@@ -17,7 +16,6 @@ namespace OpenTK.Wpf.Interop
         /// Hardware rasterization. Shading is done with software, hardware, or mixed transform and lighting.
         /// </summary>
         HAL = 1,
-
     }
 
     internal enum Format
@@ -30,20 +28,16 @@ namespace OpenTK.Wpf.Interop
         /// <summary>
         /// 32-bit RGB pixel format, where 8 bits are reserved for each color.
         /// </summary>
-        X8R8G8B8 = 22, 
-
+        X8R8G8B8 = 22,
     }
 
     internal enum MultisampleType
     {
         None = 0,
-
     }
 
     internal enum SwapEffect
     {
         Discard = 1,
-
     }
-
 }

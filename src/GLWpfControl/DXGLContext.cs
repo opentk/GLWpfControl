@@ -95,8 +95,7 @@ namespace OpenTK.Wpf {
                                                 $" either ensure all of your context settings are identical, or provide an " +
                                                 $"external context via the '{nameof(GLWpfControlSettings.ContextToUse)}' field.");
                 }
-            } 
-            
+            }
             else {
                 var nws = NativeWindowSettings.Default;
                 nws.StartFocused = false;
