@@ -168,7 +168,7 @@ namespace OpenTK.Wpf
 
             var isDesignMode = DesignerProperties.GetIsInDesignMode(this);
             if (isDesignMode) {
-                DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
+                DrawDesignTimeHelper(this, drawingContext);
             }
             else if (_renderer != null) {
                 if (_settings != null)
@@ -192,13 +192,13 @@ namespace OpenTK.Wpf
 
                     var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
 
-                    _renderer?.SetSize((int)RenderSize.Width, (int)RenderSize.Height, dpiScaleX, dpiScaleY, format);
+                    _renderer.SetSize((int)RenderSize.Width, (int)RenderSize.Height, dpiScaleX, dpiScaleY, format);
                 }
 
-                _renderer?.Render(drawingContext);
+                _renderer.Render(drawingContext);
             }
             else {
-                UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
+                DrawUnstartedControlHelper(this, drawingContext);
             }
         }
         
@@ -214,6 +214,64 @@ namespace OpenTK.Wpf
             if ((info.WidthChanged || info.HeightChanged) && (info.NewSize.Width > 0 && info.NewSize.Height > 0))
             {
                 InvalidateVisual();
+            }
+        }
+
+
+
+        internal static void DrawDesignTimeHelper(GLWpfControl control, DrawingContext drawingContext)
+        {
+            if (control.Visibility == Visibility.Visible && control.ActualWidth > 0 && control.ActualHeight > 0)
+            {
+                const string labelText = "GL WPF CONTROL";
+                var width = control.ActualWidth;
+                var height = control.ActualHeight;
+                var size = 1.5 * Math.Min(width, height) / labelText.Length;
+                var tf = new Typeface("Arial");
+#pragma warning disable 618
+                var ft = new FormattedText(labelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White)
+                {
+                    TextAlignment = TextAlignment.Center
+                };
+#pragma warning restore 618
+                var redPen = new Pen(Brushes.DarkBlue, 2.0);
+                var rect = new Rect(1, 1, width - 1, height - 1);
+                drawingContext.DrawRectangle(Brushes.Black, redPen, rect);
+                drawingContext.DrawLine(new Pen(Brushes.DarkBlue, 2.0),
+                    new Point(0.0, 0.0),
+                    new Point(control.ActualWidth, control.ActualHeight));
+                drawingContext.DrawLine(new Pen(Brushes.DarkBlue, 2.0),
+                    new Point(control.ActualWidth, 0.0),
+                    new Point(0.0, control.ActualHeight));
+                drawingContext.DrawText(ft, new Point(width / 2, (height - ft.Height) / 2));
+            }
+        }
+
+        internal static void DrawUnstartedControlHelper(GLWpfControl control, DrawingContext drawingContext)
+        {
+            if (control.Visibility == Visibility.Visible && control.ActualWidth > 0 && control.ActualHeight > 0)
+            {
+                var width = control.ActualWidth;
+                var height = control.ActualHeight;
+                drawingContext.DrawRectangle(Brushes.Gray, null, new Rect(0, 0, width, height));
+
+                if (!Debugger.IsAttached) // Do not show the message if we're not debugging
+                {
+                    return;
+                }
+
+                const string unstartedLabelText = "OpenGL content. Call Start() on the control to begin rendering.";
+                const int size = 12;
+                var tf = new Typeface("Arial");
+#pragma warning disable 618
+                var ft = new FormattedText(unstartedLabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White)
+                {
+                    TextAlignment = TextAlignment.Left,
+                    MaxTextWidth = width
+                };
+#pragma warning restore 618
+
+                drawingContext.DrawText(ft, new Point(0, 0));
             }
         }
     }
