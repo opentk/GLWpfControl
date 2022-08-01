@@ -5,6 +5,11 @@ namespace OpenTK.Wpf.Interop
 {
     internal static class DXInterop
     {
+        public static void CheckHResult(int hresult)
+        {
+            Marshal.ThrowExceptionForHR(hresult);
+        }
+
         public const uint DefaultSdkVersion = 32;
         private const int CreateDeviceEx_Offset = 20;
         private const int CreateRenderTarget_Offset = 28;
@@ -40,7 +45,5 @@ namespace OpenTK.Wpf.Interop
             NativeRelease method = Marshal.GetDelegateForFunctionPointer<NativeRelease>(functionPointer);
             return method(resourceHandle);
         }
-
     }
-
 }

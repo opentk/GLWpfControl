@@ -1,8 +1,8 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using JetBrains.Annotations;
 using OpenTK.Graphics.Wgl;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -31,14 +31,16 @@ namespace OpenTK.Wpf {
         /// The shared context we (may) want to lazily create/use.
         private static IGraphicsContext _sharedContext;
         private static GLWpfControlSettings _sharedContextSettings;
-        /// List of extra resources to dispose along with the shared context.
-        private static IDisposable[] _sharedContextResources;
+        
+        private static NativeWindow GlfwWindow;
+        private static HwndSource HwndSource;
+        
         /// The number of active controls using the shared context.
         private static int _sharedContextReferenceCount;
 
+        public DxGlContext(GLWpfControlSettings settings) {
 
-        public DxGlContext([NotNull] GLWpfControlSettings settings) {
-            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out var dxContextHandle);
+            DXInterop.CheckHResult(DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out var dxContextHandle));
             DxContextHandle = dxContextHandle;
 
             var deviceParameters = new PresentationParameters
@@ -59,17 +61,18 @@ namespace OpenTK.Wpf {
                 MultiSampleType = MultisampleType.None
             };
 
-            DXInterop.CreateDeviceEx(
-                dxContextHandle,
-                0,
-                DeviceType.HAL, // use hardware rasterization
-                IntPtr.Zero,
-                CreateFlags.HardwareVertexProcessing |
-                CreateFlags.Multithreaded |
-                CreateFlags.PureDevice,
-                ref deviceParameters,
-                IntPtr.Zero,
-                out var dxDeviceHandle);
+            DXInterop.CheckHResult(
+                DXInterop.CreateDeviceEx(
+                    dxContextHandle,
+                    0,
+                    DeviceType.HAL, // use hardware rasterization
+                    IntPtr.Zero,
+                    CreateFlags.HardwareVertexProcessing |
+                    CreateFlags.Multithreaded |
+                    CreateFlags.PureDevice,
+                    ref deviceParameters,
+                    IntPtr.Zero,
+                    out var dxDeviceHandle));
             DxDeviceHandle = dxDeviceHandle;
 
             // if the graphics context is null, we use the shared context.
@@ -106,7 +109,7 @@ namespace OpenTK.Wpf {
                 nws.Profile = settings.GraphicsProfile;
                 nws.WindowBorder = WindowBorder.Hidden;
                 nws.WindowState = WindowState.Minimized;
-                var glfwWindow = new NativeWindow(nws);
+                GlfwWindow = new NativeWindow(nws);
                 var provider = settings.BindingsContext ?? new GLFWBindingsContext();
                 Wgl.LoadBindings(provider);
                 // we're already in a window context, so we can just cheat by creating a new dependency object here rather than passing any around.
@@ -114,18 +117,16 @@ namespace OpenTK.Wpf {
                 // retrieve window handle/info
                 var window = Window.GetWindow(depObject);
                 var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
-                var hwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
+                HwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
 
-                _sharedContext = glfwWindow.Context;
+                _sharedContext = GlfwWindow.Context;
                 _sharedContextSettings = settings;
-                _sharedContextResources = new IDisposable[] {hwndSource, glfwWindow};
-                // GL init
-                // var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-                // _commonContext = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
-                //     _settings.GraphicsContextFlags);
-                // _commonContext.LoadAll();
                 _sharedContext.MakeCurrent();
             }
+
+            // FIXME:
+            // This has a race condition where we think we still have the
+            // shared context available but it's been deleted when we get here.
             Interlocked.Increment(ref _sharedContextReferenceCount);
             return _sharedContext;
         }
@@ -134,9 +135,8 @@ namespace OpenTK.Wpf {
             // we only dispose of the graphics context if we're using the shared one.
             if (ReferenceEquals(_sharedContext, GraphicsContext)) {
                 if (Interlocked.Decrement(ref _sharedContextReferenceCount) == 0) {
-                    foreach (var resource in _sharedContextResources) {
-                        resource.Dispose();
-                    }
+                    GlfwWindow.Dispose();
+                    HwndSource.Dispose();
                 }
             }
         }

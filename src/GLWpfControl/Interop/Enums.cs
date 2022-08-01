@@ -3,7 +3,7 @@
 namespace OpenTK.Wpf.Interop
 {
     [Flags]
-    internal enum CreateFlags
+    internal enum CreateFlags : uint
     {
         Multithreaded = 4,
         PureDevice = 16,

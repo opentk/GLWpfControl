@@ -1,5 +1,5 @@
 using System;
-using JetBrains.Annotations;
+using System.Diagnostics.Contracts;
 using OpenTK.Windowing.Common;
 
 namespace OpenTK.Wpf {
@@ -35,7 +35,7 @@ namespace OpenTK.Wpf {
         
         /// Determines if two settings would result in the same context being created.
         [Pure]
-        internal static bool WouldResultInSameContext([NotNull] GLWpfControlSettings a, [NotNull] GLWpfControlSettings b) {
+        internal static bool WouldResultInSameContext(GLWpfControlSettings a, GLWpfControlSettings b) {
             if (a.MajorVersion != b.MajorVersion) {
                 return false;
             }

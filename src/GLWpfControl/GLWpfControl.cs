@@ -6,8 +6,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using JetBrains.Annotations;
 using OpenTK.Wpf.Interop;
+using System.Windows.Interop;
+
+
+#nullable enable
 
 namespace OpenTK.Wpf
 {
@@ -42,8 +45,8 @@ namespace OpenTK.Wpf
         // Fields
         // -----------------------------------
         
-        [CanBeNull] private GLWpfControlSettings _settings;
-        [CanBeNull] private GLWpfControlRenderer _renderer;
+        private GLWpfControlSettings? _settings;
+        private GLWpfControlRenderer? _renderer;
         private bool _needsRedraw;
 
         // -----------------------------------
@@ -113,29 +116,6 @@ namespace OpenTK.Wpf
             Ready?.Invoke();
         }
         
-        private void SetupRenderSize() {
-            if (_renderer == null || _settings == null) {
-                return;
-            }
-
-            var dpiScaleX = 1.0;
-            var dpiScaleY = 1.0;
-
-            if (_settings.UseDeviceDpi) {
-                var presentationSource = PresentationSource.FromVisual(this);
-                // this can be null in the case of not having any visual on screen, such as a tabbed view.
-                if (presentationSource != null) {
-                    Debug.Assert(presentationSource.CompositionTarget != null, "presentationSource.CompositionTarget != null");
-
-                    var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
-                    dpiScaleX = transformToDevice.M11;
-                    dpiScaleY = transformToDevice.M22;
-                }
-            }
-            var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
-            _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY, format);
-        }
-
         private void OnUnloaded()
         {
             _renderer?.SetSize(0,0, 1, 1, Format.X8R8G8B8);
@@ -163,7 +143,7 @@ namespace OpenTK.Wpf
         }
 
 
-        private void OnCompTargetRender(object sender, EventArgs e)
+        private void OnCompTargetRender(object? sender, EventArgs e)
         {
             var currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
             if(currentRenderTime == _lastRenderTime)
@@ -173,7 +153,7 @@ namespace OpenTK.Wpf
                 // Reference: https://docs.microsoft.com/en-us/dotnet/desktop/wpf/advanced/walkthrough-hosting-direct3d9-content-in-wpf?view=netframeworkdesktop-4.8#to-import-direct3d9-content
                 return;
             }
-
+            
             _lastRenderTime = currentRenderTime.Value;
 
             if (_needsRedraw) {
@@ -184,23 +164,48 @@ namespace OpenTK.Wpf
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
+            base.OnRender(drawingContext);
+
             var isDesignMode = DesignerProperties.GetIsInDesignMode(this);
             if (isDesignMode) {
                 DesignTimeHelper.DrawDesignTimeHelper(this, drawingContext);
             }
-            else if(_renderer != null) {
-                SetupRenderSize();
+            else if (_renderer != null) {
+                if (_settings != null)
+                {
+                    var dpiScaleX = 1.0;
+                    var dpiScaleY = 1.0;
+
+                    if (_settings.UseDeviceDpi)
+                    {
+                        var presentationSource = PresentationSource.FromVisual(this);
+                        // this can be null in the case of not having any visual on screen, such as a tabbed view.
+                        if (presentationSource != null)
+                        {
+                            Debug.Assert(presentationSource.CompositionTarget != null, "presentationSource.CompositionTarget != null");
+
+                            var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
+                            dpiScaleX = transformToDevice.M11;
+                            dpiScaleY = transformToDevice.M22;
+                        }
+                    }
+
+                    var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
+
+                    _renderer?.SetSize((int)RenderSize.Width, (int)RenderSize.Height, dpiScaleX, dpiScaleY, format);
+                }
+
                 _renderer?.Render(drawingContext);
             }
             else {
                 UnstartedControlHelper.DrawUnstartedControlHelper(this, drawingContext);
             }
-
-            base.OnRender(drawingContext);
         }
         
         protected override void OnRenderSizeChanged(SizeChangedInfo info)
         {
+            base.OnRenderSizeChanged(info);
+
             var isInDesignMode = DesignerProperties.GetIsInDesignMode(this);
             if (isInDesignMode) {
                 return;
@@ -210,7 +215,6 @@ namespace OpenTK.Wpf
             {
                 InvalidateVisual();
             }
-            base.OnRenderSizeChanged(info);
         }
     }
 }
