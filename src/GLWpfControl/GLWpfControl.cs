@@ -108,10 +108,10 @@ namespace OpenTK.Wpf
 
             // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
             if (RegisterToEventsDirectly)
-			{
-				EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
-				EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
-			}
+	    {
+	        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
+		EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
+	    }
 			
             Loaded += (a, b) => {
                 InvalidateVisual();
