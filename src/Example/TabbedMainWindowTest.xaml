@@ -23,8 +23,11 @@
 				x:Name="Control2"
 				Render="Control2_OnRender" />
 		</TabItem>
-		<TabItem Header="Blank 3">
-		</TabItem>
+        <TabItem Header="Control 3">
+            <glWpfControl:GLWpfControl
+				x:Name="Control3"
+				Render="Control3_OnRender" />
+        </TabItem>
 		<TabItem Header="Blank 4">
 		</TabItem>
 	</glWpfControl:NonReloadingTabControl>

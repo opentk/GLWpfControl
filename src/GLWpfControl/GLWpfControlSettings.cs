@@ -26,7 +26,8 @@ namespace OpenTK.Wpf {
 
         /// If we are using an external context for the control.
         public bool IsUsingExternalContext => ContextToUse != null;
-        
+        public bool EnableSoftwareFallback { get; set; }
+
         /// Creates a copy of the settings.
         internal GLWpfControlSettings Copy() {
             var c = new GLWpfControlSettings {
@@ -36,7 +37,8 @@ namespace OpenTK.Wpf {
                 MajorVersion = MajorVersion,
                 MinorVersion = MinorVersion,
                 RenderContinuously = RenderContinuously,
-                UseDeviceDpi = UseDeviceDpi
+                UseDeviceDpi = UseDeviceDpi,
+                EnableSoftwareFallback = EnableSoftwareFallback
             };
             return c;
         }
