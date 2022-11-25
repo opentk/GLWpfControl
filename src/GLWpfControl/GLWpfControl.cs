@@ -133,7 +133,7 @@ namespace OpenTK.Wpf
                 }
             }
             var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
-            _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY, format);
+            _renderer?.SetSize(RenderSize.Width, RenderSize.Height, dpiScaleX, dpiScaleY, format);
         }
 
         private void OnUnloaded()
