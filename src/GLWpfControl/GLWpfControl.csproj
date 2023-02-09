@@ -8,10 +8,10 @@
 
     <ItemGroup>
       <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-      <PackageReference Include="OpenTK" Version="4.7.1" />
+      <PackageReference Include="OpenTK" Version="4.7.5" />
     </ItemGroup>
 
-    <PropertyGroup >
+    <PropertyGroup>
       <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
     </PropertyGroup>
 </Project>
