@@ -74,6 +74,10 @@ namespace OpenTK.Wpf
         public int FrameBufferHeight => _renderer?.Height ?? 0;
 
         private TimeSpan _lastRenderTime = TimeSpan.FromSeconds(-1);
+		
+		public bool CanInvokeOnHandledEvents { get; set; } = true;
+		
+		public bool RegisterToEventsDirectly { get; set; } = true;
 
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
@@ -103,9 +107,12 @@ namespace OpenTK.Wpf
             };
 
             // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
-            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), true);
-            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), true);
-
+            if (RegisterToEventsDirectly)
+	    {
+	        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
+		EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
+	    }
+			
             Loaded += (a, b) => {
                 InvalidateVisual();
             };
