@@ -1,3 +1,8 @@
+## 4.2.3
+
+* Fix event issue, use `RegisterToEventsDirectly` and `CanInvokeOnHandledEvents` to customize event registering/handling. (@softwareantics)
+* Internal cleanup that fixed issue where setting `RenderContinuously = false` caused an extra call to render. (@francotiveron)
+
 ## 4.2.2
 
 * Fix issue where `4.2.1` was only compatible with `netcoreapp3.1-windows` and nothing else.
