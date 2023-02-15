@@ -47,7 +47,6 @@ namespace OpenTK.Wpf
         
         private GLWpfControlSettings? _settings;
         private GLWpfControlRenderer? _renderer;
-        private bool _needsRedraw;
 
         // -----------------------------------
         // Properties
@@ -77,6 +76,10 @@ namespace OpenTK.Wpf
         public int FrameBufferHeight => _renderer?.Height ?? 0;
 
         private TimeSpan _lastRenderTime = TimeSpan.FromSeconds(-1);
+		
+		public bool CanInvokeOnHandledEvents { get; set; } = true;
+		
+		public bool RegisterToEventsDirectly { get; set; } = true;
 
         /// <summary>
         /// Used to create a new control. Before rendering can take place, <see cref="Start(GLWpfControlSettings)"/> must be called.
@@ -92,7 +95,6 @@ namespace OpenTK.Wpf
                 throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
             }
             _settings = (GLWpfControlSettings)settings.Clone();
-            _needsRedraw = settings.RenderContinuously;
             _renderer = new GLWpfControlRenderer(_settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
             _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
@@ -106,9 +108,12 @@ namespace OpenTK.Wpf
             };
 
             // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
-            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), true);
-            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), true);
-
+            if (RegisterToEventsDirectly)
+	    {
+	        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
+		EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
+	    }
+			
             Loaded += (a, b) => {
                 InvalidateVisual();
             };
@@ -156,11 +161,7 @@ namespace OpenTK.Wpf
             
             _lastRenderTime = currentRenderTime.Value;
 
-            if (_needsRedraw) {
-                InvalidateVisual();
-            }
-
-            _needsRedraw = RenderContinuously;
+            if (RenderContinuously) InvalidateVisual();
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
