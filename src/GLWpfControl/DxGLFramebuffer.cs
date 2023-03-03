@@ -26,10 +26,10 @@ namespace OpenTK.Wpf {
         public int FramebufferHeight { get; }
 
         /// The width of the element in device-independent pixels
-        public int Width { get; }
+        public double Width { get; }
 
         /// The height of the element in device-independent pixels
-        public int Height { get; }
+        public double Height { get; }
         
         /// The DirectX Render target (framebuffer) handle.
         public IntPtr DxRenderTargetHandle { get; }
@@ -53,7 +53,7 @@ namespace OpenTK.Wpf {
         public ScaleTransform FlipYTransform { get; }
 
 
-        public DxGLFramebuffer([NotNull] DxGlContext context, int width, int height, double dpiScaleX, double dpiScaleY, Format format) {
+        public DxGLFramebuffer([NotNull] DxGlContext context, double width, double height, double dpiScaleX, double dpiScaleY, Format format) {
             DxGlContext = context;
             Width = width;
             Height = height;
