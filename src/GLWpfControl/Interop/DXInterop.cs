@@ -13,10 +13,19 @@ namespace OpenTK.Wpf.Interop
 {
     internal static class DXInterop
     {
+        // We disable this so we can do struct _VTable
+#pragma warning disable IDE1006 // Naming Styles
+
         public const uint DefaultSdkVersion = 32;
 
-        [DllImport("d3d9.dll")]
-        public static extern int Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex ctx);
+        public static void Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex context)
+        {
+            int result = Direct3DCreate9Ex_(SdkVersion, out context);
+            CheckHResult(result);
+
+            [DllImport("d3d9.dll")]
+            static extern int Direct3DCreate9Ex_(uint SdkVersion, out IDirect3D9Ex ctx);
+        }
 
         private delegate int NativeCreateDeviceEx(IDirect3D9Ex contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IDirect3DDevice9Ex deviceHandle);
         private delegate int NativeCreateRenderTarget(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool lockable, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);

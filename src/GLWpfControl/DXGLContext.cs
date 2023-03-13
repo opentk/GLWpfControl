@@ -40,7 +40,7 @@ namespace OpenTK.Wpf
 
         public DxGlContext(GLWpfControlSettings settings)
         {
-            DXInterop.CheckHResult(DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out DXInterop.IDirect3D9Ex dxContext));
+            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out DXInterop.IDirect3D9Ex dxContext);
             DxContext = dxContext;
 
             var deviceParameters = new PresentationParameters
