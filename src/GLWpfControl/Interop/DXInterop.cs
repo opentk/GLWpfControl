@@ -20,11 +20,11 @@ namespace OpenTK.Wpf.Interop
 
         public static void Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex context)
         {
-            int result = Direct3DCreate9Ex_(SdkVersion, out context);
+            int result = Direct3DCreate9Ex(SdkVersion, out context);
             CheckHResult(result);
 
             [DllImport("d3d9.dll")]
-            static extern int Direct3DCreate9Ex_(uint SdkVersion, out IDirect3D9Ex ctx);
+            static extern int Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex ctx);
         }
 
         private delegate int NativeCreateDeviceEx(IDirect3D9Ex contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IDirect3DDevice9Ex deviceHandle);
