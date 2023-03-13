@@ -165,12 +165,14 @@ namespace OpenTK.Wpf
             D3dImage.Unlock();
 
             // Transforms are applied in reverse order
-            drawingContext.PushTransform(TranslateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
-            drawingContext.PushTransform(FlipYTransform);                  // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
+            // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
+            drawingContext.PushTransform(TranslateTransform);
+            // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
+            drawingContext.PushTransform(FlipYTransform);
 
             // dpi scaled rectangle from the image
             var rect = new Rect(0, 0, D3dImage.Width, D3dImage.Height);
-            drawingContext.DrawImage(D3dImage, rect);            // Draw the image source 
+            drawingContext.DrawImage(D3dImage, rect);                      // Draw the image source 
 
             drawingContext.Pop();                                          // Remove the scale transform
             drawingContext.Pop();                                          // Remove the translation transform
