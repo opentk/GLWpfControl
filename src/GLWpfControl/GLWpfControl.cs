@@ -9,7 +9,6 @@ using System.Windows.Media;
 using OpenTK.Wpf.Interop;
 using System.Windows.Interop;
 
-
 #nullable enable
 
 namespace OpenTK.Wpf
@@ -23,59 +22,62 @@ namespace OpenTK.Wpf
     /// </summary>
     public class GLWpfControl : FrameworkElement
     {
-        // -----------------------------------
-        // EVENTS
-        // -----------------------------------
-
+        /// <summary>
         /// Called whenever rendering should occur.
-        public event Action<TimeSpan> Render;
+        /// </summary>
+        public event Action<TimeSpan>? Render;
 
+        /// <summary>
         /// Called once per frame after render. This does not synchronize with the copy to the screen.
         /// This is only for extremely advanced use, where a non-display out task needs to run.
         /// Examples of these are an async Pixel Buffer Object transfer or Transform Feedback.
         /// If you do not know what these are, do not use this function.
-        public event Action AsyncRender;
+        /// </summary>
+        public event Action? AsyncRender;
 
         /// <summary>
         /// Gets called after the control has finished initializing and is ready to render
         /// </summary>
-        public event Action Ready;
+        public event Action? Ready;
 
-        // -----------------------------------
-        // Fields
-        // -----------------------------------
-        
         private GLWpfControlSettings? _settings;
         private GLWpfControlRenderer? _renderer;
 
-        // -----------------------------------
-        // Properties
-        // -----------------------------------
-
+        /// <summary>
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         /// If no framebuffer is available (because this control is not visible, etc etc, then it should be 0).
+        /// </summary>
         public int Framebuffer => _renderer?.FrameBufferHandle ?? 0;
 
-
+        /// <summary>
         /// If this control is rendering continuously.
         /// If this is false, then redrawing will only occur when <see cref="UIElement.InvalidateVisual"/> is called.
+        /// </summary>
         public bool RenderContinuously {
-            get => _settings.RenderContinuously;
-            set => _settings.RenderContinuously = value;
+            get => _settings?.RenderContinuously ?? throw new InvalidOperationException("The control has not been started yet!");
+            set
+            {
+                if (_settings == null) throw new InvalidOperationException("The control has not been started yet!");
+                _settings.RenderContinuously = value;
+            }
         }
 
+        /// <summary>
         /// Pixel width of the underlying OpenGL framebuffer.
         /// It could differ from UIElement.RenderSize if UseDeviceDpi setting is set.
         /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
+        /// </summary>
         public int FrameBufferWidth => _renderer?.Width ?? 0;
-        
+
+        /// <summary>
         /// Pixel height of the underlying OpenGL framebuffer.
         /// It could differ from UIElement.RenderSize if UseDeviceDpi setting is set.
         /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
+        /// </summary>
         public int FrameBufferHeight => _renderer?.Height ?? 0;
 
-        private TimeSpan _lastRenderTime = TimeSpan.FromSeconds(-1);
+        private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 		
 		public bool CanInvokeOnHandledEvents { get; set; } = true;
 		
@@ -88,7 +90,11 @@ namespace OpenTK.Wpf
         {
         }
 
+        /// <summary>
         /// Starts the control and rendering, using the settings provided.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void Start(GLWpfControlSettings settings)
         {
             if (_settings != null) {
@@ -109,10 +115,10 @@ namespace OpenTK.Wpf
 
             // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
             if (RegisterToEventsDirectly)
-	    {
-	        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
-		EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
-	    }
+	        {
+	            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
+		        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
+	        }
 			
             Loaded += (a, b) => {
                 InvalidateVisual();
@@ -137,6 +143,7 @@ namespace OpenTK.Wpf
                 RaiseEvent(args);
             }
         }
+        
         internal void OnKeyUp(object sender, KeyEventArgs e)
         {
             if (e.OriginalSource != this)
@@ -147,10 +154,9 @@ namespace OpenTK.Wpf
             }
         }
 
-
         private void OnCompTargetRender(object? sender, EventArgs e)
         {
-            var currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
+            TimeSpan? currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
             if(currentRenderTime == _lastRenderTime)
             {
                 // It's possible for Rendering to call back twice in the same frame
@@ -159,19 +165,21 @@ namespace OpenTK.Wpf
                 return;
             }
             
-            _lastRenderTime = currentRenderTime.Value;
+            _lastRenderTime = currentRenderTime;
 
             if (RenderContinuously) InvalidateVisual();
         }
 
-        protected override void OnRender(DrawingContext drawingContext) {
+        protected override void OnRender(DrawingContext drawingContext)
+        {
             base.OnRender(drawingContext);
 
             var isDesignMode = DesignerProperties.GetIsInDesignMode(this);
             if (isDesignMode) {
                 DrawDesignTimeHelper(this, drawingContext);
             }
-            else if (_renderer != null) {
+            else if (_renderer != null)
+            {
                 if (_settings != null)
                 {
                     var dpiScaleX = 1.0;
@@ -198,7 +206,8 @@ namespace OpenTK.Wpf
 
                 _renderer.Render(drawingContext);
             }
-            else {
+            else
+            {
                 DrawUnstartedControlHelper(this, drawingContext);
             }
         }
@@ -217,8 +226,6 @@ namespace OpenTK.Wpf
                 InvalidateVisual();
             }
         }
-
-
 
         internal static void DrawDesignTimeHelper(GLWpfControl control, DrawingContext drawingContext)
         {
@@ -264,13 +271,13 @@ namespace OpenTK.Wpf
                 const string unstartedLabelText = "OpenGL content. Call Start() on the control to begin rendering.";
                 const int size = 12;
                 var tf = new Typeface("Arial");
-#pragma warning disable 618
+                
+                // FIXME: Fix scaling!
                 var ft = new FormattedText(unstartedLabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White)
                 {
                     TextAlignment = TextAlignment.Left,
                     MaxTextWidth = width
                 };
-#pragma warning restore 618
 
                 drawingContext.DrawText(ft, new Point(0, 0));
             }

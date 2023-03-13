@@ -11,37 +11,37 @@ using OpenTK.Wpf.Interop;
 using Window = System.Windows.Window;
 using WindowState = OpenTK.Windowing.Common.WindowState;
 
-namespace OpenTK.Wpf {
-    
+namespace OpenTK.Wpf 
+{
     /// This contains the DirectX and OpenGL contexts used in this control.
-    internal sealed class DxGlContext : IDisposable {
-        
-        /// The directX context. This is basically the root of all DirectX state.
-        public IntPtr DxContextHandle { get; }
-        
-        /// The directX device handle. This is the graphics card we're running on.
-        public IntPtr DxDeviceHandle { get; }
-        
-        /// The OpenGL Context. This is basically the root of all OpenGL state.
-        public IGraphicsContext GraphicsContext { get; }
-        
-        /// An OpenGL handle to the DirectX device. Created and used by the WGL_dx_interop extension.
-        public IntPtr GlDeviceHandle { get; }
+    internal sealed class DxGlContext : IDisposable 
+    {
+        /// <summary>The directX context. This is basically the root of all DirectX state.</summary>
+        public DXInterop.IDirect3D9Ex DxContext { get; }
 
-        /// The shared context we (may) want to lazily create/use.
+        /// <summary>The directX device handle. This is the graphics card we're running on.</summary> 
+        public DXInterop.IDirect3DDevice9Ex DxDevice { get; }
+
+        /// <summary>The OpenGL Context. This is basically the root of all OpenGL state.</summary>
+        public IGraphicsContext GraphicsContext { get; }
+
+        /// <summary>An OpenGL handle to the DirectX device. Created and used by the WGL_dx_interop extension.</summary>
+        public IntPtr GLDeviceHandle { get; }
+
+        /// <summary>The shared context we (may) want to lazily create/use.</summary>
         private static IGraphicsContext _sharedContext;
         private static GLWpfControlSettings _sharedContextSettings;
         
         private static NativeWindow GlfwWindow;
         private static HwndSource HwndSource;
-        
-        /// The number of active controls using the shared context.
+
+        /// <summary>The number of active controls using the shared context.</summary>
         private static int _sharedContextReferenceCount;
 
-        public DxGlContext(GLWpfControlSettings settings) {
-
-            DXInterop.CheckHResult(DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out var dxContextHandle));
-            DxContextHandle = dxContextHandle;
+        public DxGlContext(GLWpfControlSettings settings)
+        {
+            DXInterop.CheckHResult(DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out DXInterop.IDirect3D9Ex dxContext));
+            DxContext = dxContext;
 
             var deviceParameters = new PresentationParameters
             {
@@ -61,19 +61,16 @@ namespace OpenTK.Wpf {
                 MultiSampleType = MultisampleType.None
             };
 
-            DXInterop.CheckHResult(
-                DXInterop.CreateDeviceEx(
-                    dxContextHandle,
-                    0,
-                    DeviceType.HAL, // use hardware rasterization
-                    IntPtr.Zero,
-                    CreateFlags.HardwareVertexProcessing |
-                    CreateFlags.Multithreaded |
-                    CreateFlags.PureDevice,
-                    ref deviceParameters,
-                    IntPtr.Zero,
-                    out var dxDeviceHandle));
-            DxDeviceHandle = dxDeviceHandle;
+            dxContext.CreateDeviceEx(
+                0,
+                DeviceType.HAL,
+                IntPtr.Zero,
+                CreateFlags.HardwareVertexProcessing | CreateFlags.Multithreaded | CreateFlags.PureDevice,
+                ref deviceParameters,
+                IntPtr.Zero,
+                out DXInterop.IDirect3DDevice9Ex dxDevice);
+
+            DxDevice = dxDevice;
 
             // if the graphics context is null, we use the shared context.
             if (settings.ContextToUse != null) {
@@ -83,20 +80,24 @@ namespace OpenTK.Wpf {
                 GraphicsContext = GetOrCreateSharedOpenGLContext(settings);
             }
 
-            GlDeviceHandle = Wgl.DXOpenDeviceNV(dxDeviceHandle);
+            GLDeviceHandle = Wgl.DXOpenDeviceNV(dxDevice.Handle);
         }
 
-        private static IGraphicsContext GetOrCreateSharedOpenGLContext(GLWpfControlSettings settings) {
-            if (_sharedContext != null) {
+        private static IGraphicsContext GetOrCreateSharedOpenGLContext(GLWpfControlSettings settings)
+        {
+            if (_sharedContext != null)
+            {
                 var isSameContext = GLWpfControlSettings.WouldResultInSameContext(settings, _sharedContextSettings);
-                if (!isSameContext) {
+                if (!isSameContext)
+                {
                     throw new ArgumentException($"The provided {nameof(GLWpfControlSettings)} would result" +
                                                 $"in a different context creation to one previously created. To fix this," +
                                                 $" either ensure all of your context settings are identical, or provide an " +
                                                 $"external context via the '{nameof(GLWpfControlSettings.ContextToUse)}' field.");
                 }
             }
-            else {
+            else
+            {
                 var nws = NativeWindowSettings.Default;
                 nws.StartFocused = false;
                 nws.StartVisible = false;
@@ -130,10 +131,13 @@ namespace OpenTK.Wpf {
             return _sharedContext;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             // we only dispose of the graphics context if we're using the shared one.
-            if (ReferenceEquals(_sharedContext, GraphicsContext)) {
-                if (Interlocked.Decrement(ref _sharedContextReferenceCount) == 0) {
+            if (ReferenceEquals(_sharedContext, GraphicsContext))
+            {
+                if (Interlocked.Decrement(ref _sharedContextReferenceCount) == 0)
+                {
                     GlfwWindow.Dispose();
                     HwndSource.Dispose();
                 }

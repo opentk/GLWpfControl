@@ -28,18 +28,18 @@ namespace OpenTK.Wpf
         /// <summary>The height of this buffer in pixels.</summary>
         public int FramebufferHeight { get; private set; }
 
-        /// The OpenGL framebuffer handle.
+        /// <summary>The OpenGL framebuffer handle.</summary>
         public int FrameBufferHandle { get; private set; }
 
-        /// The OpenGL Framebuffer width
+        /// <summary>The OpenGL Framebuffer width</summary>
         public int Width => D3dImage == null ? FramebufferWidth : 0;
-        
-        /// The OpenGL Framebuffer height
+
+        /// <summary>The OpenGL Framebuffer height</summary>
         public int Height => D3dImage == null ? FramebufferHeight : 0;
 
         public D3DImage D3dImage { get; private set; }
 
-        public IntPtr DxRenderTargetHandle { get; private set; }
+        public DXInterop.IDirect3DSurface9 DxRenderTarget { get; private set; }
 
         public IntPtr DxInteropRegisteredHandle { get; private set; }
 
@@ -57,46 +57,48 @@ namespace OpenTK.Wpf
             _context = new DxGlContext(settings);
         }
 
-        public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY, Format format) {
-            if (D3dImage == null || FramebufferWidth != width || FramebufferHeight != height) {
+        public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY, Format format)
+        {
+            if (D3dImage == null || FramebufferWidth != width || FramebufferHeight != height)
+            {
                 //D3dImage?.Dispose();
                 if (D3dImage != null)
                 {
                     GL.DeleteFramebuffer(GLFramebufferHandle);
                     GL.DeleteRenderbuffer(GLDepthRenderBufferHandle);
                     GL.DeleteTexture(GLSharedTextureHandle);
-                    Wgl.DXUnregisterObjectNV(_context.GlDeviceHandle, DxInteropRegisteredHandle);
-                    DXInterop.Release(DxRenderTargetHandle);
+                    Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropRegisteredHandle);
+                    DxRenderTarget.Release();
                 }
                 D3dImage = null;
 
-                if (width > 0 && height > 0) {
+                if (width > 0 && height > 0)
+                {
                     //_framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY, format);
 
                     FramebufferWidth = (int)Math.Ceiling(width * dpiScaleX);
                     FramebufferHeight = (int)Math.Ceiling(height * dpiScaleY);
 
                     var dxSharedHandle = IntPtr.Zero; // Unused windows-vista legacy sharing handle. Must always be null.
-                    DXInterop.CreateRenderTarget(
-                        _context.DxDeviceHandle,
+                    _context.DxDevice.CreateRenderTarget(
                         FramebufferWidth,
                         FramebufferHeight,
                         format,
                         MultisampleType.None,
                         0,
                         false,
-                        out var dxRenderTargetHandle,
+                        out DXInterop.IDirect3DSurface9 dxRenderTarget,
                         ref dxSharedHandle);
-                    DxRenderTargetHandle = dxRenderTargetHandle;
+                    DxRenderTarget = dxRenderTarget;
 
-                    Wgl.DXSetResourceShareHandleNV(dxRenderTargetHandle, dxSharedHandle);
+                    Wgl.DXSetResourceShareHandleNV(dxRenderTarget.Handle, dxSharedHandle);
 
                     GLFramebufferHandle = GL.GenFramebuffer();
                     GLSharedTextureHandle = GL.GenTexture();
 
                     var genHandle = Wgl.DXRegisterObjectNV(
-                        _context.GlDeviceHandle,
-                        dxRenderTargetHandle,
+                        _context.GLDeviceHandle,
+                        dxRenderTarget.Handle,
                         (uint)GLSharedTextureHandle,
                         (uint)TextureTarget.Texture2D,
                         WGL_NV_DX_interop.AccessReadWrite);
@@ -132,13 +134,14 @@ namespace OpenTK.Wpf
 
                     TranslateTransform = new TranslateTransform(0, height);
                     FlipYTransform = new ScaleTransform(1, -1);
-
                 }
             }
         }
 
-        public void Render(DrawingContext drawingContext) {
-            if (D3dImage == null) {
+        public void Render(DrawingContext drawingContext)
+        {
+            if (D3dImage == null)
+            {
                 return;
             }
             var curFrameStamp = _stopwatch.Elapsed;
@@ -147,7 +150,7 @@ namespace OpenTK.Wpf
 
             // Lock the interop object, DX calls to the framebuffer are no longer valid
             D3dImage.Lock();
-            Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
+            Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
             GL.Viewport(0, 0, FramebufferWidth, FramebufferHeight);
 
@@ -156,8 +159,8 @@ namespace OpenTK.Wpf
             GLAsyncRender?.Invoke();
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
-            Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
-            D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, DxRenderTargetHandle, true);
+            Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
+            D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, DxRenderTarget.Handle, true);
             D3dImage.AddDirtyRect(new Int32Rect(0, 0, FramebufferWidth, FramebufferHeight));
             D3dImage.Unlock();
 
