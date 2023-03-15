@@ -5,6 +5,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
+using OpenTK.Platform.Windows;
 using OpenTK.Wpf.Interop;
 
 namespace OpenTK.Wpf
@@ -12,45 +13,135 @@ namespace OpenTK.Wpf
 
     /// Renderer that uses DX_Interop for a fast-path.
     internal sealed class GLWpfControlRenderer {
-        
+
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private readonly DxGlContext _context;
-        
+
         public event Action<TimeSpan> GLRender;
         public event Action GLAsyncRender;
-        
-        private DxGLFramebuffer _framebuffer;
 
-        /// The OpenGL framebuffer handle.
-        public int FrameBufferHandle => _framebuffer?.GLFramebufferHandle ?? 0;
+        //private DxGLFramebuffer _framebuffer;
 
-        /// The OpenGL Framebuffer width
-        public int Width => _framebuffer?.FramebufferWidth ?? 0;
-        
-        /// The OpenGL Framebuffer height
-        public int Height => _framebuffer?.FramebufferHeight ?? 0;
-        
+        /// <summary>The width of this buffer in pixels.</summary>
+        public int FramebufferWidth { get; private set; }
+
+        /// <summary>The height of this buffer in pixels.</summary>
+        public int FramebufferHeight { get; private set; }
+
+        /// <summary>The OpenGL framebuffer handle.</summary>
+        public int FrameBufferHandle { get; private set; }
+
+        /// <summary>The OpenGL Framebuffer width</summary>
+        public int Width => D3dImage == null ? FramebufferWidth : 0;
+
+        /// <summary>The OpenGL Framebuffer height</summary>
+        public int Height => D3dImage == null ? FramebufferHeight : 0;
+
+        public D3DImage D3dImage { get; private set; }
+
+        public DXInterop.IDirect3DSurface9 DxRenderTarget { get; private set; }
+
+        public IntPtr DxInteropRegisteredHandle { get; private set; }
+
+        public int GLFramebufferHandle { get; private set; }
+        private int GLSharedTextureHandle { get; set; }
+        private int GLDepthRenderBufferHandle { get; set; }
+
+        public TranslateTransform TranslateTransform { get; private set; }
+        public ScaleTransform FlipYTransform { get; private set; }
+
         private TimeSpan _lastFrameStamp;
-
 
         public GLWpfControlRenderer(GLWpfControlSettings settings)
         {
             _context = new DxGlContext(settings);
         }
 
+        public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY, Format format)
+        {
+            if (D3dImage == null || FramebufferWidth != width || FramebufferHeight != height)
+            {
+                //D3dImage?.Dispose();
+                if (D3dImage != null)
+                {
+                    GL.DeleteFramebuffer(GLFramebufferHandle);
+                    GL.DeleteRenderbuffer(GLDepthRenderBufferHandle);
+                    GL.DeleteTexture(GLSharedTextureHandle);
+                    Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropRegisteredHandle);
+                    DxRenderTarget.Release();
+                }
+                D3dImage = null;
 
-        public void SetSize(int width, int height, double dpiScaleX, double dpiScaleY, Format format) {
-            if (_framebuffer == null || _framebuffer.Width != width || _framebuffer.Height != height) {
-                _framebuffer?.Dispose();
-                _framebuffer = null;
-                if (width > 0 && height > 0) {
-                    _framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY, format);
+                if (width > 0 && height > 0)
+                {
+                    //_framebuffer = new DxGLFramebuffer(_context, width, height, dpiScaleX, dpiScaleY, format);
+
+                    FramebufferWidth = (int)Math.Ceiling(width * dpiScaleX);
+                    FramebufferHeight = (int)Math.Ceiling(height * dpiScaleY);
+
+                    var dxSharedHandle = IntPtr.Zero; // Unused windows-vista legacy sharing handle. Must always be null.
+                    _context.DxDevice.CreateRenderTarget(
+                        FramebufferWidth,
+                        FramebufferHeight,
+                        format,
+                        MultisampleType.None,
+                        0,
+                        false,
+                        out DXInterop.IDirect3DSurface9 dxRenderTarget,
+                        ref dxSharedHandle);
+                    DxRenderTarget = dxRenderTarget;
+
+                    Wgl.DXSetResourceShareHandleNV(dxRenderTarget.Handle, dxSharedHandle);
+
+                    GLFramebufferHandle = GL.GenFramebuffer();
+                    GLSharedTextureHandle = GL.GenTexture();
+
+                    var genHandle = Wgl.DXRegisterObjectNV(
+                        _context.GLDeviceHandle,
+                        dxRenderTarget.Handle,
+                        (uint)GLSharedTextureHandle,
+                        (uint)TextureTarget.Texture2D,
+                        WGL_NV_DX_interop.AccessReadWrite);
+
+                    DxInteropRegisteredHandle = genHandle;
+
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
+                    GL.FramebufferTexture2D(
+                        FramebufferTarget.Framebuffer,
+                        FramebufferAttachment.ColorAttachment0,
+                        TextureTarget.Texture2D,
+                        GLSharedTextureHandle, 0);
+
+                    GLDepthRenderBufferHandle = GL.GenRenderbuffer();
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLDepthRenderBufferHandle);
+                    GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, FramebufferWidth, FramebufferHeight);
+
+                    GL.FramebufferRenderbuffer(
+                        FramebufferTarget.Framebuffer,
+                        FramebufferAttachment.DepthAttachment,
+                        RenderbufferTarget.Renderbuffer,
+                        GLDepthRenderBufferHandle);
+                    GL.FramebufferRenderbuffer(
+                        FramebufferTarget.Framebuffer,
+                        FramebufferAttachment.StencilAttachment,
+                        RenderbufferTarget.Renderbuffer,
+                        GLDepthRenderBufferHandle);
+
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+
+                    D3dImage = new D3DImage(96.0 * dpiScaleX, 96.0 * dpiScaleY);
+
+                    TranslateTransform = new TranslateTransform(0, height);
+                    FlipYTransform = new ScaleTransform(1, -1);
                 }
             }
         }
 
-        public void Render(DrawingContext drawingContext) {
-            if (_framebuffer == null) {
+        public void Render(DrawingContext drawingContext)
+        {
+            if (D3dImage == null)
+            {
                 return;
             }
             var curFrameStamp = _stopwatch.Elapsed;
@@ -58,31 +149,33 @@ namespace OpenTK.Wpf
             _lastFrameStamp = curFrameStamp;
 
             // Lock the interop object, DX calls to the framebuffer are no longer valid
-            _framebuffer.D3dImage.Lock();
-            Wgl.DXLockObjectsNV(_context.GlDeviceHandle, 1, new[] { _framebuffer.DxInteropRegisteredHandle });
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer.GLFramebufferHandle);
-            GL.Viewport(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight);
+            D3dImage.Lock();
+            Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
+            GL.Viewport(0, 0, FramebufferWidth, FramebufferHeight);
 
             GLRender?.Invoke(deltaT);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GLAsyncRender?.Invoke();
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
-            Wgl.DXUnlockObjectsNV(_context.GlDeviceHandle, 1, new[] { _framebuffer.DxInteropRegisteredHandle });
-            _framebuffer.D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, _framebuffer.DxRenderTargetHandle, true);
-            _framebuffer.D3dImage.AddDirtyRect(new Int32Rect(0, 0, _framebuffer.FramebufferWidth, _framebuffer.FramebufferHeight));
-            _framebuffer.D3dImage.Unlock();
+            Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
+            D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, DxRenderTarget.Handle, true);
+            D3dImage.AddDirtyRect(new Int32Rect(0, 0, FramebufferWidth, FramebufferHeight));
+            D3dImage.Unlock();
 
             // Transforms are applied in reverse order
-            drawingContext.PushTransform(_framebuffer.TranslateTransform);              // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
-            drawingContext.PushTransform(_framebuffer.FlipYTransform);                  // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
+            // Apply translation to the image on the Y axis by the height. This assures that in the next step, where we apply a negative scale the image is still inside of the window
+            drawingContext.PushTransform(TranslateTransform);
+            // Apply a scale where the Y axis is -1. This will rotate the image by 180 deg
+            drawingContext.PushTransform(FlipYTransform);
 
             // dpi scaled rectangle from the image
-            var rect = new Rect(0, 0, _framebuffer.D3dImage.Width, _framebuffer.D3dImage.Height);
-            drawingContext.DrawImage(_framebuffer.D3dImage, rect);            // Draw the image source 
+            var rect = new Rect(0, 0, D3dImage.Width, D3dImage.Height);
+            drawingContext.DrawImage(D3dImage, rect);                      // Draw the image source 
 
-            drawingContext.Pop();                                                       // Remove the scale transform
-            drawingContext.Pop();                                                       // Remove the translation transform
+            drawingContext.Pop();                                          // Remove the scale transform
+            drawingContext.Pop();                                          // Remove the translation transform
         }
     }
 }
