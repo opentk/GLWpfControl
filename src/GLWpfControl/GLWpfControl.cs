@@ -20,6 +20,9 @@ namespace OpenTK.Wpf
     /// </summary>
     public class GLWpfControl : FrameworkElement
     {
+        public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register(
+            "Settings", typeof(GLWpfControlSettings), typeof(GLWpfControl));
+
         // -----------------------------------
         // EVENTS
         // -----------------------------------
@@ -42,8 +45,24 @@ namespace OpenTK.Wpf
         // Fields
         // -----------------------------------
         
-        [CanBeNull] private GLWpfControlSettings _settings;
         [CanBeNull] private GLWpfControlRenderer _renderer;
+
+        /// <summary>
+        /// Indicates whether the <see cref="Start"/> function has been invoked.
+        /// </summary>
+        private bool _isStarted;
+
+        /// <summary>
+        /// Gets or sets the settings used when initializing the control.
+        /// </summary>
+        /// <value>
+        /// The settings used when initializing the control.
+        /// </value>
+        public GLWpfControlSettings Settings
+        {
+            get { return (GLWpfControlSettings)GetValue(SettingsProperty); }
+            set { SetValue(SettingsProperty, value); }
+        }
 
         // -----------------------------------
         // Properties
@@ -54,12 +73,11 @@ namespace OpenTK.Wpf
         /// If no framebuffer is available (because this control is not visible, etc etc, then it should be 0).
         public int Framebuffer => _renderer?.FrameBufferHandle ?? 0;
 
-
         /// If this control is rendering continuously.
         /// If this is false, then redrawing will only occur when <see cref="UIElement.InvalidateVisual"/> is called.
         public bool RenderContinuously {
-            get => _settings.RenderContinuously;
-            set => _settings.RenderContinuously = value;
+            get => Settings.RenderContinuously;
+            set => Settings.RenderContinuously = value;
         }
 
         /// Pixel width of the underlying OpenGL framebuffer.
@@ -85,14 +103,34 @@ namespace OpenTK.Wpf
         {
         }
 
+        /// <summary>
+        /// Starts the control and rendering, using the settings provided via the <see cref="Settings"/> property.
+        /// </summary>
+        public void Start()
+        {
+            // Start with default settings if none were provided.
+            Settings ??= new GLWpfControlSettings();
+
+            Start(Settings);
+        }
+
+        /// <summary>
         /// Starts the control and rendering, using the settings provided.
+        /// </summary>
+        /// <param name="settings">
+        /// The settings used to construct the underlying graphics context.
+        /// </param>
+        /// <exception cref="InvalidOperationException">
+        /// The <see cref="Start"/> function must only be called once for a given <see cref="GLWpfControl"/>.
+        /// </exception>
         public void Start(GLWpfControlSettings settings)
         {
-            if (_settings != null) {
+            if (_isStarted) {
                 throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
             }
-            _settings = settings.Copy();
-            _renderer = new GLWpfControlRenderer(_settings);
+
+            Settings = settings.Copy();
+            _renderer = new GLWpfControlRenderer(Settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
             _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
             IsVisibleChanged += (_, args) => {
@@ -106,27 +144,29 @@ namespace OpenTK.Wpf
 
             // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
             if (RegisterToEventsDirectly)
-	    {
-	        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
-		EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
-	    }
+	        {
+	            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
+		        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
+	        }
 			
             Loaded += (a, b) => {
                 InvalidateVisual();
             };
             Unloaded += (a, b) => OnUnloaded();
             Ready?.Invoke();
+
+            _isStarted = true;
         }
         
         private void SetupRenderSize() {
-            if (_renderer == null || _settings == null) {
+            if (_renderer == null || Settings == null) {
                 return;
             }
 
             var dpiScaleX = 1.0;
             var dpiScaleY = 1.0;
 
-            if (_settings.UseDeviceDpi) {
+            if (Settings.UseDeviceDpi) {
                 var presentationSource = PresentationSource.FromVisual(this);
                 // this can be null in the case of not having any visual on screen, such as a tabbed view.
                 if (presentationSource != null) {
@@ -137,7 +177,8 @@ namespace OpenTK.Wpf
                     dpiScaleY = transformToDevice.M22;
                 }
             }
-            var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
+
+            var format = Settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
             _renderer?.SetSize((int) RenderSize.Width, (int) RenderSize.Height, dpiScaleX, dpiScaleY, format);
         }
 
@@ -166,7 +207,6 @@ namespace OpenTK.Wpf
                 RaiseEvent(args);
             }
         }
-
 
         private void OnCompTargetRender(object sender, EventArgs e)
         {
@@ -211,6 +251,7 @@ namespace OpenTK.Wpf
             {
                 InvalidateVisual();
             }
+
             base.OnRenderSizeChanged(info);
         }
     }
