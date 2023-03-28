@@ -15,8 +15,8 @@
             Render="OpenTkControl_OnRender">
             
             <glWpfControl:GLWpfControl.Settings>
-                <glWpfControl:GLWpfControlSettings MinorVersion="2"
-                                                   MajorVersion="1"/>
+                <glWpfControl:GLWpfControlSettings MajorVersion="2"
+                                                   MinorVersion="1"/>
             </glWpfControl:GLWpfControl.Settings>
             
         </glWpfControl:GLWpfControl>

@@ -20,6 +20,9 @@ namespace OpenTK.Wpf
     /// </summary>
     public class GLWpfControl : FrameworkElement
     {
+        /// <summary>
+        /// Represents the dependency property for <see cref="Settings"/>.
+        /// </summary>
         public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register(
             "Settings", typeof(GLWpfControlSettings), typeof(GLWpfControl));
 
@@ -129,6 +132,8 @@ namespace OpenTK.Wpf
                 throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
             }
 
+            _isStarted = true;
+
             Settings = settings.Copy();
             _renderer = new GLWpfControlRenderer(Settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
@@ -154,8 +159,6 @@ namespace OpenTK.Wpf
             };
             Unloaded += (a, b) => OnUnloaded();
             Ready?.Invoke();
-
-            _isStarted = true;
         }
         
         private void SetupRenderSize() {
