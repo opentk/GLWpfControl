@@ -20,12 +20,6 @@ namespace OpenTK.Wpf
     /// </summary>
     public class GLWpfControl : FrameworkElement
     {
-        /// <summary>
-        /// Represents the dependency property for <see cref="Settings"/>.
-        /// </summary>
-        public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register(
-            "Settings", typeof(GLWpfControlSettings), typeof(GLWpfControl));
-
         // -----------------------------------
         // EVENTS
         // -----------------------------------
@@ -47,13 +41,23 @@ namespace OpenTK.Wpf
         // -----------------------------------
         // Fields
         // -----------------------------------
-        
+
+        /// <summary>
+        /// Represents the dependency property for <see cref="Settings"/>.
+        /// </summary>
+        public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register(
+            "Settings", typeof(GLWpfControlSettings), typeof(GLWpfControl));
+
         [CanBeNull] private GLWpfControlRenderer _renderer;
 
         /// <summary>
         /// Indicates whether the <see cref="Start"/> function has been invoked.
         /// </summary>
         private bool _isStarted;
+
+        // -----------------------------------
+        // Properties
+        // -----------------------------------
 
         /// <summary>
         /// Gets or sets the settings used when initializing the control.
@@ -66,10 +70,6 @@ namespace OpenTK.Wpf
             get { return (GLWpfControlSettings)GetValue(SettingsProperty); }
             set { SetValue(SettingsProperty, value); }
         }
-
-        // -----------------------------------
-        // Properties
-        // -----------------------------------
 
         /// The OpenGL Framebuffer Object used internally by this component.
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
