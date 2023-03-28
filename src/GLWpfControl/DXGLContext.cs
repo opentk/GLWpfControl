@@ -87,7 +87,7 @@ namespace OpenTK.Wpf {
             if (_sharedContext != null) {
                 var isSameContext = GLWpfControlSettings.WouldResultInSameContext(settings, _sharedContextSettings);
                 if (!isSameContext) {
-                    throw new ArgumentException($"The provided {nameof(GLWpfControlSettings)} would result" +
+                    throw new ArgumentException($"The provided {nameof(GLWpfControlSettings)} would result " +
                                                 $"in a different context creation to one previously created. To fix this, " +
                                                 $"either ensure all of your context settings are identical, or provide an " +
                                                 $"external context via the '{nameof(GLWpfControlSettings.ContextToUse)}' field.");
