@@ -9,10 +9,17 @@ namespace Example {
     public sealed partial class MainWindow {
         public MainWindow() {
             InitializeComponent();
-            var mainSettings = new GLWpfControlSettings {MajorVersion = 2, MinorVersion = 1};
-            OpenTkControl.Start(mainSettings);
-            var insetSettings = new GLWpfControlSettings {MajorVersion = 2, MinorVersion = 1, RenderContinuously = false};
-            InsetControl.Start(insetSettings);
+
+            // You can start and rely on the Settings property that may be set in XAML or elsewhere in the codebase.
+            OpenTkControl.Start();
+
+            // Or, you can suppy a settings object directly.
+            InsetControl.Start(new GLWpfControlSettings()
+            {
+                MajorVersion = 2,
+                MinorVersion = 1,
+                RenderContinuously = false,
+            });
         }
 
         private void OpenTkControl_OnRender(TimeSpan delta) {

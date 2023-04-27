@@ -12,7 +12,14 @@
     <Grid>
         <glWpfControl:GLWpfControl
             x:Name="OpenTkControl"
-            Render="OpenTkControl_OnRender" />
+            Render="OpenTkControl_OnRender">
+            
+            <glWpfControl:GLWpfControl.Settings>
+                <glWpfControl:GLWpfControlSettings MajorVersion="2"
+                                                   MinorVersion="1"/>
+            </glWpfControl:GLWpfControl.Settings>
+            
+        </glWpfControl:GLWpfControl>
         <Border
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
@@ -32,7 +39,7 @@
             Height="128"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
-            Margin="10,0,0,60" />
+            Margin="10,0,0,60"/>
         <Button
             Content="Redraw Inset Control"
             HorizontalAlignment="Left"
