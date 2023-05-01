@@ -58,7 +58,7 @@ namespace OpenTK.Wpf
                 Flags = 0,
                 FullScreen_RefreshRateInHz = 0,
                 MultiSampleQuality = 0,
-                MultiSampleType = MultisampleType.None
+                MultiSampleType = MultisampleType.D3DMULTISAMPLE_NONE
             };
 
             dxContext.CreateDeviceEx(
