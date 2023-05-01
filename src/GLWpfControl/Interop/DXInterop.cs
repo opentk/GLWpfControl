@@ -31,6 +31,8 @@ namespace OpenTK.Wpf.Interop
         private delegate int NativeCreateRenderTarget(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool lockable, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
         private delegate uint NativeRelease(IntPtr resourceHandle);
 
+        private delegate uint NativeGetDesc(IDirect3DSurface9 surfaceHandle, out D3DSURFACE_DESC pDesc);
+
         public static void CheckHResult(int hresult)
         {
             Marshal.ThrowExceptionForHR(hresult);
@@ -277,6 +279,18 @@ namespace OpenTK.Wpf.Interop
             }
         }
 
+        public struct D3DSURFACE_DESC
+        {
+            public D3DFormat Format;
+            public D3DResourceType Type;
+            public D3DUsage Usage;
+            public D3DPool Pool;
+            public MultisampleType MultiSampleType;
+            public uint MultiSampleQuality;
+            public uint Width;
+            public uint Height;
+        }
+
         public unsafe struct IDirect3DSurface9
         {
             public struct _VTable
@@ -306,6 +320,13 @@ namespace OpenTK.Wpf.Interop
             public _VTable** VTable;
 
             public IntPtr Handle => (IntPtr)VTable;
+
+            public uint GetDesc(out D3DSURFACE_DESC pDesc)
+            {
+                NativeGetDesc method = Marshal.GetDelegateForFunctionPointer<NativeGetDesc>((*VTable)->GetDesc);
+
+                return method(this, out pDesc);
+            }
 
             public uint Release()
             {

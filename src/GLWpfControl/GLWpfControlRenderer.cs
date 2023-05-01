@@ -84,7 +84,7 @@ namespace OpenTK.Wpf
                         FramebufferWidth,
                         FramebufferHeight,
                         format,
-                        MultisampleType.None,
+                        MultisampleType.D3DMULTISAMPLE_NONE,
                         0,
                         false,
                         out DXInterop.IDirect3DSurface9 dxRenderTarget,
@@ -93,6 +93,12 @@ namespace OpenTK.Wpf
 
                     Wgl.DXSetResourceShareHandleNV(dxRenderTarget.Handle, dxSharedHandle);
 
+                    {
+                        DxRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
+
+                        Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
+                    }
+                    
                     GLFramebufferHandle = GL.GenFramebuffer();
                     GLSharedTextureHandle = GL.GenTexture();
 
@@ -160,7 +166,7 @@ namespace OpenTK.Wpf
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
             Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
-            D3dImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, DxRenderTarget.Handle, true);
+            D3dImage.SetBackBuffer(System.Windows.Interop.D3DResourceType.IDirect3DSurface9, DxRenderTarget.Handle, true);
             D3dImage.AddDirtyRect(new Int32Rect(0, 0, FramebufferWidth, FramebufferHeight));
             D3dImage.Unlock();
 
