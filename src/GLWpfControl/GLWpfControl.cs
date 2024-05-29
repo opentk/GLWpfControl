@@ -20,7 +20,7 @@ namespace OpenTK.Wpf
     ///
     ///     Please do not extend this class. It has no support for that.
     /// </summary>
-    public class GLWpfControl : FrameworkElement
+    public class GLWpfControl : FrameworkElement, IDisposable
     {
         /// <summary>
         /// Called whenever rendering should occur.
@@ -155,10 +155,9 @@ namespace OpenTK.Wpf
 		        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
 	        }
 			
-            Loaded += (a, b) => {
-                InvalidateVisual();
-            };
+            Loaded += (a, b) => InvalidateVisual();
             Unloaded += (a, b) => OnUnloaded();
+
             Ready?.Invoke();
         }
         
@@ -170,6 +169,17 @@ namespace OpenTK.Wpf
             // after the previous one has been deleted.
             // - Noggin_bops 2024-05-29
             _renderer?.ReallocateFramebufferIfNeeded(0, 0, 1, 1, Format.X8R8G8B8, MultisampleType.D3DMULTISAMPLE_NONE);
+        }
+
+        /// <summary>
+        /// Disposes the native resources allocated by this control.
+        /// After this function has been called this control will no longer render anything 
+        /// until <see cref="Start()"/> has been called again.
+        /// </summary>
+        public void Dispose()
+        {
+            _renderer?.Dispose();
+            _isStarted = false;
         }
 
         // Raise the events so they're received if you subscribe to the base control's events

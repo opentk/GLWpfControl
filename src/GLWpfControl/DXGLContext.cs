@@ -110,6 +110,11 @@ namespace OpenTK.Wpf
             }
         }
 
+        ~DxGlContext()
+        {
+            Dispose();
+        }
+
         public void Dispose()
         {
             if (Wgl.DXCloseDeviceNV(DxDevice.Handle) == false)
@@ -119,6 +124,8 @@ namespace OpenTK.Wpf
             GlfwWindow?.Dispose();
             DxDevice.Release();
             DxContext.Release();
+
+            GC.SuppressFinalize(this);
         }
 
 #if DEBUG
