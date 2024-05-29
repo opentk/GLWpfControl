@@ -5,14 +5,11 @@
     <RootNamespace>OpenTK.Wpf</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>9.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.8.2" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
 </Project>

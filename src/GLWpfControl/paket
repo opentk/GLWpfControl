@@ -8,7 +8,7 @@ owners
 authors
     Team OpenTK
 summary
-    A native WPF control for OpenTK 4.3.0+
+    A native WPF control for OpenTK 4.8.0+
 projectUrl
     https://www.opentk.net
 iconUrl
@@ -23,7 +23,7 @@ copyright
 include-pdbs true
 
 dependencies
-    OpenTK ~> 4.0 >= 4.3.0
+    OpenTK ~> 4.0 >= 4.8.0
 
 files
     bin\Release\netcoreapp3.1\netcoreapp3.1\GLWpfControl.dll ==> lib\netcoreapp3.1

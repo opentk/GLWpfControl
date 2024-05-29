@@ -15,15 +15,15 @@ namespace Example {
 
         public TabbedMainWindowTest() {
             InitializeComponent();
-            var mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
+            var mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
             Control1.Start(mainSettings);
             scene1.Initialize();
 
-            var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 5, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8};
+            var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8};
             Control2.Start(insetSettings);
             scene2.Initialize();
 
-            var transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 5, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true};
+            var transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true};
             Control3.Start(transparentSettings);
             scene3.Initialize();
         }

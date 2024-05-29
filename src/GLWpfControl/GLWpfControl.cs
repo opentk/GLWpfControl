@@ -40,26 +40,18 @@ namespace OpenTK.Wpf
         /// </summary>
         public event Action? Ready;
 
-        // -----------------------------------
-        // Fields
-        // -----------------------------------
-
         /// <summary>
         /// Represents the dependency property for <see cref="Settings"/>.
         /// </summary>
         public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register(
             "Settings", typeof(GLWpfControlSettings), typeof(GLWpfControl));
 
-        [CanBeNull] private GLWpfControlRenderer _renderer;
+        private GLWpfControlRenderer? _renderer;
 
         /// <summary>
         /// Indicates whether the <see cref="Start"/> function has been invoked.
         /// </summary>
         private bool _isStarted;
-
-        // -----------------------------------
-        // Properties
-        // -----------------------------------
 
         /// <summary>
         /// Gets or sets the settings used when initializing the control.
