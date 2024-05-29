@@ -56,7 +56,44 @@ This package is intended to supercede the legacy *GLControl* completely, and we 
     ```
 For additional examples, see [MainWindow.xaml](https://github.com/opentk/GLWpfControl/blob/master/src/Example/MainWindow.xaml) and [MainWindow.xaml.cs](https://github.com/opentk/GLWpfControl/blob/master/src/Example/MainWindow.xaml.cs) in the example project.
 
+### I'm having trouble with Keyboard and Mouse Input!?
 
+The current design has some issues based around polling for keyboard and mouse input due to the way the control was initially designed.
+
+If you want to handle keyboard input for the control when it is not focused, this is a feature we're currently looking into fixing. However, if you just want to handle keyboard input when the control has focus there's a little additional logic that must be implemented:
+
+1. Before calling `Start()` add the following to ensure that you can hook onto events via the control:
+
+```csharp
+this.glWpfControl.RegisterToEventsDirectly = false;
+this.glWpfControl.CanInvokeOnHandledEvents = false;
+
+this.glWpfControl.MouseDown += this.GlWpfControl_MouseDown;
+this.glWpfControl.MouseEnter += this.GlWpfControl_MouseEnter;
+this.glWpfControl.MouseLeave += this.GlWpfControl_MouseLeave;
+```
+
+2. Next, in the mouse event handlers you want to call `Focus()` for the control:
+
+```csharp
+    private void GlWpfControl_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        // When the mouse is leaving, lose focus so the keyboard cannot invoke events.
+        var scope = FocusManager.GetFocusScope(this.glWpfControl);
+        FocusManager.SetFocusedElement(scope, null);
+        System.Windows.Input.Keyboard.ClearFocus();
+    }
+
+    private void GlWpfControl_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        this.glWpfControl.Focus();
+    }
+
+    private void GlWpfControl_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        this.glWpfControl.Focus();
+    }
+```
 
 ## Build instructions
 
