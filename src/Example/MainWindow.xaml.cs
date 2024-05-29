@@ -13,12 +13,18 @@ namespace Example {
 
         public MainWindow() {
             InitializeComponent();
-            var mainSettings = new GLWpfControlSettings {MajorVersion = 2, MinorVersion = 1, Samples = 4};
-            OpenTkControl.Start(mainSettings);
+
+            // You can start and rely on the Settings property that may be set in XAML or elsewhere in the codebase.
+            OpenTkControl.Start();
             mainScene.Initialize();
 
-            var insetSettings = new GLWpfControlSettings {MajorVersion = 2, MinorVersion = 1, RenderContinuously = false};
-            InsetControl.Start(insetSettings);
+            // Or, you can suppy a settings object directly.
+            InsetControl.Start(new GLWpfControlSettings()
+            {
+                MajorVersion = 2,
+                MinorVersion = 1,
+                RenderContinuously = false,
+            });
             insetScene.Initialize();
         }
 
