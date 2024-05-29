@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics.Contracts;
 using OpenTK.Windowing.Common;
 
+#nullable enable
+
 namespace OpenTK.Wpf {
     public sealed class GLWpfControlSettings {
 
@@ -29,48 +31,52 @@ namespace OpenTK.Wpf {
         /// for managing the lifetime and disposal of.
         /// </summary>
         [CLSCompliant(false)]
-        public IGraphicsContext ContextToUse { get; set; }
+        public IGraphicsContext? ContextToUse { get; set; }
 
         /// <summary>
         /// May be null. If so, default bindings context will be used.
         /// </summary>
         [CLSCompliant(false)]
-        public IBindingsContext BindingsContext { get; set; }
+        public IBindingsContext? BindingsContext { get; set; }
 
+        /// <summary>
+        /// The OpenGL context flags to use. Same as <see cref="ContextFlags"/>.
+        /// </summary>
         [CLSCompliant(false)]
-        public ContextFlags GraphicsContextFlags { get; set; } = ContextFlags.Default;
+        [Obsolete("Use ContextFlags instead.")]
+        public ContextFlags GraphicsContextFlags { get => ContextFlags; set => ContextFlags = value; }
 
+        /// <summary>
+        /// The OpenGL context flags to use. <see cref="ContextFlags.Offscreen"/> will always be set for DirectX interop purposes.
+        /// </summary>
         [CLSCompliant(false)]
-        public ContextProfile GraphicsProfile { get; set; } = ContextProfile.Any;
+        public ContextFlags ContextFlags { get; set; } = ContextFlags.Default;
 
+        /// <summary>
+        /// The OpenGL profile to use. Same as <see cref="Profile"/>.
+        /// </summary>
+        [CLSCompliant(false)]
+        [Obsolete("Use Profile instead.")]
+        public ContextProfile GraphicsProfile { get => Profile; set => Profile = value; }
+
+        /// <summary>
+        /// The OpenGL profile to use.
+        /// </summary>
+        [CLSCompliant(false)]
+        public ContextProfile Profile { get; set; } = ContextProfile.Any;
+
+        /// <summary>The major OpenGL version number.</summary>
         public int MajorVersion { get; set; } = 3;
+        /// <summary>The minor OpenGL version number.</summary>
         public int MinorVersion { get; set; } = 3;
+
+        /// <summary>
+        /// How many MSAA samples should the framebuffer have in the range [0, 16]. 0 and 1 result in no MSAA.
+        /// </summary>
+        public int Samples { get; set; } = 0;
 
         /// <summary>If we are using an external context for the control.</summary>
         public bool IsUsingExternalContext => ContextToUse != null;
-
-        /// <summary>Determines if two settings would result in the same context being created.</summary>
-        [Pure]
-        internal static bool WouldResultInSameContext(GLWpfControlSettings a, GLWpfControlSettings b) {
-            if (a.MajorVersion != b.MajorVersion) {
-                return false;
-            }
-
-            if (a.MinorVersion != b.MinorVersion) {
-                return false;
-            }
-
-            if (a.GraphicsProfile != b.GraphicsProfile) {
-                return false;
-            }
-
-            if (a.GraphicsContextFlags != b.GraphicsContextFlags) {
-                return false;
-            }
-
-            return true;
-
-        }
 
         /// <summary>
         /// Makes a shallow clone of this <see cref="GLWpfControlSettings"/> object.

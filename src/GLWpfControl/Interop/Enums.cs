@@ -5,6 +5,7 @@ namespace OpenTK.Wpf.Interop
     [Flags]
     internal enum CreateFlags : uint
     {
+        FpuPreserve = 2,
         Multithreaded = 4,
         PureDevice = 16,
         HardwareVertexProcessing = 64,
@@ -116,6 +117,11 @@ namespace OpenTK.Wpf.Interop
         /// 32-bit RGB pixel format, where 8 bits are reserved for each color.
         /// </summary>
         X8R8G8B8 = 22,
+
+        /// <summary>
+        /// 32-bit z-buffer bit depth using 24 bits for the depth channel and 8 bits for the stencil channel.
+        /// </summary>
+        D24S8 = 75,
     }
 
     internal enum MultisampleType : int

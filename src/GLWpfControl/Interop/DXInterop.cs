@@ -18,6 +18,9 @@ namespace OpenTK.Wpf.Interop
 
         public const uint DefaultSdkVersion = 32;
 
+        [DllImport("Kernel32.dll")]
+        public static extern int GetLastError();
+
         public static void Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex context)
         {
             int result = Direct3DCreate9Ex(SdkVersion, out context);
@@ -29,6 +32,7 @@ namespace OpenTK.Wpf.Interop
 
         private delegate int NativeCreateDeviceEx(IDirect3D9Ex contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IDirect3DDevice9Ex deviceHandle);
         private delegate int NativeCreateRenderTarget(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool lockable, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
+        private delegate int NativeCreateDepthStencilSurface(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool discard, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
         private delegate uint NativeRelease(IntPtr resourceHandle);
 
         private delegate uint NativeGetDesc(IDirect3DSurface9 surfaceHandle, out D3DSURFACE_DESC pDesc);
@@ -51,7 +55,7 @@ namespace OpenTK.Wpf.Interop
 
             public _VTable** VTable;
 
-            public IntPtr Handle => (IntPtr)VTable;
+            public readonly IntPtr Handle => (IntPtr)VTable;
 
             // FIXME: This is only temporary while we have COM objects refered to by IntPtr
             public static explicit operator IUnknown(IntPtr ptr) => new IUnknown() { VTable = (_VTable**)ptr };
@@ -94,7 +98,7 @@ namespace OpenTK.Wpf.Interop
 
             public _VTable** VTable;
 
-            public IntPtr Handle => (IntPtr)VTable;
+            public readonly IntPtr Handle => (IntPtr)VTable;
 
             public static explicit operator IDirect3D9Ex(IntPtr ptr) => new IDirect3D9Ex() { VTable = (_VTable**)ptr };
 
@@ -260,7 +264,7 @@ namespace OpenTK.Wpf.Interop
 
             public _VTable** VTable;
 
-            public IntPtr Handle => (IntPtr)VTable;
+            public readonly IntPtr Handle => (IntPtr)VTable;
 
             public uint Release()
             {
@@ -274,6 +278,15 @@ namespace OpenTK.Wpf.Interop
                 NativeCreateRenderTarget method = Marshal.GetDelegateForFunctionPointer<NativeCreateRenderTarget>((*VTable)->CreateRenderTarget);
 
                 int result = method(this, width, height, format, multisample, multisampleQuality, lockable, out surfaceHandle, ref sharedHandle);
+
+                CheckHResult(result);
+            }
+
+            public void CreateDepthStencilSurface(int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool discard, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle)
+            {
+                NativeCreateDepthStencilSurface method = Marshal.GetDelegateForFunctionPointer<NativeCreateDepthStencilSurface>((*VTable)->CreateDepthStencilSurface);
+
+                int result = method(this, width, height, format, multisample, multisampleQuality, discard, out surfaceHandle, ref sharedHandle);
 
                 CheckHResult(result);
             }
@@ -319,7 +332,7 @@ namespace OpenTK.Wpf.Interop
 
             public _VTable** VTable;
 
-            public IntPtr Handle => (IntPtr)VTable;
+            public readonly IntPtr Handle => (IntPtr)VTable;
 
             public uint GetDesc(out D3DSURFACE_DESC pDesc)
             {

@@ -100,7 +100,7 @@ namespace OpenTK.Wpf
             if (_settings != null) {
                 throw new InvalidOperationException($"{nameof(Start)} must only be called once for a given {nameof(GLWpfControl)}");
             }
-            _settings = (GLWpfControlSettings)settings.Clone();
+            _settings = settings.Clone();
             _renderer = new GLWpfControlRenderer(_settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
             _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
@@ -129,7 +129,12 @@ namespace OpenTK.Wpf
         
         private void OnUnloaded()
         {
-            _renderer?.SetSize(0,0, 1, 1, Format.X8R8G8B8);
+            // FIXME: Make this a separate function for releasing resources...
+            // Currently this works as we are passing a zero width and height
+            // which causes the renderer to not reallocate the framebuffer
+            // after the previous one has been deleted.
+            // - Noggin_bops 2024-05-29
+            _renderer?.ReallocateFramebufferIfNeeded(0, 0, 1, 1, Format.X8R8G8B8, MultisampleType.D3DMULTISAMPLE_NONE);
         }
 
         // Raise the events so they're received if you subscribe to the base control's events
@@ -182,26 +187,33 @@ namespace OpenTK.Wpf
             {
                 if (_settings != null)
                 {
-                    var dpiScaleX = 1.0;
-                    var dpiScaleY = 1.0;
+                    double dpiScaleX = 1.0;
+                    double dpiScaleY = 1.0;
 
                     if (_settings.UseDeviceDpi)
                     {
-                        var presentationSource = PresentationSource.FromVisual(this);
+                        PresentationSource presentationSource = PresentationSource.FromVisual(this);
                         // this can be null in the case of not having any visual on screen, such as a tabbed view.
                         if (presentationSource != null)
                         {
                             Debug.Assert(presentationSource.CompositionTarget != null, "presentationSource.CompositionTarget != null");
 
-                            var transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
+                            Matrix transformToDevice = presentationSource.CompositionTarget.TransformToDevice;
                             dpiScaleX = transformToDevice.M11;
                             dpiScaleY = transformToDevice.M22;
                         }
                     }
+                    
+                    Format format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
 
-                    var format = _settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
+                    MultisampleType msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
+                    // 2 to 16 are valid msaa values, clamp to 16.
+                    if (_settings.Samples >= 2 && _settings.Samples <= 16)
+                        msaaType = MultisampleType.D3DMULTISAMPLE_NONE + _settings.Samples;
+                    else if (_settings.Samples > 16)
+                        msaaType = MultisampleType.D3DMULTISAMPLE_16_SAMPLES;
 
-                    _renderer.SetSize((int)RenderSize.Width, (int)RenderSize.Height, dpiScaleX, dpiScaleY, format);
+                    _renderer.ReallocateFramebufferIfNeeded(RenderSize.Width, RenderSize.Height, dpiScaleX, dpiScaleY, format, msaaType);
                 }
 
                 _renderer.Render(drawingContext);
