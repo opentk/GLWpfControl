@@ -194,7 +194,7 @@ namespace OpenTK.Wpf
             }
         }
 
-        private void OnCompTargetRender(object sender, EventArgs e)
+        private void OnCompTargetRender(object? sender, EventArgs e)
         {
             TimeSpan? currentRenderTime = (e as RenderingEventArgs)?.RenderingTime;
             if(currentRenderTime == _lastRenderTime)
