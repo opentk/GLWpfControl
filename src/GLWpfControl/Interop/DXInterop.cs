@@ -46,12 +46,14 @@ namespace OpenTK.Wpf.Interop
 
         public unsafe struct IUnknown
         {
+#pragma warning disable CS0649
             public struct _VTable
             {
                 public IntPtr QueryInterface;
                 public IntPtr AddRef;
                 public IntPtr Release;
             }
+#pragma warning restore CS0649
 
             public _VTable** VTable;
 
@@ -70,6 +72,7 @@ namespace OpenTK.Wpf.Interop
 
         public unsafe struct IDirect3D9Ex
         {
+#pragma warning disable CS0649
             public struct _VTable
             {
                 public IntPtr QueryInterface;
@@ -97,6 +100,7 @@ namespace OpenTK.Wpf.Interop
             }
 
             public _VTable** VTable;
+#pragma warning restore CS0649
 
             public readonly IntPtr Handle => (IntPtr)VTable;
 
@@ -121,6 +125,7 @@ namespace OpenTK.Wpf.Interop
 
         public unsafe struct IDirect3DDevice9Ex
         {
+#pragma warning disable CS0649
             public struct _VTable
             {
                 /*** IUnknown methods ***/
@@ -263,6 +268,7 @@ namespace OpenTK.Wpf.Interop
             }
 
             public _VTable** VTable;
+#pragma warning restore CS0649
 
             public readonly IntPtr Handle => (IntPtr)VTable;
 
@@ -292,6 +298,7 @@ namespace OpenTK.Wpf.Interop
             }
         }
 
+#pragma warning disable CS0649
         public struct D3DSURFACE_DESC
         {
             public D3DFormat Format;
@@ -303,9 +310,11 @@ namespace OpenTK.Wpf.Interop
             public uint Width;
             public uint Height;
         }
+#pragma warning restore CS0649
 
         public unsafe struct IDirect3DSurface9
         {
+#pragma warning disable CS0649
             public struct _VTable
             {
                 /*** IUnknown methods ***/
@@ -331,6 +340,7 @@ namespace OpenTK.Wpf.Interop
             }
 
             public _VTable** VTable;
+#pragma warning restore CS0649
 
             public readonly IntPtr Handle => (IntPtr)VTable;
 
