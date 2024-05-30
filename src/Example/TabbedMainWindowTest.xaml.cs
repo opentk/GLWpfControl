@@ -33,7 +33,6 @@ namespace Example
             scene3.Initialize();
 
             Control1.KeyDown += Control1_KeyDown;
-            Control1.MouseMove += Control1_MouseMove;
 
             Keyboard.AddPreviewKeyDownHandler(this, Keyboard_PreviewKeyDown);
         }
@@ -43,22 +42,17 @@ namespace Example
             Debug.WriteLine($"Preview key down: {e.Key}");
         }
 
-        private void Control1_MouseMove(object sender, MouseEventArgs e)
-        {
-            Debug.WriteLine(e.GetPosition(Control1));
-        }
-
         private void Control1_KeyDown(object sender, KeyEventArgs e)
         {
             Debug.WriteLine(e.Key);
         }
 
-        private void Control2_OnRender(TimeSpan delta)
+        private void Control1_OnRender(TimeSpan delta)
         {
             scene1.Render();
         }
 
-        private void Control1_OnRender(TimeSpan delta)
+        private void Control2_OnRender(TimeSpan delta)
         {
             scene2.Render();
         }
