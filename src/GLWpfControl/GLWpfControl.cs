@@ -105,6 +105,8 @@ namespace OpenTK.Wpf
 
         /// <summary>
         /// The currently used OpenGL context, or null if no OpenGL context is created.
+        /// It is not safe to call <see cref="IGraphicsContext.MakeCurrent"/> on this context on any other thread
+        /// than the one the <see cref="GLWpfControl"/> is running on.
         /// </summary>
         [CLSCompliant(false)]
         public IGraphicsContext? Context => _renderer?.GLContext;
