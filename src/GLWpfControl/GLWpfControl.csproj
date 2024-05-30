@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
-        <UseWPF>true</UseWPF>
-        <RootNamespace>OpenTK.Wpf</RootNamespace>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>OpenTK.Wpf</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <LangVersion>9.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-      <PackageReference Include="OpenTK" Version="4.7.5" />
-    </ItemGroup>
-
-    <PropertyGroup>
-      <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
-    </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTK" Version="4.8.2" />
+  </ItemGroup>
 </Project>
