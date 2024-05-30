@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 
 #nullable enable
 
@@ -32,6 +33,12 @@ namespace OpenTK.Wpf {
         /// </summary>
         [CLSCompliant(false)]
         public IGraphicsContext? ContextToUse { get; set; }
+
+        /// <summary>
+        /// A optional context for context sharing.
+        /// </summary>
+        [CLSCompliant(false)]
+        public IGLFWGraphicsContext? SharedContext { get; set; }
 
         /// <summary>
         /// May be null. If so, default bindings context will be used.

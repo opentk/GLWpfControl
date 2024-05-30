@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using OpenTK.Wpf.Interop;
 using System.Windows.Interop;
+using OpenTK.Windowing.Common;
 
 #nullable enable
 
@@ -93,6 +94,12 @@ namespace OpenTK.Wpf
         /// To be used for operations related to OpenGL viewport calls (glViewport, glScissor, ...).
         /// </summary>
         public int FrameBufferHeight => _renderer?.Height ?? 0;
+
+        /// <summary>
+        /// The currently used OpenGL context, or null if no OpenGL context is created.
+        /// </summary>
+        [CLSCompliant(false)]
+        public IGraphicsContext? Context => _renderer?.GLContext;
 
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 		

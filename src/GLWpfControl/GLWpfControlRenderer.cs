@@ -7,7 +7,10 @@ using System.Windows.Media;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
 using OpenTK.Platform.Windows;
+using OpenTK.Windowing.Common;
 using OpenTK.Wpf.Interop;
+
+#nullable enable
 
 namespace OpenTK.Wpf
 {
@@ -15,10 +18,11 @@ namespace OpenTK.Wpf
     internal sealed class GLWpfControlRenderer : IDisposable {
 
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+
         private readonly DxGlContext _context;
 
-        public event Action<TimeSpan> GLRender;
-        public event Action GLAsyncRender;
+        public event Action<TimeSpan>? GLRender;
+        public event Action? GLAsyncRender;
 
         //private DxGLFramebuffer _framebuffer;
 
@@ -40,7 +44,9 @@ namespace OpenTK.Wpf
         /// <summary>The OpenGL Framebuffer height</summary>
         public int Height => D3dImage == null ? FramebufferHeight : 0;
 
-        public D3DImage D3dImage { get; private set; }
+        public IGraphicsContext? GLContext => _context.GraphicsContext;
+
+        public D3DImage? D3dImage { get; private set; }
 
         public DXInterop.IDirect3DSurface9 DxColorRenderTarget { get; private set; }
         public DXInterop.IDirect3DSurface9 DxDepthStencilRenderTarget { get; private set; }
@@ -60,6 +66,9 @@ namespace OpenTK.Wpf
         public GLWpfControlRenderer(GLWpfControlSettings settings)
         {
             _context = new DxGlContext(settings);
+            // Placeholder transforms.
+            TranslateTransform = new TranslateTransform(0, 0);
+            FlipYTransform = new ScaleTransform(1, 1);
         }
 
         public void ReallocateFramebufferIfNeeded(double width, double height, double dpiScaleX, double dpiScaleY, Format format, MultisampleType msaaType)

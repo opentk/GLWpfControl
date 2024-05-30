@@ -82,6 +82,7 @@ namespace OpenTK.Wpf
                 nws.StartFocused = false;
                 nws.StartVisible = false;
                 nws.NumberOfSamples = 0;
+                nws.SharedContext = settings.SharedContext;
                 // If we ask GLFW for 1.0, we should get the highest level context available with full compat.
                 nws.APIVersion = new Version(settings.MajorVersion, settings.MinorVersion);
                 nws.Flags = ContextFlags.Offscreen | settings.ContextFlags;
