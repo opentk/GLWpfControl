@@ -10,8 +10,6 @@ using OpenTK.Wpf.Interop;
 using System.Windows.Interop;
 using OpenTK.Windowing.Common;
 
-#nullable enable
-
 namespace OpenTK.Wpf
 {
     /// <summary>
@@ -210,7 +208,7 @@ namespace OpenTK.Wpf
         {
             base.OnRender(drawingContext);
 
-            var isDesignMode = DesignerProperties.GetIsInDesignMode(this);
+            bool isDesignMode = DesignerProperties.GetIsInDesignMode(this);
             if (isDesignMode) {
                 DrawDesignTimeHelper(this, drawingContext);
             }
@@ -259,8 +257,9 @@ namespace OpenTK.Wpf
         {
             base.OnRenderSizeChanged(info);
 
-            var isInDesignMode = DesignerProperties.GetIsInDesignMode(this);
-            if (isInDesignMode) {
+            bool isInDesignMode = DesignerProperties.GetIsInDesignMode(this);
+            if (isInDesignMode)
+            {
                 return;
             }
             
@@ -274,19 +273,18 @@ namespace OpenTK.Wpf
         {
             if (control.Visibility == Visibility.Visible && control.ActualWidth > 0 && control.ActualHeight > 0)
             {
-                const string labelText = "GL WPF CONTROL";
-                var width = control.ActualWidth;
-                var height = control.ActualHeight;
-                var size = 1.5 * Math.Min(width, height) / labelText.Length;
-                var tf = new Typeface("Arial");
-#pragma warning disable 618
-                var ft = new FormattedText(labelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White)
+                const string LabelText = "GL WPF CONTROL";
+                double width = control.ActualWidth;
+                double height = control.ActualHeight;
+                double size = 1.5 * Math.Min(width, height) / LabelText.Length;
+                Typeface tf = new Typeface("Arial");
+                DpiScale dpi = VisualTreeHelper.GetDpi(control);
+                FormattedText ft = new FormattedText(LabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White, dpi.PixelsPerDip)
                 {
                     TextAlignment = TextAlignment.Center
                 };
-#pragma warning restore 618
-                var redPen = new Pen(Brushes.DarkBlue, 2.0);
-                var rect = new Rect(1, 1, width - 1, height - 1);
+                Pen redPen = new Pen(Brushes.DarkBlue, 2.0);
+                Rect rect = new Rect(1, 1, width - 1, height - 1);
                 drawingContext.DrawRectangle(Brushes.Black, redPen, rect);
                 drawingContext.DrawLine(new Pen(Brushes.DarkBlue, 2.0),
                     new Point(0.0, 0.0),
@@ -302,8 +300,8 @@ namespace OpenTK.Wpf
         {
             if (control.Visibility == Visibility.Visible && control.ActualWidth > 0 && control.ActualHeight > 0)
             {
-                var width = control.ActualWidth;
-                var height = control.ActualHeight;
+                double width = control.ActualWidth;
+                double height = control.ActualHeight;
                 drawingContext.DrawRectangle(Brushes.Gray, null, new Rect(0, 0, width, height));
 
                 if (!Debugger.IsAttached) // Do not show the message if we're not debugging
@@ -311,12 +309,12 @@ namespace OpenTK.Wpf
                     return;
                 }
 
-                const string unstartedLabelText = "OpenGL content. Call Start() on the control to begin rendering.";
-                const int size = 12;
-                var tf = new Typeface("Arial");
+                const string UnstartedLabelText = "OpenGL content. Call Start() on the control to begin rendering.";
+                const int Size = 12;
+                Typeface tf = new Typeface("Arial");
 
                 DpiScale dpi = VisualTreeHelper.GetDpi(control);
-                var ft = new FormattedText(unstartedLabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White, dpi.PixelsPerDip)
+                FormattedText ft = new FormattedText(UnstartedLabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, Size, Brushes.White, dpi.PixelsPerDip)
                 {
                     TextAlignment = TextAlignment.Left,
                     MaxTextWidth = width

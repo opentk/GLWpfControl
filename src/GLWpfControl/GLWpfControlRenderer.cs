@@ -195,8 +195,8 @@ namespace OpenTK.Wpf
                 return;
             }
 
-            var curFrameStamp = _stopwatch.Elapsed;
-            var deltaT = curFrameStamp - _lastFrameStamp;
+            TimeSpan curFrameStamp = _stopwatch.Elapsed;
+            TimeSpan deltaT = curFrameStamp - _lastFrameStamp;
             _lastFrameStamp = curFrameStamp;
 
             // Lock the interop object, DX calls to the framebuffer are no longer valid
@@ -231,7 +231,7 @@ namespace OpenTK.Wpf
             drawingContext.PushTransform(FlipYTransform);
 
             // Dpi scaled rectangle from the image
-            var rect = new Rect(0, 0, D3dImage.Width, D3dImage.Height);
+            Rect rect = new Rect(0, 0, D3dImage.Width, D3dImage.Height);
             // Draw the image source 
             drawingContext.DrawImage(D3dImage, rect);
 

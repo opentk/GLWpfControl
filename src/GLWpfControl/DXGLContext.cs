@@ -13,8 +13,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Wpf.Interop;
 using WindowState = OpenTK.Windowing.Common.WindowState;
 
-#nullable enable
-
 namespace OpenTK.Wpf 
 {
     /// This contains the DirectX and OpenGL contexts used in this control.

@@ -3,8 +3,6 @@ using System.Diagnostics.Contracts;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
-#nullable enable
-
 namespace OpenTK.Wpf {
     public sealed class GLWpfControlSettings {
 
