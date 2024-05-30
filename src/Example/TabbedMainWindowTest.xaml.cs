@@ -21,7 +21,9 @@ namespace Example
         {
             InitializeComponent();
             GLWpfControlSettings mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
+            // Start() makes the controls context current.
             Control1.Start(mainSettings);
+            // We call Context.MakeCurrent() to make this explicitly clear.
             Control1.Context.MakeCurrent();
             scene1.Initialize();
 
