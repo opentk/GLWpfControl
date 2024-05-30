@@ -28,6 +28,8 @@ namespace OpenTK.Wpf {
         /// <summary>
         /// May be null. If defined, an external context will be used, of which the caller is responsible
         /// for managing the lifetime and disposal of.
+        /// The management of the context sent to the <see cref="GLWpfControl"/> becomes the responsibility of the <see cref="GLWpfControl"/>.
+        /// Trying to call <see cref="IGraphicsContext.MakeCurrent"/> on this context on some other thread might lead to uninteded consequences.
         /// </summary>
         [CLSCompliant(false)]
         public IGraphicsContext? ContextToUse { get; set; }

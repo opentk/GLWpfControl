@@ -29,6 +29,7 @@ namespace OpenTK.Wpf
 
         /// <summary>
         /// Called whenever rendering should occur.
+        /// GLWpfControl makes sure that it's OpenGL context is current when this event happens.
         /// </summary>
         public event Action<TimeSpan>? Render;
 
@@ -37,7 +38,10 @@ namespace OpenTK.Wpf
         /// This is only for extremely advanced use, where a non-display out task needs to run.
         /// Examples of these are an async Pixel Buffer Object transfer or Transform Feedback.
         /// If you do not know what these are, do not use this function.
+        /// 
+        /// GLWpfControl makes sure that it's OpenGL context is current when this event happens.
         /// </summary>
+        [Obsolete("There is no difference between Render and AsyncRender. Use Render.")]
         public event Action? AsyncRender;
 
         /// <summary>
@@ -101,6 +105,8 @@ namespace OpenTK.Wpf
 
         /// <summary>
         /// The currently used OpenGL context, or null if no OpenGL context is created.
+        /// It is not safe to call <see cref="IGraphicsContext.MakeCurrent"/> on this context on any other thread
+        /// than the one the <see cref="GLWpfControl"/> is running on.
         /// </summary>
         [CLSCompliant(false)]
         public IGraphicsContext? Context => _renderer?.GLContext;

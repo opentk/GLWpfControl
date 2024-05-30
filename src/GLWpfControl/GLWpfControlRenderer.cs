@@ -22,6 +22,7 @@ namespace OpenTK.Wpf
         private readonly DxGlContext _context;
 
         public event Action<TimeSpan>? GLRender;
+        [Obsolete("There is no difference between GLRender and GLAsyncRender. Use GLRender.")]
         public event Action? GLAsyncRender;
 
         /// <summary>The width of this buffer in pixels.</summary>
@@ -76,6 +77,8 @@ namespace OpenTK.Wpf
 
             if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || MultisampleType != msaaType)
             {
+                _context.GraphicsContext.MakeCurrent();
+
                 if (D3dImage != null)
                 {
                     GL.DeleteFramebuffer(GLFramebufferHandle);
@@ -194,6 +197,8 @@ namespace OpenTK.Wpf
             {
                 return;
             }
+
+            _context.GraphicsContext.MakeCurrent();
 
             TimeSpan curFrameStamp = _stopwatch.Elapsed;
             TimeSpan deltaT = curFrameStamp - _lastFrameStamp;
