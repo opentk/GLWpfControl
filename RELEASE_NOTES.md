@@ -1,3 +1,10 @@
+## 4.3.1
+
+Hotfix release to fix context handling in `4.3.0`.
+
+* Added documentation comments about OpenGL context handling. (@NogginBops)
+* Fixed issue where when multiple GLWpfControls only the last initialized controls OpenGL context would be current. (@NogginBops)
+
 ## 4.3.0
 
 * Made each `GLWpfControl` have it's own OpenGL context allowing different controls to have different context settings. (@NogginBops)
