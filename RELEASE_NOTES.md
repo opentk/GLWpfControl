@@ -1,3 +1,17 @@
+## 4.3.0
+
+* Made each `GLWpfControl` have it's own OpenGL context allowing different controls to have different context settings. (@NogginBops)
+* Enabled multisample anti-aliasing though `GLWpfControlSettings.Samples`. (@NogginBops)
+* Implemented `IDisposable` for `GLWpfControl` that allows native DirectX and OpenGL resources to be freed. (@NogginBops)
+* Made `GLWpfControl` have `Focusable` be `true` by default, solving a lot of the keyboard input event issues. (@NogginBops)
+* Deprecated `GLWpfControlSettings.GraphicsContextFlags` in favor of `GLWpfControlSettings.ContextFlags`. (@NogginBops)
+* Deprecated `GLWpfControlSettings.GraphicsProfile` in favor of `GLWpfControlSettings.Profile`. (@NogginBops)
+* Added `GLWpfControlSettings.SharedContext` to allow context sharing. (@NogginBops)
+* Deprecated `GLWpfControl.CanInvokeOnHandledEvents` and `GLWpfControl.RegisterToEventsDirectly`, updated readme to reflect this. (@NogginBops)
+* Fixed rounding issues related to DPI scaling. (@NogginBops, @5E-324)
+* Updated to depend on OpenTK 4.8.2. (@NogginBops, @softwareantics)
+* Fixed memory leak where DirectX resouces would never be freed. (@NogginBops)
+
 ## 4.2.3
 
 * Fix event issue, use `RegisterToEventsDirectly` and `CanInvokeOnHandledEvents` to customize event registering/handling. (@softwareantics)

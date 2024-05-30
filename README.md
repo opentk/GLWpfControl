@@ -63,6 +63,8 @@ WPF by design only sends keyboard events to the control that has keybaord focus.
 If you however need to get keyboard events idependent of keyboard focus you will have to use the `Keyboard.AddPreview*` functions.
 These functions allow you to register a preview event that is called before the control with keyboard focus gets the keyboard event.
 
+This replaces the old `CanInvokeOnHandledEvents` and `RegisterToEventsDirectly` settings.
+
 See [Example](./src/Example/TabbedMainWindowTest.xaml.cs) for an example how to set this up.
 
 ## Build instructions

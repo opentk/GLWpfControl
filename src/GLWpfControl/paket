@@ -23,7 +23,7 @@ copyright
 include-pdbs true
 
 dependencies
-    OpenTK ~> 4.0 >= 4.8.0
+    OpenTK ~> 4.0 >= 4.8.2
 
 files
     bin\Release\netcoreapp3.1\netcoreapp3.1\GLWpfControl.dll ==> lib\netcoreapp3.1
