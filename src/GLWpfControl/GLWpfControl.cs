@@ -23,6 +23,12 @@ namespace OpenTK.Wpf
     /// </summary>
     public class GLWpfControl : FrameworkElement, IDisposable
     {
+        static GLWpfControl()
+        {
+            // Default to Focusable=true.
+            FocusableProperty.OverrideMetadata(typeof(GLWpfControl), new FrameworkPropertyMetadata(true));
+        }
+
         /// <summary>
         /// Called whenever rendering should occur.
         /// </summary>
@@ -102,9 +108,11 @@ namespace OpenTK.Wpf
         public IGraphicsContext? Context => _renderer?.GLContext;
 
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
-		
+
+        [Obsolete("This property has no effect. See RegisterToEventsDirectly.")]
 		public bool CanInvokeOnHandledEvents { get; set; } = true;
-		
+
+        [Obsolete("If you want to receive keyboard events without having focus you can use EventManager.RegisterClassHandler yourself. The control is by default focusable and will get key events when focused. This property will have no effect.")]
 		public bool RegisterToEventsDirectly { get; set; } = true;
 
         /// <summary>
@@ -155,13 +163,6 @@ namespace OpenTK.Wpf
                 }
             };
 
-            // Inheriting directly from a FrameworkElement has issues with receiving certain events -- register for these events directly
-            if (RegisterToEventsDirectly)
-	        {
-	            EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyDownEvent, new KeyEventHandler(OnKeyDown), CanInvokeOnHandledEvents);
-		        EventManager.RegisterClassHandler(typeof(Control), Keyboard.KeyUpEvent, new KeyEventHandler(OnKeyUp), CanInvokeOnHandledEvents);
-	        }
-			
             Loaded += (a, b) => InvalidateVisual();
             Unloaded += (a, b) => OnUnloaded();
 
@@ -187,28 +188,6 @@ namespace OpenTK.Wpf
         {
             _renderer?.Dispose();
             _isStarted = false;
-        }
-
-        // Raise the events so they're received if you subscribe to the base control's events
-        // There are others that should probably be sent -- focus doesn't seem to work for whatever reason
-        internal void OnKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.OriginalSource != this)
-            {
-                KeyEventArgs args = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key);
-                args.RoutedEvent = Keyboard.KeyDownEvent;
-                RaiseEvent(args);
-            }
-        }
-        
-        internal void OnKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.OriginalSource != this)
-            {
-                KeyEventArgs args = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key);
-                args.RoutedEvent = Keyboard.KeyUpEvent;
-                RaiseEvent(args);
-            }
         }
 
         private void OnCompTargetRender(object? sender, EventArgs e)
@@ -335,9 +314,9 @@ namespace OpenTK.Wpf
                 const string unstartedLabelText = "OpenGL content. Call Start() on the control to begin rendering.";
                 const int size = 12;
                 var tf = new Typeface("Arial");
-                
-                // FIXME: Fix scaling!
-                var ft = new FormattedText(unstartedLabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White)
+
+                DpiScale dpi = VisualTreeHelper.GetDpi(control);
+                var ft = new FormattedText(unstartedLabelText, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, tf, size, Brushes.White, dpi.PixelsPerDip)
                 {
                     TextAlignment = TextAlignment.Left,
                     MaxTextWidth = width

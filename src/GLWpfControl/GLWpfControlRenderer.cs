@@ -24,8 +24,6 @@ namespace OpenTK.Wpf
         public event Action<TimeSpan>? GLRender;
         public event Action? GLAsyncRender;
 
-        //private DxGLFramebuffer _framebuffer;
-
         /// <summary>The width of this buffer in pixels.</summary>
         public int FramebufferWidth { get; private set; }
 

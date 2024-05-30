@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
@@ -15,17 +16,24 @@ namespace Example {
 
         public TabbedMainWindowTest() {
             InitializeComponent();
-            var mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
+            GLWpfControlSettings mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
             Control1.Start(mainSettings);
             scene1.Initialize();
 
-            var insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8};
+            GLWpfControlSettings insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8};
             Control2.Start(insetSettings);
             scene2.Initialize();
 
-            var transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true};
+            GLWpfControlSettings transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true};
             Control3.Start(transparentSettings);
             scene3.Initialize();
+
+            Control1.KeyDown += Control1_KeyDown;
+        }
+
+        private void Control1_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            Debug.WriteLine(e.Key);
         }
 
         private void Control2_OnRender(TimeSpan delta) {
