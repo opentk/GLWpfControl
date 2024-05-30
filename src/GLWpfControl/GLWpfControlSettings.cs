@@ -4,8 +4,8 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
 namespace OpenTK.Wpf {
-    public sealed class GLWpfControlSettings {
-
+    public sealed class GLWpfControlSettings
+    {
         /// <summary>
         /// If the render event is fired continuously whenever required.
         /// Disable this if you want manual control over when the rendered surface is updated.

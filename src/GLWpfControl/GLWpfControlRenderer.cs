@@ -15,8 +15,8 @@ using OpenTK.Wpf.Interop;
 namespace OpenTK.Wpf
 {
     /// <summary>Renderer that uses DX_Interop for a fast-path.</summary>
-    internal sealed class GLWpfControlRenderer : IDisposable {
-
+    internal sealed class GLWpfControlRenderer : IDisposable
+    {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
         private readonly DxGlContext _context;
