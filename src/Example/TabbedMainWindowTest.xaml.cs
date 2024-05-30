@@ -22,14 +22,17 @@ namespace Example
             InitializeComponent();
             GLWpfControlSettings mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
             Control1.Start(mainSettings);
+            Control1.Context.MakeCurrent();
             scene1.Initialize();
 
             GLWpfControlSettings insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8};
             Control2.Start(insetSettings);
+            Control2.Context.MakeCurrent();
             scene2.Initialize();
 
             GLWpfControlSettings transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true};
             Control3.Start(transparentSettings);
+            Control3.Context.MakeCurrent();
             scene3.Initialize();
 
             Control1.KeyDown += Control1_KeyDown;
