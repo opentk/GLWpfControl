@@ -116,7 +116,7 @@ namespace OpenTK.Wpf
 
         public void Dispose()
         {
-            if (Wgl.DXCloseDeviceNV(DxDevice.Handle) == false)
+            if (Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
             {
                 throw new Win32Exception(DXInterop.GetLastError());
             }
