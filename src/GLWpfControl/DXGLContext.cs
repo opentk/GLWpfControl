@@ -68,14 +68,15 @@ namespace OpenTK.Wpf
                 ref deviceParameters,
                 IntPtr.Zero,
                 out DXInterop.IDirect3DDevice9Ex dxDevice);
-
             DxDevice = dxDevice;
 
             // if the graphics context is null, we use the shared context.
-            if (settings.ContextToUse != null) {
+            if (settings.ContextToUse != null)
+            {
                 GraphicsContext = settings.ContextToUse;
             }
-            else {
+            else
+            {
                 NativeWindowSettings nws = NativeWindowSettings.Default;
                 nws.StartFocused = false;
                 nws.StartVisible = false;
@@ -101,6 +102,7 @@ namespace OpenTK.Wpf
                 GL.Enable(EnableCap.DebugOutputSynchronous);
 #endif
             }
+
 
             GLDeviceHandle = Wgl.DXOpenDeviceNV(dxDevice.Handle);
             if (GLDeviceHandle == IntPtr.Zero)

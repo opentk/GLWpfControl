@@ -75,6 +75,9 @@ namespace OpenTK.Wpf
             int newWidth = (int)Math.Ceiling(width * dpiScaleX);
             int newHeight = (int)Math.Ceiling(height * dpiScaleY);
 
+            // FIXME: It seems we can't use this function to detect if MSAA will work with NV_DX_interop or not...
+            int result = _context.DxContext.CheckDeviceMultiSampleType(0, DeviceType.HAL, format, true, msaaType, out uint qualityLevels);
+
             if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || MultisampleType != msaaType)
             {
                 _context.GraphicsContext.MakeCurrent();
@@ -97,6 +100,7 @@ namespace OpenTK.Wpf
                     FramebufferHeight = newHeight;
                     MultisampleType = msaaType;
 
+                    IntPtr dxColorRenderTargetShareHandle = IntPtr.Zero;
                     _context.DxDevice.CreateRenderTarget(
                         FramebufferWidth,
                         FramebufferHeight,
@@ -105,9 +109,17 @@ namespace OpenTK.Wpf
                         0,
                         false,
                         out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
-                        ref Unsafe.NullRef<IntPtr>());
+                        ref dxColorRenderTargetShareHandle);
                     DxColorRenderTarget = dxColorRenderTarget;
 
+                    bool success;
+                    success = Wgl.DXSetResourceShareHandleNV(DxColorRenderTarget.Handle, dxColorRenderTargetShareHandle);
+                    if (success == false)
+                    {
+                        Debug.WriteLine("Failed to set resource share handle for color render target.");
+                    }
+
+                    IntPtr dxDepthStencilRenderTargetShareHandle = IntPtr.Zero;
                     _context.DxDevice.CreateDepthStencilSurface(
                         FramebufferWidth,
                         FramebufferHeight,
@@ -116,8 +128,14 @@ namespace OpenTK.Wpf
                         0,
                         false,
                         out DXInterop.IDirect3DSurface9 dxDepthStencilRenderTarget,
-                        ref Unsafe.NullRef<IntPtr>());
+                        ref dxDepthStencilRenderTargetShareHandle);
                     DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
+
+                    success = Wgl.DXSetResourceShareHandleNV(dxDepthStencilRenderTarget.Handle, dxDepthStencilRenderTargetShareHandle);
+                    if (success == false)
+                    {
+                        Debug.WriteLine("Failed to set resource share handle for depth stencil render target.");
+                    }
 
 #if DEBUG
                     {
@@ -140,18 +158,26 @@ namespace OpenTK.Wpf
                     GLSharedColorRenderbufferHandle = GL.GenRenderbuffer();
                     DxInteropColorRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
-                        dxColorRenderTarget.Handle,
+                        DxColorRenderTarget.Handle,
                         (uint)GLSharedColorRenderbufferHandle,
                         (uint)RenderbufferTarget.Renderbuffer,
                         WGL_NV_DX_interop.AccessReadWrite);
+                    if (DxInteropColorRenderTargetRegisteredHandle == IntPtr.Zero)
+                    {
+                        Debug.WriteLine($"Could not register color render target. 0x{DXInterop.GetLastError():X8}");
+                    }
 
                     GLSharedDepthRenderRenderbufferHandle = GL.GenRenderbuffer();
                     DxInteropDepthStencilRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
-                        dxDepthStencilRenderTarget.Handle,
+                        DxDepthStencilRenderTarget.Handle,
                         (uint)GLSharedDepthRenderRenderbufferHandle,
                         (uint)RenderbufferTarget.Renderbuffer,
                         WGL_NV_DX_interop.AccessReadWrite);
+                    if (DxInteropDepthStencilRenderTargetRegisteredHandle == IntPtr.Zero)
+                    {
+                        Debug.WriteLine($"Could not register depth stencil render target. 0x{DXInterop.GetLastError():X8}");
+                    }
 
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
 

@@ -1,13 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
-using System;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
+﻿using System;
 using System.Runtime.InteropServices;
-using System.Windows.Media.Media3D;
-using System.Windows.Media;
-using System.Windows;
-using System.Windows.Interop;
 
 namespace OpenTK.Wpf.Interop
 {
@@ -30,12 +22,14 @@ namespace OpenTK.Wpf.Interop
             static extern int Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex ctx);
         }
 
+        private delegate uint NativeGetAdapterCount(IDirect3D9Ex contextHandle);
+        private delegate int NativeCheckDeviceMultiSampleType(IDirect3D9Ex contextHandle, uint Adapter, DeviceType DeviceType, Format SurfaceFormat, bool Windowed, MultisampleType MultiSampleType, out uint pQualityLevels);
         private delegate int NativeCreateDeviceEx(IDirect3D9Ex contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IDirect3DDevice9Ex deviceHandle);
         private delegate int NativeCreateRenderTarget(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool lockable, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
         private delegate int NativeCreateDepthStencilSurface(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool discard, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
         private delegate uint NativeRelease(IntPtr resourceHandle);
 
-        private delegate uint NativeGetDesc(IDirect3DSurface9 surfaceHandle, out D3DSURFACE_DESC pDesc);
+        private delegate uint NativeDirect3DSurface9_GetDesc(IDirect3DSurface9 surfaceHandle, out D3DSURFACE_DESC pDesc);
 
         public static void CheckHResult(int hresult)
         {
@@ -111,6 +105,22 @@ namespace OpenTK.Wpf.Interop
                 NativeRelease method = Marshal.GetDelegateForFunctionPointer<NativeRelease>((*VTable)->Release);
                 // FIXME: Figure out how we want to reference things
                 return method((IntPtr)VTable);
+            }
+
+            public int CheckDeviceMultiSampleType(uint Adapter, DeviceType DeviceType, Format SurfaceFormat, bool Windowed, MultisampleType MultiSampleType, out uint pQualityLevels)
+            {
+                NativeCheckDeviceMultiSampleType method = Marshal.GetDelegateForFunctionPointer<NativeCheckDeviceMultiSampleType>((*VTable)->CheckDeviceMultiSampleType);
+
+                int result = method(this, Adapter, DeviceType, SurfaceFormat, Windowed, MultiSampleType, out pQualityLevels);
+
+                return result;
+            }
+
+            public uint GetAdapterCount()
+            {
+                NativeGetAdapterCount method = Marshal.GetDelegateForFunctionPointer<NativeGetAdapterCount>((*VTable)->GetAdapterCount);
+
+                return method(this);
             }
 
             public void CreateDeviceEx(int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IDirect3DDevice9Ex deviceHandle)
@@ -346,7 +356,7 @@ namespace OpenTK.Wpf.Interop
 
             public uint GetDesc(out D3DSURFACE_DESC pDesc)
             {
-                NativeGetDesc method = Marshal.GetDelegateForFunctionPointer<NativeGetDesc>((*VTable)->GetDesc);
+                NativeDirect3DSurface9_GetDesc method = Marshal.GetDelegateForFunctionPointer<NativeDirect3DSurface9_GetDesc>((*VTable)->GetDesc);
 
                 return method(this, out pDesc);
             }
