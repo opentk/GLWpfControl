@@ -84,13 +84,13 @@ namespace OpenTK.Wpf
 
                 if (D3dImage != null)
                 {
-                    GL.DeleteFramebuffer(GLFramebufferHandle);
-                    GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
-                    GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
                     Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
                     Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
                     DxColorRenderTarget.Release();
                     DxDepthStencilRenderTarget.Release();
+                    GL.DeleteFramebuffer(GLFramebufferHandle);
+                    GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
+                    GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
                 }
                 D3dImage = null;
 
