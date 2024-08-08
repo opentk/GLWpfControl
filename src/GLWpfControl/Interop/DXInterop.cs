@@ -13,6 +13,12 @@ namespace OpenTK.Wpf.Interop
         [DllImport("Kernel32.dll")]
         public static extern int GetLastError();
 
+        [DllImport("User32.dll")]
+        public static extern IntPtr /* HDC */ GetDC(IntPtr /* HWND */ hWnd);
+
+        [DllImport("User32.dll")]
+        public static extern int ReleaseDC(IntPtr /* HWND */ hWnd, IntPtr /* HDC */ hDC);
+
         public static void Direct3DCreate9Ex(uint SdkVersion, out IDirect3D9Ex context)
         {
             int result = Direct3DCreate9Ex(SdkVersion, out context);

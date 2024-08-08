@@ -39,6 +39,62 @@ namespace OpenTK.Wpf
 
         public DxGlContext(GLWpfControlSettings settings)
         {
+            // if the graphics context is null, we use the shared context.
+            if (settings.ContextToUse != null)
+            {
+                GraphicsContext = settings.ContextToUse;
+            }
+            else
+            {
+                NativeWindowSettings nws = NativeWindowSettings.Default;
+                nws.StartFocused = false;
+                nws.StartVisible = false;
+                nws.NumberOfSamples = 0;
+                nws.SharedContext = settings.SharedContext;
+                // If we ask GLFW for 1.0, we should get the highest level context available with full compat.
+                nws.APIVersion = new Version(settings.MajorVersion, settings.MinorVersion);
+                nws.Flags = ContextFlags.Offscreen | settings.ContextFlags;
+                // We have to ask for any compat in this case.
+                nws.Profile = settings.Profile;
+                nws.WindowBorder = WindowBorder.Hidden;
+                nws.WindowState = WindowState.Minimized;
+                GlfwWindow = new NativeWindow(nws);
+                GraphicsContext = GlfwWindow.Context;
+                GraphicsContext.MakeCurrent();
+
+                IBindingsContext provider = settings.BindingsContext ?? new GLFWBindingsContext();
+                Wgl.LoadBindings(provider);
+
+                bool hasNVDXInterop = false;
+                unsafe
+                {
+                    IntPtr hwnd = GLFW.GetWin32Window(GlfwWindow.WindowPtr);
+                    IntPtr hdc = DXInterop.GetDC(hwnd);
+                    string exts = Wgl.Arb.GetExtensionsString(hdc);
+                    DXInterop.ReleaseDC(hwnd, hdc);
+
+                    foreach (string ext in exts.Split(' '))
+                    {
+                        if (ext == "WGL_NV_DX_interop" || ext == "NV_DX_interop")
+                        {
+                            hasNVDXInterop = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasNVDXInterop == false)
+                {
+                    throw new PlatformNotSupportedException("NV_DX_interop extension is not suppored. This extensions is currently needed for GLWpfControl to work.");
+                }
+
+#if DEBUG
+                GL.DebugMessageCallback(DebugProcCallback, IntPtr.Zero);
+                GL.Enable(EnableCap.DebugOutput);
+                GL.Enable(EnableCap.DebugOutputSynchronous);
+#endif
+            }
+
             DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out DXInterop.IDirect3D9Ex dxContext);
             DxContext = dxContext;
 
@@ -69,40 +125,6 @@ namespace OpenTK.Wpf
                 IntPtr.Zero,
                 out DXInterop.IDirect3DDevice9Ex dxDevice);
             DxDevice = dxDevice;
-
-            // if the graphics context is null, we use the shared context.
-            if (settings.ContextToUse != null)
-            {
-                GraphicsContext = settings.ContextToUse;
-            }
-            else
-            {
-                NativeWindowSettings nws = NativeWindowSettings.Default;
-                nws.StartFocused = false;
-                nws.StartVisible = false;
-                nws.NumberOfSamples = 0;
-                nws.SharedContext = settings.SharedContext;
-                // If we ask GLFW for 1.0, we should get the highest level context available with full compat.
-                nws.APIVersion = new Version(settings.MajorVersion, settings.MinorVersion);
-                nws.Flags = ContextFlags.Offscreen | settings.ContextFlags;
-                // We have to ask for any compat in this case.
-                nws.Profile = settings.Profile;
-                nws.WindowBorder = WindowBorder.Hidden;
-                nws.WindowState = WindowState.Minimized;
-                GlfwWindow = new NativeWindow(nws);
-                GraphicsContext = GlfwWindow.Context;
-                GraphicsContext.MakeCurrent();
-
-                IBindingsContext provider = settings.BindingsContext ?? new GLFWBindingsContext();
-                Wgl.LoadBindings(provider);
-
-#if DEBUG
-                GL.DebugMessageCallback(DebugProcCallback, IntPtr.Zero);
-                GL.Enable(EnableCap.DebugOutput);
-                GL.Enable(EnableCap.DebugOutputSynchronous);
-#endif
-            }
-
 
             GLDeviceHandle = Wgl.DXOpenDeviceNV(dxDevice.Handle);
             if (GLDeviceHandle == IntPtr.Zero)
