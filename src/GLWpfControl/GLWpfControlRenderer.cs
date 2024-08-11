@@ -32,7 +32,7 @@ namespace OpenTK.Wpf
         public int FramebufferHeight { get; private set; }
 
         /// <summary>The OpenGL framebuffer handle.</summary>
-        public int FrameBufferHandle { get; private set; }
+        public int FrameBufferHandle => GLFramebufferHandle;
 
         /// <summary>The DirectX multisample type.</summary>
         public MultisampleType MultisampleType { get; private set; }
