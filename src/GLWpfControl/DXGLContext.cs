@@ -148,8 +148,14 @@ namespace OpenTK.Wpf
             finally
             {
                 GlfwWindow?.Dispose();
-                DxDevice.Release();
-                DxContext.Release();
+                if (DxDevice.Handle != IntPtr.Zero)
+                {
+                    DxDevice.Release();
+                }
+                if (DxContext.Handle != IntPtr.Zero)
+                {
+                    DxContext.Release();
+                }
             }
         }
 
