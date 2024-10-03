@@ -180,7 +180,9 @@ namespace OpenTK.Wpf
             // which causes the renderer to not reallocate the framebuffer
             // after the previous one has been deleted.
             // - Noggin_bops 2024-05-29
-            _renderer?.ReallocateFramebufferIfNeeded(0, 0, 1, 1, Format.X8R8G8B8, MultisampleType.D3DMULTISAMPLE_NONE);
+            if (_isStarted) {
+                _renderer?.ReallocateFramebufferIfNeeded(0, 0, 1, 1, Format.X8R8G8B8, MultisampleType.D3DMULTISAMPLE_NONE);
+            }
         }
 
         /// <summary>
