@@ -191,6 +191,8 @@ namespace OpenTK.Wpf
         public void Dispose()
         {
             _renderer?.Dispose();
+            // Unloaded can happen after Dispose() call. We must not access _renderer anymore.
+	    _renderer = null;
             _isStarted = false;
         }
 
