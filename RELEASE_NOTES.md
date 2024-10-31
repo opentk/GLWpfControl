@@ -1,3 +1,10 @@
+## 4.3.3
+
+* Fix crashes related to `Dispose` and unloading of the control in general. (@Krugpelke, @NogginBops, @timsol, @4nonym0us)
+* Fixed issue where `GLWpfControl.Framebuffer` property stopped working. (@insel-maz, @NogginBops)
+* Hopefully fixed a few crashes related to MSAA not being supported. (@NogginBops)
+* Added `GLWpfControl.SupportsMSAA` property to check if MSAA will be supported. (@NogginBops)
+
 ## 4.3.2
 
 * Fixed AccessViolationException when disposing GLWpfControl. (@NogginBops)
