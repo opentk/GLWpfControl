@@ -138,24 +138,25 @@ namespace OpenTK.Wpf
 
         public void Dispose()
         {
-            try
+            int error = 0;
+            if (GLDeviceHandle != IntPtr.Zero && Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
             {
-                if (GLDeviceHandle != IntPtr.Zero && Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
-                {
-                    throw new Win32Exception(DXInterop.GetLastError());
-                }
+                error = DXInterop.GetLastError();
             }
-            finally
+
+            GlfwWindow?.Dispose();
+            if (DxDevice.Handle != IntPtr.Zero)
             {
-                GlfwWindow?.Dispose();
-                if (DxDevice.Handle != IntPtr.Zero)
-                {
-                    DxDevice.Release();
-                }
-                if (DxContext.Handle != IntPtr.Zero)
-                {
-                    DxContext.Release();
-                }
+                DxDevice.Release();
+            }
+            if (DxContext.Handle != IntPtr.Zero)
+            {
+                DxContext.Release();
+            }
+
+            if (error != 0)
+            {
+                throw new Win32Exception(error);
             }
         }
 
