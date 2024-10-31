@@ -1,11 +1,12 @@
 ## GLWpfControl - A fast OpenGL Control for WPF
 ![Nuget](https://img.shields.io/nuget/v/OpenTK.GLWpfControl.svg?color=green)
 
-A native control for WPF in OpenTK 3.x and 4.x.
+A native control for WPF in OpenTK 3.x, 4.x, and 4.x.
 
 Supported configurations:
 - .Net Framework for OpenTK 3.x (the 3.x series NuGet packages)
 - .Net Core for OpenTK 4.x (the 4.x series NuGet packages)
+- .Net 8.0+ for OpenTK 5.x (the 5.x series NuGet packages)
 
 Since version 3.0.0, we're using full OpenGL/DirectX interop via OpenGL extensions - [NV_DX_interop](https://www.khronos.org/registry/OpenGL/extensions/NV/WGL_NV_DX_interop.txt).
 This should run almost everywhere with **AMAZING PERFORMANCE** and is fully supported on Intel, AMD and Nvidia graphics.

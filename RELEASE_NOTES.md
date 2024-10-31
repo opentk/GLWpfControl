@@ -1,3 +1,8 @@
+## 5.0.0-pre.1
+
+* GLWpfControl compatible with OpenTK 5.0.0-pre.12.
+
+
 ## 4.3.3
 
 * Fix crashes related to `Dispose` and unloading of the control in general. (@Krugpelke, @NogginBops, @timsol, @4nonym0us)

@@ -1,36 +1,18 @@
-// --------------------------------------------------------------------------------------
-// FAKE build script
-// --------------------------------------------------------------------------------------
 open System
 open System.IO
 open System.Threading
-open System.Diagnostics
 open Fake.Core
 open Fake.DotNet
 open Fake.DotNet.NuGet
+open Fake.Tools.Git
 open Fake.IO
-
-#r "paket:
-storage: packages
-nuget Fake.IO.FileSystem
-nuget Fake.DotNet.MSBuild
-nuget Fake.DotNet.Testing.XUnit2
-nuget Fake.DotNet.AssemblyInfoFile
-nuget Fake.DotNet.NuGet prerelease
-nuget Fake.DotNet.Paket
-nuget Fake.DotNet.Cli
-nuget Fake.Core.Target
-nuget Fake.Net.Http
-nuget Fake.Api.Github
-nuget xunit.runner.console
-nuget NuGet.CommandLine
-nuget Fake.Core.ReleaseNotes //"
-
-#load "./.fake/build.fsx/intellisense.fsx"
-
-open Fake.IO;
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
+
+let execContext = Context.FakeExecutionContext.Create false "build.fsx" [ ]
+Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
+
+let rootDir = __SOURCE_DIRECTORY__ </> ".."
 
 // --------------------------------------------------------------------------------------
 // project-specific details below
@@ -48,7 +30,7 @@ let project = "OpenTK.GLWpfControl"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "A native WPF control for OpenTK 4.X."
+let summary = "A native WPF control for OpenTK 5.X."
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
@@ -63,7 +45,7 @@ let tags = "WPF OpenTK OpenGL OpenGLES GLES OpenAL C# F# VB .NET Mono Vector Mat
 let copyright = "Copyright (c) 2020 Team OpenTK."
 
 // File system information
-let solutionFile  = "GLWpfControl.sln"
+let solutionFile  = rootDir </> "GLWpfControl.sln"
 
 let binDir = "./bin/"
 let buildDir = binDir </> "build"
@@ -89,7 +71,7 @@ let gitRaw = Environment.environVarOrDefault "gitRaw" "https://raw.github.com/op
 // --------------------------------------------------------------------------------------
 
 // Read additional information from the release notes document
-let release = ReleaseNotes.load "RELEASE_NOTES.md"
+let release = ReleaseNotes.load (rootDir </> "RELEASE_NOTES.md")
 
 // Helper active pattern for project types
 let (|Fsproj|Csproj|Vbproj|) (projFileName:string) =
@@ -109,7 +91,7 @@ let releaseProjects =
 let install =
     lazy
         (if (DotNet.getVersion id).StartsWith "6" then id
-         else DotNet.install (fun options -> { options with Version = DotNet.Version "6.0.200" }))
+         else DotNet.install (fun options -> { options with Channel = DotNet.CliChannel.Version 6 0 }))
 
 // Set general properties without arguments
 let inline dotnetSimple arg = DotNet.Options.lift install.Value arg
@@ -148,8 +130,8 @@ Target.create "AssemblyInfo" (fun _ ->
 // But keeps a subdirectory structure for each project in the
 // src folder to support multiple project outputs
 Target.create "CopyBinaries" (fun _ ->
-    activeProjects
-    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) @@ "bin/Release", "bin" @@ (System.IO.Path.GetFileNameWithoutExtension f)))
+    releaseProjects
+    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) @@ "bin/Release/net8.0-windows", "bin" @@ (System.IO.Path.GetFileNameWithoutExtension f)))
     |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
 )
 
@@ -157,7 +139,7 @@ Target.create "CopyBinaries" (fun _ ->
 // Clean build results
 
 Target.create "Clean" (fun _ ->
-    Shell.cleanDirs ["bin"; "temp"]
+    Shell.cleanDirs ["bin"]
 )
 
 Target.create "Restore" (fun _ -> DotNet.restore dotnetSimple "GLWpfControl.sln" |> ignore)
@@ -254,21 +236,36 @@ Target.create "ReleaseOnAll" ignore
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
-open Fake.Core.TargetOperators
-
 Target.create "All" ignore
 
-"Clean"
-  ==> "Restore"
-  ==> "AssemblyInfo"
-  ==> "Build"
-  ==> "CopyBinaries"
-  ==> "All"
+open Fake.Core.TargetOperators
 
-"All"
-  ==> "CreateNuGetPackage"
-  ==> "ReleaseOnNuGet"
-  ==> "ReleaseOnGithub"
-  ==> "ReleaseOnAll"
+let dependencies = [
+    "Clean"
+      ==> "Restore"
+      ==> "AssemblyInfo"
+      ==> "Build"
+      ==> "CopyBinaries"
+      ==> "All"
 
-Target.runOrDefault "All"
+    "All"
+      ==> "CreateNuGetPackage"
+      ==> "ReleaseOnNuGet"
+      ==> "ReleaseOnGithub"
+      ==> "ReleaseOnAll"
+]
+
+// ---------
+// Startup
+// ---------
+
+[<EntryPoint>]
+let main args = 
+    try
+        match args with
+        | [| target |] -> Target.runOrDefault target
+        | _ -> Target.runOrDefault "All"
+        0
+    with e ->
+        printfn "%A" e
+        1

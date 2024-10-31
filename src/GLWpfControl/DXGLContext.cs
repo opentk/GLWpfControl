@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
 using OpenTK.Windowing.Common;
@@ -34,7 +35,7 @@ namespace OpenTK.Wpf
         private NativeWindow? GlfwWindow { get; }
 
 #if DEBUG
-        private readonly static DebugProc DebugProcCallback = Window_DebugProc;
+        private readonly static GLDebugProc DebugProcCallback = Window_DebugProc;
 #endif
 
         public DxGlContext(GLWpfControlSettings settings)
@@ -62,15 +63,12 @@ namespace OpenTK.Wpf
                 GraphicsContext = GlfwWindow.Context;
                 GraphicsContext.MakeCurrent();
 
-                IBindingsContext provider = settings.BindingsContext ?? new GLFWBindingsContext();
-                Wgl.LoadBindings(provider);
-
                 bool hasNVDXInterop = false;
                 unsafe
                 {
                     IntPtr hwnd = GLFW.GetWin32Window(GlfwWindow.WindowPtr);
                     IntPtr hdc = DXInterop.GetDC(hwnd);
-                    string exts = Wgl.Arb.GetExtensionsString(hdc);
+                    string exts = Wgl.ARB.GetExtensionsStringARB(hdc)!;
                     DXInterop.ReleaseDC(hwnd, hdc);
 
                     foreach (string ext in exts.Split(' '))
@@ -127,7 +125,7 @@ namespace OpenTK.Wpf
                 out DXInterop.IDirect3DDevice9Ex dxDevice);
             DxDevice = dxDevice;
 
-            GLDeviceHandle = Wgl.DXOpenDeviceNV(dxDevice.Handle);
+            GLDeviceHandle = Wgl.NV.DXOpenDeviceNV(dxDevice.Handle);
             if (GLDeviceHandle == IntPtr.Zero)
             {
                 int error = DXInterop.GetLastError();
@@ -139,7 +137,7 @@ namespace OpenTK.Wpf
         public void Dispose()
         {
             int error = 0;
-            if (GLDeviceHandle != IntPtr.Zero && Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
+            if (GLDeviceHandle != IntPtr.Zero && Wgl.NV.DXCloseDeviceNV(GLDeviceHandle) == false)
             {
                 error = DXInterop.GetLastError();
             }
@@ -161,7 +159,7 @@ namespace OpenTK.Wpf
         }
 
 #if DEBUG
-        private static void Window_DebugProc(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)
+        private static void Window_DebugProc(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)
         {
             string message = Marshal.PtrToStringAnsi(messagePtr, length);
 

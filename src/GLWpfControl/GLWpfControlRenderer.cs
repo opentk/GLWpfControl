@@ -7,7 +7,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
-using OpenTK.Platform.Windows;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf.Interop;
 
@@ -152,7 +151,7 @@ namespace OpenTK.Wpf
                     DxColorRenderTarget = dxColorRenderTarget;
 
                     bool success;
-                    success = Wgl.DXSetResourceShareHandleNV(DxColorRenderTarget.Handle, dxColorRenderTargetShareHandle);
+                    success = Wgl.NV.DXSetResourceShareHandleNV(DxColorRenderTarget.Handle, dxColorRenderTargetShareHandle);
                     if (success == false)
                     {
                         Debug.WriteLine("Failed to set resource share handle for color render target.");
@@ -170,7 +169,7 @@ namespace OpenTK.Wpf
                         ref dxDepthStencilRenderTargetShareHandle);
                     DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
 
-                    success = Wgl.DXSetResourceShareHandleNV(dxDepthStencilRenderTarget.Handle, dxDepthStencilRenderTargetShareHandle);
+                    success = Wgl.NV.DXSetResourceShareHandleNV(dxDepthStencilRenderTarget.Handle, dxDepthStencilRenderTargetShareHandle);
                     if (success == false)
                     {
                         Debug.WriteLine("Failed to set resource share handle for depth stencil render target.");
@@ -192,27 +191,27 @@ namespace OpenTK.Wpf
 
                     GLFramebufferHandle = GL.GenFramebuffer();
 
-                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
+                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE ? TextureTarget.Texture2d : TextureTarget.Texture2dMultisample;
 
                     GLSharedColorRenderbufferHandle = GL.GenRenderbuffer();
-                    DxInteropColorRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
+                    DxInteropColorRenderTargetRegisteredHandle = Wgl.NV.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
                         DxColorRenderTarget.Handle,
                         (uint)GLSharedColorRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
-                        WGL_NV_DX_interop.AccessReadWrite);
+                        ObjectTypeDX.Renderbuffer,
+                        DXInteropMaskNV.AccessReadWriteNv);
                     if (DxInteropColorRenderTargetRegisteredHandle == IntPtr.Zero)
                     {
                         Debug.WriteLine($"Could not register color render target. 0x{DXInterop.GetLastError():X8}");
                     }
 
                     GLSharedDepthRenderRenderbufferHandle = GL.GenRenderbuffer();
-                    DxInteropDepthStencilRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
+                    DxInteropDepthStencilRenderTargetRegisteredHandle = Wgl.NV.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
                         DxDepthStencilRenderTarget.Handle,
                         (uint)GLSharedDepthRenderRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
-                        WGL_NV_DX_interop.AccessReadWrite);
+                        ObjectTypeDX.Renderbuffer,
+                        DXInteropMaskNV.AccessReadWriteNv);
                     if (DxInteropDepthStencilRenderTargetRegisteredHandle == IntPtr.Zero)
                     {
                         Debug.WriteLine($"Could not register depth stencil render target. 0x{DXInterop.GetLastError():X8}");
@@ -240,8 +239,8 @@ namespace OpenTK.Wpf
                         GLSharedDepthRenderRenderbufferHandle);
 
                     // FIXME: This will report unsupported but it will not do that in Render()...?
-                    FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
-                    if (status != FramebufferErrorCode.FramebufferComplete)
+                    FramebufferStatus status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
+                    if (status != FramebufferStatus.FramebufferComplete)
                     {
                         Debug.WriteLine($"Framebuffer is not complete: {status}");
                     }
@@ -265,8 +264,8 @@ namespace OpenTK.Wpf
 
             if (D3dImage != null)
             {
-                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
-                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
+                Wgl.NV.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
+                Wgl.NV.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
                 DxColorRenderTarget.Release();
                 DxDepthStencilRenderTarget.Release();
                 GL.DeleteFramebuffer(GLFramebufferHandle);
@@ -292,7 +291,7 @@ namespace OpenTK.Wpf
             // Lock the interop object, DX calls to the framebuffer are no longer valid
             D3dImage.Lock();
             D3dImage.SetBackBuffer(System.Windows.Interop.D3DResourceType.IDirect3DSurface9, DxColorRenderTarget.Handle, true);
-            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            bool success = Wgl.NV.DXLockObjectsNV(_context.GLDeviceHandle, 2, [DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle]);
             if (success == false)
             {
                 Debug.WriteLine("Failed to lock objects!");
@@ -305,7 +304,7 @@ namespace OpenTK.Wpf
             GLAsyncRender?.Invoke();
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
-            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            success = Wgl.NV.DXUnlockObjectsNV(_context.GLDeviceHandle, 2, [DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle]);
             if (success == false)
             {
                 Debug.WriteLine("Failed to unlock objects!");
@@ -321,7 +320,7 @@ namespace OpenTK.Wpf
             drawingContext.PushTransform(FlipYTransform);
 
             // Dpi scaled rectangle from the image
-            Rect rect = new Rect(0, 0, D3dImage.Width, D3dImage.Height);
+            System.Windows.Rect rect = new System.Windows.Rect(0, 0, D3dImage.Width, D3dImage.Height);
             // Draw the image source 
             drawingContext.DrawImage(D3dImage, rect);
 

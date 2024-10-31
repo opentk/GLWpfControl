@@ -18,9 +18,9 @@ namespace Example {
         struct Vertex
         {
             public Vector2 Position;
-            public Color4 Color;
+            public Color4<Rgba> Color;
 
-            public Vertex(Vector2 position, Color4 color)
+            public Vertex(Vector2 position, Color4<Rgba> color)
             {
                 Position = position;
                 Color = color;
@@ -69,30 +69,30 @@ void main()
             int vertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(vertexShader, VertexShaderSource);
             GL.CompileShader(vertexShader);
-            GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int success);
+            GL.GetShaderi(vertexShader, ShaderParameterName.CompileStatus, out int success);
             if (success == 0)
             {
-                string log = GL.GetShaderInfoLog(vertexShader);
+                GL.GetShaderInfoLog(vertexShader, out string log);
                 Debug.WriteLine($"Vertex shader compile error: {log}");
             }
 
             int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, FragmentShaderSource);
             GL.CompileShader(fragmentShader);
-            GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out success);
+            GL.GetShaderi(fragmentShader, ShaderParameterName.CompileStatus, out success);
             if (success == 0)
             {
-                string log = GL.GetShaderInfoLog(fragmentShader);
+                GL.GetShaderInfoLog(fragmentShader, out string log);
                 Debug.WriteLine($"Fragment shader compile error: {log}");
             }
 
             GL.AttachShader(Program, vertexShader);
             GL.AttachShader(Program, fragmentShader);
             GL.LinkProgram(Program);
-            GL.GetProgram(Program, GetProgramParameterName.LinkStatus, out success);
+            GL.GetProgrami(Program, ProgramProperty.LinkStatus, out success);
             if (success == 0)
             {
-                string log = GL.GetProgramInfoLog(Program);
+                GL.GetProgramInfoLog(Program, out string log);
                 Debug.WriteLine($"Program link error: {log}");
             }
 
@@ -110,18 +110,18 @@ void main()
 
             VBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * Unsafe.SizeOf<Vertex>(), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * Unsafe.SizeOf<Vertex>(), vertices, BufferUsage.StaticDraw);
 
-            GL.EnableVertexAttribArray(positionLocation);
-            GL.VertexAttribPointer(positionLocation, 2, VertexAttribPointerType.Float, false, Unsafe.SizeOf<Vertex>(), 0);
+            GL.EnableVertexAttribArray((uint)positionLocation);
+            GL.VertexAttribPointer((uint)positionLocation, 2, VertexAttribPointerType.Float, false, Unsafe.SizeOf<Vertex>(), 0);
 
-            GL.EnableVertexAttribArray(colorLocation);
-            GL.VertexAttribPointer(colorLocation, 4, VertexAttribPointerType.Float, false, Unsafe.SizeOf<Vertex>(), Unsafe.SizeOf<Vector2>());
+            GL.EnableVertexAttribArray((uint)colorLocation);
+            GL.VertexAttribPointer((uint)colorLocation, 4, VertexAttribPointerType.Float, false, Unsafe.SizeOf<Vertex>(), Unsafe.SizeOf<Vector2>());
         }
 
         public void Render(float alpha = 1.0f) {
-            var hue = (float) _stopwatch.Elapsed.TotalSeconds * 0.15f % 1;
-            var c = Color4.FromHsv(new Vector4(alpha * hue, alpha * 0.75f, alpha * 0.75f, alpha));
+            float hue = (float) _stopwatch.Elapsed.TotalSeconds * 0.15f % 1;
+            Color4<Rgba> c = new Color4<Hsva>(alpha * hue, alpha * 0.75f, alpha * 0.75f, alpha).ToRgba();
             GL.ClearColor(c);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
