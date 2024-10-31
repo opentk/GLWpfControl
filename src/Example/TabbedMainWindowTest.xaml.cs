@@ -50,6 +50,11 @@ namespace Example
         private void Control1_KeyDown(object sender, KeyEventArgs e)
         {
             Debug.WriteLine(e.Key);
+
+            if (e.Key == Key.A)
+            {
+                Control1.Dispose();
+            }
         }
 
         private void Control1_OnRender(TimeSpan delta)

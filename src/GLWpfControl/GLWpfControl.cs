@@ -175,12 +175,10 @@ namespace OpenTK.Wpf
         
         private void OnUnloaded()
         {
-            // FIXME: Make this a separate function for releasing resources...
-            // Currently this works as we are passing a zero width and height
-            // which causes the renderer to not reallocate the framebuffer
-            // after the previous one has been deleted.
-            // - Noggin_bops 2024-05-29
-            _renderer?.ReallocateFramebufferIfNeeded(0, 0, 1, 1, Format.X8R8G8B8, MultisampleType.D3DMULTISAMPLE_NONE);
+            if (_isStarted)
+            {
+                _renderer?.ReleaseFramebufferResources();
+            }
         }
 
         /// <summary>
@@ -218,7 +216,7 @@ namespace OpenTK.Wpf
             if (isDesignMode) {
                 DrawDesignTimeHelper(this, drawingContext);
             }
-            else if (_renderer != null)
+            else if (_renderer != null && _isStarted == true)
             {
                 if (Settings != null)
                 {
