@@ -92,7 +92,20 @@ namespace OpenTK.Wpf
                 out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
                 ref dxColorRenderTargetShareHandle);
 
+                IntPtr dxDepthStencilRenderTargetShareHandle = IntPtr.Zero;
+                _context.DxDevice.CreateDepthStencilSurface(
+                    FramebufferWidth,
+                    FramebufferHeight,
+                    Format.D24S8,
+                    MultisampleType.D3DMULTISAMPLE_2_SAMPLES,
+                    0,
+                    false,
+                    out DXInterop.IDirect3DSurface9 dxDepthStencilRenderTarget,
+                    ref dxDepthStencilRenderTargetShareHandle);
+                DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
+
                 dxColorRenderTarget.Release();
+                dxDepthStencilRenderTarget.Release();
 
                 return true;
             }
