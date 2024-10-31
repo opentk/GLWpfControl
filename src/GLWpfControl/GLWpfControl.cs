@@ -111,6 +111,12 @@ namespace OpenTK.Wpf
         [CLSCompliant(false)]
         public IGraphicsContext? Context => _renderer?.GLContext;
 
+        /// <summary>
+        /// If MSAA backbuffers can be created for this GLWpfControl.
+        /// If false any attempt to create an MSAA framebuffer will be ignored.
+        /// </summary>
+        public bool SupportsMSAA => _renderer?.SupportsMSAA ?? false;
+
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 
         [Obsolete("This property has no effect. See RegisterToEventsDirectly.")]

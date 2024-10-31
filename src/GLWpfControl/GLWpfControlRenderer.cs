@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -62,18 +63,57 @@ namespace OpenTK.Wpf
 
         private TimeSpan _lastFrameStamp;
 
+        public readonly bool SupportsMSAA;
+
         public GLWpfControlRenderer(GLWpfControlSettings settings)
         {
             _context = new DxGlContext(settings);
             // Placeholder transforms.
             TranslateTransform = new TranslateTransform(0, 0);
             FlipYTransform = new ScaleTransform(1, 1);
+
+            SupportsMSAA = SupportsMSAATest();
+        }
+
+        public bool SupportsMSAATest()
+        {
+            // A test to see whether we can create multisample render targets without
+            // getting an exception...
+            try
+            {
+                IntPtr dxColorRenderTargetShareHandle = IntPtr.Zero;
+                _context.DxDevice.CreateRenderTarget(
+                128,
+                128,
+                Format.X8R8G8B8,
+                MultisampleType.D3DMULTISAMPLE_2_SAMPLES,
+                0,
+                false,
+                out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
+                ref dxColorRenderTargetShareHandle);
+
+                dxColorRenderTarget.Release();
+
+                return true;
+            }
+            catch(COMException)
+            {
+                Trace.TraceWarning("GLWpfControl was unable to create an MSAA framebuffer on this computer.");
+                return false;
+            }
         }
 
         public void ReallocateFramebufferIfNeeded(double width, double height, double dpiScaleX, double dpiScaleY, Format format, MultisampleType msaaType)
         {
             int newWidth = (int)Math.Ceiling(width * dpiScaleX);
             int newHeight = (int)Math.Ceiling(height * dpiScaleY);
+
+            // Disable MSAA if we've determined we don't support it.
+            // It's better to create a normal backbuffer instead of crashing.
+            if (SupportsMSAA == false)
+            {
+                msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
+            }
 
             // FIXME: It seems we can't use this function to detect if MSAA will work with NV_DX_interop or not...
             int result = _context.DxContext.CheckDeviceMultiSampleType(0, DeviceType.HAL, format, true, msaaType, out uint qualityLevels);
