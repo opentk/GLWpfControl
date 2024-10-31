@@ -80,19 +80,7 @@ namespace OpenTK.Wpf
 
             if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || MultisampleType != msaaType)
             {
-                _context.GraphicsContext.MakeCurrent();
-
-                if (D3dImage != null)
-                {
-                    Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
-                    Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
-                    DxColorRenderTarget.Release();
-                    DxDepthStencilRenderTarget.Release();
-                    GL.DeleteFramebuffer(GLFramebufferHandle);
-                    GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
-                    GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
-                }
-                D3dImage = null;
+                ReleaseFramebufferResources();
 
                 if (width > 0 && height > 0)
                 {
@@ -217,6 +205,26 @@ namespace OpenTK.Wpf
             }
         }
 
+        /// <summary>
+        /// Releases all resources related to the framebuffer.
+        /// </summary>
+        public void ReleaseFramebufferResources()
+        {
+            _context.GraphicsContext.MakeCurrent();
+
+            if (D3dImage != null)
+            {
+                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
+                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
+                DxColorRenderTarget.Release();
+                DxDepthStencilRenderTarget.Release();
+                GL.DeleteFramebuffer(GLFramebufferHandle);
+                GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
+                GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
+            }
+            D3dImage = null;
+        }
+
         public void Render(DrawingContext drawingContext)
         {
             if (D3dImage == null)
@@ -273,6 +281,7 @@ namespace OpenTK.Wpf
 
         public void Dispose()
         {
+            ReleaseFramebufferResources();
             _context.Dispose();
         }
     }
