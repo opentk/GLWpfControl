@@ -85,6 +85,7 @@ namespace OpenTK.Wpf
 
                 if (hasNVDXInterop == false)
                 {
+                    Dispose();
                     throw new PlatformNotSupportedException("NV_DX_interop extension is not suppored. This extensions is currently needed for GLWpfControl to work.");
                 }
 
@@ -129,26 +130,34 @@ namespace OpenTK.Wpf
             GLDeviceHandle = Wgl.DXOpenDeviceNV(dxDevice.Handle);
             if (GLDeviceHandle == IntPtr.Zero)
             {
-                throw new Win32Exception(DXInterop.GetLastError());
+                int error = DXInterop.GetLastError();
+                Dispose();
+                throw new Win32Exception(error);
             }
-        }
-
-        ~DxGlContext()
-        {
-            Dispose();
         }
 
         public void Dispose()
         {
-            if (Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
+            int error = 0;
+            if (GLDeviceHandle != IntPtr.Zero && Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
             {
-                throw new Win32Exception(DXInterop.GetLastError());
+                error = DXInterop.GetLastError();
             }
-            GlfwWindow?.Dispose();
-            DxDevice.Release();
-            DxContext.Release();
 
-            GC.SuppressFinalize(this);
+            GlfwWindow?.Dispose();
+            if (DxDevice.Handle != IntPtr.Zero)
+            {
+                DxDevice.Release();
+            }
+            if (DxContext.Handle != IntPtr.Zero)
+            {
+                DxContext.Release();
+            }
+
+            if (error != 0)
+            {
+                throw new Win32Exception(error);
+            }
         }
 
 #if DEBUG
