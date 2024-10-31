@@ -78,7 +78,7 @@ namespace OpenTK.Wpf
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         /// If no framebuffer is available (because this control is not visible, etc etc, then it should be 0).
         /// </summary>
-        public int Framebuffer => _renderer?.FrameBufferHandle ?? 0;
+        public int Framebuffer => _renderer?.GLFramebufferHandle ?? 0;
 
         /// <summary>
         /// If this control is rendering continuously.

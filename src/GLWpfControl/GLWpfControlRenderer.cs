@@ -32,9 +32,6 @@ namespace OpenTK.Wpf
         /// <summary>The height of this buffer in pixels.</summary>
         public int FramebufferHeight { get; private set; }
 
-        /// <summary>The OpenGL framebuffer handle.</summary>
-        public int FrameBufferHandle => GLFramebufferHandle;
-
         /// <summary>The DirectX multisample type.</summary>
         public MultisampleType MultisampleType { get; private set; }
 
@@ -54,6 +51,7 @@ namespace OpenTK.Wpf
         public IntPtr DxInteropColorRenderTargetRegisteredHandle { get; private set; }
         public IntPtr DxInteropDepthStencilRenderTargetRegisteredHandle { get; private set; }
 
+        /// <summary>The OpenGL framebuffer handle.</summary>
         public int GLFramebufferHandle { get; private set; }
         private int GLSharedColorRenderbufferHandle { get; set; }
         private int GLSharedDepthRenderRenderbufferHandle { get; set; }
