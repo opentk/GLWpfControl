@@ -40,9 +40,7 @@ namespace OpenTK.Wpf.Renderers
 
             return SupportsMSAATest(context)
                        ? new GLWpfControlDirectSurfaceRenderer(context)
-                       : settings.Samples > 1
-                           ? new GLWpfControlTexture2DRendererMSAA(context)
-                           : new GLWpfControlTexture2DRenderer(context);
+                       : new GLWpfControlTexture2DRendererMSAA(context);
 
         }
 

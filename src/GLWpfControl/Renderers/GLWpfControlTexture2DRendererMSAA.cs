@@ -90,7 +90,15 @@ namespace OpenTK.Wpf.Renderers
                     FramebufferHeight = newHeight;
 
                     CreateSharedFramebuffer(format, newWidth, newHeight);
-                    CreateBlitFramebuffer(newWidth, newHeight, msaaType);
+
+                    if (msaaType == MultisampleType.D3DMULTISAMPLE_NONE)
+                    {
+                        CreateBlitFramebuffer(newWidth, newHeight);
+                    }
+                    else
+                    {
+                        CreateBlitFramebufferMSAA(newWidth, newHeight, msaaType);
+                    }
 
                     D3dImage = new D3DImage(96.0 * dpiScaleX, 96.0 * dpiScaleY);
 
@@ -100,7 +108,49 @@ namespace OpenTK.Wpf.Renderers
             }
         }
 
-        private void CreateBlitFramebuffer(int width, int height, MultisampleType msaaType)
+        private void CreateBlitFramebuffer(int width, int height)
+        {
+            GLBlitTextureHandle = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, GLBlitTextureHandle);
+            GL.TexImage2D(TextureTarget.Texture2D,
+                          0,
+                          PixelInternalFormat.Rgba32f,
+                          width,
+                          height,
+                          0,
+                          PixelFormat.Rgba,
+                          PixelType.Float,
+                          IntPtr.Zero);
+
+            GLBlitDepthStencilRenderbufferHandle = GL.GenRenderbuffer();
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLBlitDepthStencilRenderbufferHandle);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer,
+                                   RenderbufferStorage.Depth24Stencil8,
+                                   width,
+                                   height);
+
+            GLBlitFramebufferHandle = GL.GenFramebuffer();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLBlitFramebufferHandle);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                                    FramebufferAttachment.ColorAttachment0,
+                                    TextureTarget.Texture2D,
+                                    GLBlitTextureHandle,
+                                    0);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer,
+                                       FramebufferAttachment.DepthStencilAttachment,
+                                       RenderbufferTarget.Renderbuffer,
+                                       GLBlitDepthStencilRenderbufferHandle);
+
+            FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
+            if (status != FramebufferErrorCode.FramebufferComplete)
+            {
+                Debug.WriteLine($"Framebuffer is not complete: {status}");
+            }
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        }
+
+        private void CreateBlitFramebufferMSAA(int width, int height, MultisampleType msaaType)
         {
             int numSamples = msaaType == MultisampleType.D3DMULTISAMPLE_NONE
                                  ? 1
