@@ -31,7 +31,7 @@ namespace OpenTK.Wpf.Interop
         private delegate uint NativeGetAdapterCount(IDirect3D9Ex contextHandle);
         private delegate int NativeCheckDeviceMultiSampleType(IDirect3D9Ex contextHandle, uint Adapter, DeviceType DeviceType, Format SurfaceFormat, bool Windowed, MultisampleType MultiSampleType, out uint pQualityLevels);
         private delegate int NativeCreateDeviceEx(IDirect3D9Ex contextHandle, int adapter, DeviceType deviceType, IntPtr focusWindowHandle, CreateFlags behaviorFlags, ref PresentationParameters presentationParameters, IntPtr fullscreenDisplayMode, out IDirect3DDevice9Ex deviceHandle);
-        private delegate int NativeCreateRenderTarget(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool lockable, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
+        private delegate int NativeCreateRenderTarget(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, [MarshalAs(UnmanagedType.Bool)] bool lockable, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
         private delegate int NativeCreateDepthStencilSurface(IDirect3DDevice9Ex deviceHandle, int width, int height, Format format, MultisampleType multisample, int multisampleQuality, bool discard, out IDirect3DSurface9 surfaceHandle, ref IntPtr sharedHandle);
         private delegate uint NativeRelease(IntPtr resourceHandle);
 
