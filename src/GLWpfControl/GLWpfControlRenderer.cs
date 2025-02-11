@@ -45,16 +45,17 @@ namespace OpenTK.Wpf
 
         public D3DImage? D3dImage { get; private set; }
 
-        public DXInterop.IDirect3DSurface9 DxColorRenderTarget { get; private set; }
-        public DXInterop.IDirect3DSurface9 DxDepthStencilRenderTarget { get; private set; }
+        /// <summary>
+        /// D3D9 surface handle, which will be the surface shared with the GL Framebuffer
+        /// </summary>
+        public DXInterop.IDirect3DSurface9 DxRenderTargetHandle { get; private set; }
 
-        public IntPtr DxInteropColorRenderTargetRegisteredHandle { get; private set; }
+        public IntPtr DxInteropRegisteredHandle { get; private set; }
         public IntPtr DxInteropDepthStencilRenderTargetRegisteredHandle { get; private set; }
 
         /// <summary>The OpenGL framebuffer handle.</summary>
         public int GLFramebufferHandle { get; private set; }
-        private int GLSharedColorRenderbufferHandle { get; set; }
-        private int GLSharedDepthRenderRenderbufferHandle { get; set; }
+        public int GLSharedTextureHandle { get; private set; }
 
         public TranslateTransform TranslateTransform { get; private set; }
         public ScaleTransform FlipYTransform { get; private set; }
@@ -90,20 +91,7 @@ namespace OpenTK.Wpf
                 out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
                 ref dxColorRenderTargetShareHandle);
 
-                IntPtr dxDepthStencilRenderTargetShareHandle = IntPtr.Zero;
-                _context.DxDevice.CreateDepthStencilSurface(
-                    FramebufferWidth,
-                    FramebufferHeight,
-                    Format.D24S8,
-                    MultisampleType.D3DMULTISAMPLE_2_SAMPLES,
-                    0,
-                    false,
-                    out DXInterop.IDirect3DSurface9 dxDepthStencilRenderTarget,
-                    ref dxDepthStencilRenderTargetShareHandle);
-                DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
-
                 dxColorRenderTarget.Release();
-                dxDepthStencilRenderTarget.Release();
 
                 return true;
             }
@@ -139,7 +127,9 @@ namespace OpenTK.Wpf
                     FramebufferHeight = newHeight;
                     MultisampleType = msaaType;
 
-                    IntPtr dxColorRenderTargetShareHandle = IntPtr.Zero;
+                    IntPtr dxSharedHandle = IntPtr.Zero;
+
+                    // Create a D3D9 surface of a size that matches the framebuffer size
                     _context.DxDevice.CreateRenderTarget(
                         FramebufferWidth,
                         FramebufferHeight,
@@ -147,97 +137,56 @@ namespace OpenTK.Wpf
                         msaaType,
                         0,
                         false,
-                        out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
-                        ref dxColorRenderTargetShareHandle);
-                    DxColorRenderTarget = dxColorRenderTarget;
+                        out DXInterop.IDirect3DSurface9 dxRenderTargetHandle,
+                        ref dxSharedHandle);
+
+                    DxRenderTargetHandle = dxRenderTargetHandle;
 
                     bool success;
-                    success = Wgl.DXSetResourceShareHandleNV(DxColorRenderTarget.Handle, dxColorRenderTargetShareHandle);
+                    success = Wgl.DXSetResourceShareHandleNV(DxRenderTargetHandle.Handle, dxSharedHandle);
                     if (success == false)
                     {
                         Debug.WriteLine("Failed to set resource share handle for color render target.");
                     }
-
-                    IntPtr dxDepthStencilRenderTargetShareHandle = IntPtr.Zero;
-                    _context.DxDevice.CreateDepthStencilSurface(
-                        FramebufferWidth,
-                        FramebufferHeight,
-                        Format.D24S8,
-                        msaaType,
-                        0,
-                        false,
-                        out DXInterop.IDirect3DSurface9 dxDepthStencilRenderTarget,
-                        ref dxDepthStencilRenderTargetShareHandle);
-                    DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
-
-                    success = Wgl.DXSetResourceShareHandleNV(dxDepthStencilRenderTarget.Handle, dxDepthStencilRenderTargetShareHandle);
-                    if (success == false)
-                    {
-                        Debug.WriteLine("Failed to set resource share handle for depth stencil render target.");
-                    }
-
 #if DEBUG
                     {
-                        DxColorRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
-
-                        Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
-                    }
-
-                    {
-                        DxDepthStencilRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
+                        DxRenderTargetHandle.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
 
                         Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
                     }
 #endif
 
                     GLFramebufferHandle = GL.GenFramebuffer();
+                    GLSharedTextureHandle = GL.GenTexture();
 
-                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
+                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE
+                                                           ? TextureTarget.Texture2D
+                                                           : TextureTarget.Texture2DMultisample;
 
-                    GLSharedColorRenderbufferHandle = GL.GenRenderbuffer();
-                    DxInteropColorRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
+                    DxInteropRegisteredHandle = Wgl.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
-                        DxColorRenderTarget.Handle,
-                        (uint)GLSharedColorRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
+                        DxRenderTargetHandle.Handle,
+                        (uint)GLSharedTextureHandle,
+                        (uint)colorTextureTarget,
                         WGL_NV_DX_interop.AccessReadWrite);
-                    if (DxInteropColorRenderTargetRegisteredHandle == IntPtr.Zero)
+
+                    if (DxInteropRegisteredHandle == IntPtr.Zero)
                     {
                         Debug.WriteLine($"Could not register color render target. 0x{DXInterop.GetLastError():X8}");
                     }
 
-                    GLSharedDepthRenderRenderbufferHandle = GL.GenRenderbuffer();
-                    DxInteropDepthStencilRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
-                        _context.GLDeviceHandle,
-                        DxDepthStencilRenderTarget.Handle,
-                        (uint)GLSharedDepthRenderRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
-                        WGL_NV_DX_interop.AccessReadWrite);
-                    if (DxInteropDepthStencilRenderTargetRegisteredHandle == IntPtr.Zero)
-                    {
-                        Debug.WriteLine($"Could not register depth stencil render target. 0x{DXInterop.GetLastError():X8}");
-                    }
-
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                                            FramebufferAttachment.ColorAttachment0,
+                                            colorTextureTarget,
+                                            GLSharedTextureHandle,
+                                            0);
 
                     GL.FramebufferRenderbuffer(
                         FramebufferTarget.Framebuffer,
                         FramebufferAttachment.ColorAttachment0,
                         RenderbufferTarget.Renderbuffer,
-                        GLSharedColorRenderbufferHandle);
-
-                    // FIXME: If we have a combined format, maybe set both at the same time?
-                    GL.FramebufferRenderbuffer(
-                        FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.DepthAttachment,
-                        RenderbufferTarget.Renderbuffer,
-                        GLSharedDepthRenderRenderbufferHandle);
-
-                    GL.FramebufferRenderbuffer(
-                        FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.StencilAttachment,
-                        RenderbufferTarget.Renderbuffer,
-                        GLSharedDepthRenderRenderbufferHandle);
+                        GLSharedTextureHandle);
 
                     // FIXME: This will report unsupported but it will not do that in Render()...?
                     FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
@@ -265,13 +214,11 @@ namespace OpenTK.Wpf
 
             if (D3dImage != null)
             {
-                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
+                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropRegisteredHandle);
                 Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
-                DxColorRenderTarget.Release();
-                DxDepthStencilRenderTarget.Release();
+                DxRenderTargetHandle.Release();
                 GL.DeleteFramebuffer(GLFramebufferHandle);
-                GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
-                GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
+                GL.DeleteTexture(GLSharedTextureHandle);
             }
             D3dImage = null;
         }
@@ -291,8 +238,8 @@ namespace OpenTK.Wpf
 
             // Lock the interop object, DX calls to the framebuffer are no longer valid
             D3dImage.Lock();
-            D3dImage.SetBackBuffer(System.Windows.Interop.D3DResourceType.IDirect3DSurface9, DxColorRenderTarget.Handle, true);
-            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            D3dImage.SetBackBuffer(System.Windows.Interop.D3DResourceType.IDirect3DSurface9, DxRenderTargetHandle.Handle, true);
+            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
             if (success == false)
             {
                 Debug.WriteLine("Failed to lock objects!");
@@ -305,12 +252,12 @@ namespace OpenTK.Wpf
             GLAsyncRender?.Invoke();
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
-            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
             if (success == false)
             {
                 Debug.WriteLine("Failed to unlock objects!");
             }
-            
+
             D3dImage.AddDirtyRect(new Int32Rect(0, 0, FramebufferWidth, FramebufferHeight));
             D3dImage.Unlock();
 
@@ -322,7 +269,7 @@ namespace OpenTK.Wpf
 
             // Dpi scaled rectangle from the image
             Rect rect = new Rect(0, 0, D3dImage.Width, D3dImage.Height);
-            // Draw the image source 
+            // Draw the image source
             drawingContext.DrawImage(D3dImage, rect);
 
             // Remove the scale transform and the translation transform
