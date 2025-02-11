@@ -49,9 +49,7 @@ namespace OpenTK.Wpf
         /// D3D9 surface handle, which will be the surface shared with the GL Framebuffer
         /// </summary>
         public DXInterop.IDirect3DSurface9 DxRenderTargetHandle { get; private set; }
-
         public IntPtr DxInteropRegisteredHandle { get; private set; }
-        public IntPtr DxInteropDepthStencilRenderTargetRegisteredHandle { get; private set; }
 
         /// <summary>The OpenGL framebuffer handle.</summary>
         public int GLFramebufferHandle { get; private set; }
@@ -215,7 +213,6 @@ namespace OpenTK.Wpf
             if (D3dImage != null)
             {
                 Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropRegisteredHandle);
-                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
                 DxRenderTargetHandle.Release();
                 GL.DeleteFramebuffer(GLFramebufferHandle);
                 GL.DeleteTexture(GLSharedTextureHandle);
@@ -239,7 +236,7 @@ namespace OpenTK.Wpf
             // Lock the interop object, DX calls to the framebuffer are no longer valid
             D3dImage.Lock();
             D3dImage.SetBackBuffer(System.Windows.Interop.D3DResourceType.IDirect3DSurface9, DxRenderTargetHandle.Handle, true);
-            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
             if (success == false)
             {
                 Debug.WriteLine("Failed to lock objects!");
@@ -252,7 +249,7 @@ namespace OpenTK.Wpf
             GLAsyncRender?.Invoke();
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
-            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropRegisteredHandle });
             if (success == false)
             {
                 Debug.WriteLine("Failed to unlock objects!");
