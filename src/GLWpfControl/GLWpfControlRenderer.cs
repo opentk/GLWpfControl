@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -10,6 +9,7 @@ using OpenTK.Graphics.Wgl;
 using OpenTK.Platform.Windows;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf.Interop;
+using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 #nullable enable
 
@@ -54,6 +54,7 @@ namespace OpenTK.Wpf
         /// <summary>The OpenGL framebuffer handle.</summary>
         public int GLFramebufferHandle { get; private set; }
         public int GLSharedTextureHandle { get; private set; }
+        public int GLDepthStencilRenderbufferHandle { get; private set; }
 
         public TranslateTransform TranslateTransform { get; private set; }
         public ScaleTransform FlipYTransform { get; private set; }
@@ -132,7 +133,7 @@ namespace OpenTK.Wpf
                         FramebufferWidth,
                         FramebufferHeight,
                         format,
-                        msaaType,
+                        MultisampleType.D3DMULTISAMPLE_NONE,
                         0,
                         false,
                         out DXInterop.IDirect3DSurface9 dxRenderTargetHandle,
@@ -154,12 +155,13 @@ namespace OpenTK.Wpf
                     }
 #endif
 
-                    GLFramebufferHandle = GL.GenFramebuffer();
-                    GLSharedTextureHandle = GL.GenTexture();
-
                     TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE
                                                            ? TextureTarget.Texture2D
                                                            : TextureTarget.Texture2DMultisample;
+
+                    GLFramebufferHandle = GL.GenFramebuffer();
+                    GLSharedTextureHandle = GL.GenTexture();
+                    GLDepthStencilRenderbufferHandle = GL.GenRenderbuffer();
 
                     DxInteropRegisteredHandle = Wgl.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
@@ -174,17 +176,63 @@ namespace OpenTK.Wpf
                     }
 
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLDepthStencilRenderbufferHandle);
                     GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
                                             FramebufferAttachment.ColorAttachment0,
                                             colorTextureTarget,
                                             GLSharedTextureHandle,
                                             0);
 
-                    GL.FramebufferRenderbuffer(
-                        FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.ColorAttachment0,
-                        RenderbufferTarget.Renderbuffer,
-                        GLSharedTextureHandle);
+                    if (colorTextureTarget == TextureTarget.Texture2D)
+                    {
+                        GL.TexImage2D(TextureTarget.Texture2D,
+                                      0,
+                                      PixelInternalFormat.Rgba32f,
+                                      newWidth,
+                                      newHeight,
+                                      0,
+                                      PixelFormat.Rgba,
+                                      PixelType.Float,
+                                      IntPtr.Zero);
+                        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer,
+                                               RenderbufferStorage.Depth24Stencil8,
+                                               newWidth,
+                                               newHeight);
+                    }
+                    else
+                    {
+                        GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample,
+                                                 (int)msaaType,
+                                                 PixelInternalFormat.Rgba32f,
+                                                 newWidth,
+                                                 newHeight,
+                                                 true);
+
+                        GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer,
+                                                          (int)msaaType,
+                                                          RenderbufferStorage.Depth24Stencil8,
+                                                          newWidth,
+                                                          newHeight);
+                    }
+
+
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer,
+                                               FramebufferAttachment.DepthStencilAttachment,
+                                               RenderbufferTarget.Renderbuffer,
+                                               GLDepthStencilRenderbufferHandle);
+
+                    if (!GL.IsFramebuffer(GLFramebufferHandle))
+                    {
+                        throw new Exception("Failed to create framebuffer.");
+                    }
+                    if (!GL.IsTexture(GLSharedTextureHandle))
+                    {
+                        throw new Exception($"Failed to create {colorTextureTarget}");
+                    }
+                    if (!GL.IsRenderbuffer(GLDepthStencilRenderbufferHandle))
+                    {
+                        throw new Exception("Failed to create renderbuffer");
+                    }
 
                     // FIXME: This will report unsupported but it will not do that in Render()...?
                     FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
@@ -216,6 +264,7 @@ namespace OpenTK.Wpf
                 DxRenderTargetHandle.Release();
                 GL.DeleteFramebuffer(GLFramebufferHandle);
                 GL.DeleteTexture(GLSharedTextureHandle);
+                GL.DeleteRenderbuffer(GLDepthStencilRenderbufferHandle);
             }
             D3dImage = null;
         }
