@@ -3,12 +3,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using OpenTK.Wpf.Interop;
-using System.Windows.Interop;
 using OpenTK.Windowing.Common;
+using OpenTK.Wpf.Renderers;
 
 namespace OpenTK.Wpf
 {
@@ -38,7 +36,7 @@ namespace OpenTK.Wpf
         /// This is only for extremely advanced use, where a non-display out task needs to run.
         /// Examples of these are an async Pixel Buffer Object transfer or Transform Feedback.
         /// If you do not know what these are, do not use this function.
-        /// 
+        ///
         /// GLWpfControl makes sure that it's OpenGL context is current when this event happens.
         /// </summary>
         [Obsolete("There is no difference between Render and AsyncRender. Use Render.")]
@@ -55,7 +53,7 @@ namespace OpenTK.Wpf
         public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register(
             "Settings", typeof(GLWpfControlSettings), typeof(GLWpfControl));
 
-        private GLWpfControlRenderer? _renderer;
+        private IGLWpfControlRenderer? _renderer;
 
         /// <summary>
         /// Indicates whether the <see cref="Start"/> function has been invoked.
@@ -161,7 +159,7 @@ namespace OpenTK.Wpf
             _isStarted = true;
 
             Settings = settings.Clone();
-            _renderer = new GLWpfControlRenderer(Settings);
+            _renderer = GLWpfControlRendererFactory.CreateRenderer(Settings);
             _renderer.GLRender += timeDelta => Render?.Invoke(timeDelta);
             _renderer.GLAsyncRender += () => AsyncRender?.Invoke();
             IsVisibleChanged += (_, args) => {
@@ -178,7 +176,7 @@ namespace OpenTK.Wpf
 
             Ready?.Invoke();
         }
-        
+
         private void OnUnloaded()
         {
             if (_isStarted)
@@ -189,7 +187,7 @@ namespace OpenTK.Wpf
 
         /// <summary>
         /// Disposes the native resources allocated by this control.
-        /// After this function has been called this control will no longer render anything 
+        /// After this function has been called this control will no longer render anything
         /// until <see cref="Start()"/> has been called again.
         /// </summary>
         public void Dispose()
@@ -208,7 +206,7 @@ namespace OpenTK.Wpf
                 // Reference: https://docs.microsoft.com/en-us/dotnet/desktop/wpf/advanced/walkthrough-hosting-direct3d9-content-in-wpf?view=netframeworkdesktop-4.8#to-import-direct3d9-content
                 return;
             }
-            
+
             _lastRenderTime = currentRenderTime;
 
             if (RenderContinuously) InvalidateVisual();
@@ -242,7 +240,7 @@ namespace OpenTK.Wpf
                             dpiScaleY = transformToDevice.M22;
                         }
                     }
-                    
+
                     Format format = Settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
 
                     MultisampleType msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
@@ -262,7 +260,7 @@ namespace OpenTK.Wpf
                 DrawUnstartedControlHelper(this, drawingContext);
             }
         }
-        
+
         protected override void OnRenderSizeChanged(SizeChangedInfo info)
         {
             base.OnRenderSizeChanged(info);
@@ -272,7 +270,7 @@ namespace OpenTK.Wpf
             {
                 return;
             }
-            
+
             if ((info.WidthChanged || info.HeightChanged) && (info.NewSize.Width > 0 && info.NewSize.Height > 0))
             {
                 InvalidateVisual();

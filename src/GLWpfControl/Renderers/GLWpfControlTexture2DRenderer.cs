@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -13,27 +12,27 @@ using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 #nullable enable
 
-namespace OpenTK.Wpf
+namespace OpenTK.Wpf.Renderers
 {
     /// <summary>Renderer that uses DX_Interop for a fast-path.</summary>
-    internal sealed class GLWpfControlRenderer : IDisposable
+    internal sealed class GLWpfControlTexture2DRenderer : IGLWpfControlRenderer
     {
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 
         private readonly DxGlContext _context;
 
         public event Action<TimeSpan>? GLRender;
+
         [Obsolete("There is no difference between GLRender and GLAsyncRender. Use GLRender.")]
         public event Action? GLAsyncRender;
 
         /// <summary>The width of this buffer in pixels.</summary>
-        public int FramebufferWidth { get; private set; }
+        public int FramebufferWidth { get; set; }
 
         /// <summary>The height of this buffer in pixels.</summary>
         public int FramebufferHeight { get; private set; }
 
-        /// <summary>The DirectX multisample type.</summary>
-        public MultisampleType MultisampleType { get; private set; }
+        public bool SupportsMSAA => false;
 
         /// <summary>The OpenGL Framebuffer width</summary>
         public int Width => D3dImage == null ? FramebufferWidth : 0;
@@ -41,7 +40,7 @@ namespace OpenTK.Wpf
         /// <summary>The OpenGL Framebuffer height</summary>
         public int Height => D3dImage == null ? FramebufferHeight : 0;
 
-        public IGraphicsContext? GLContext => _context.GraphicsContext;
+        public IGraphicsContext GLContext => _context.GraphicsContext;
 
         public D3DImage? D3dImage { get; private set; }
 
@@ -61,62 +60,21 @@ namespace OpenTK.Wpf
 
         private TimeSpan _lastFrameStamp;
 
-        public readonly bool SupportsMSAA;
-
-        public GLWpfControlRenderer(GLWpfControlSettings settings)
+        public GLWpfControlTexture2DRenderer(DxGlContext context)
         {
-            _context = new DxGlContext(settings);
+            _context = context;
+
             // Placeholder transforms.
             TranslateTransform = new TranslateTransform(0, 0);
             FlipYTransform = new ScaleTransform(1, 1);
-
-            SupportsMSAA = SupportsMSAATest();
         }
 
-        public bool SupportsMSAATest()
-        {
-            // A test to see whether we can create multisample render targets without
-            // getting an exception...
-            try
-            {
-                IntPtr dxColorRenderTargetShareHandle = IntPtr.Zero;
-                _context.DxDevice.CreateRenderTarget(
-                128,
-                128,
-                Format.X8R8G8B8,
-                MultisampleType.D3DMULTISAMPLE_2_SAMPLES,
-                0,
-                false,
-                out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
-                ref dxColorRenderTargetShareHandle);
-
-                dxColorRenderTarget.Release();
-
-                return true;
-            }
-            catch(COMException)
-            {
-                Trace.TraceWarning("GLWpfControl was unable to create an MSAA framebuffer on this computer.");
-                return false;
-            }
-        }
-
-        public void ReallocateFramebufferIfNeeded(double width, double height, double dpiScaleX, double dpiScaleY, Format format, MultisampleType msaaType)
+        public void ReallocateFramebufferIfNeeded(double width, double height, double dpiScaleX, double dpiScaleY, Format format, MultisampleType _)
         {
             int newWidth = (int)Math.Ceiling(width * dpiScaleX);
             int newHeight = (int)Math.Ceiling(height * dpiScaleY);
 
-            // Disable MSAA if we've determined we don't support it.
-            // It's better to create a normal backbuffer instead of crashing.
-            if (SupportsMSAA == false)
-            {
-                msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
-            }
-
-            // FIXME: It seems we can't use this function to detect if MSAA will work with NV_DX_interop or not...
-            int result = _context.DxContext.CheckDeviceMultiSampleType(0, DeviceType.HAL, format, true, msaaType, out uint qualityLevels);
-
-            if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || MultisampleType != msaaType)
+            if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight)
             {
                 ReleaseFramebufferResources();
 
@@ -124,7 +82,6 @@ namespace OpenTK.Wpf
                 {
                     FramebufferWidth = newWidth;
                     FramebufferHeight = newHeight;
-                    MultisampleType = msaaType;
 
                     IntPtr dxSharedHandle = IntPtr.Zero;
 
@@ -155,10 +112,6 @@ namespace OpenTK.Wpf
                     }
 #endif
 
-                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE
-                                                           ? TextureTarget.Texture2D
-                                                           : TextureTarget.Texture2DMultisample;
-
                     GLFramebufferHandle = GL.GenFramebuffer();
                     GLSharedTextureHandle = GL.GenTexture();
                     GLDepthStencilRenderbufferHandle = GL.GenRenderbuffer();
@@ -167,7 +120,7 @@ namespace OpenTK.Wpf
                         _context.GLDeviceHandle,
                         DxRenderTargetHandle.Handle,
                         (uint)GLSharedTextureHandle,
-                        (uint)colorTextureTarget,
+                        (uint)TextureTarget.Texture2D,
                         WGL_NV_DX_interop.AccessReadWrite);
 
                     if (DxInteropRegisteredHandle == IntPtr.Zero)
@@ -177,45 +130,25 @@ namespace OpenTK.Wpf
 
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
                     GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLDepthStencilRenderbufferHandle);
-                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                                            FramebufferAttachment.ColorAttachment0,
-                                            colorTextureTarget,
-                                            GLSharedTextureHandle,
-                                            0);
 
-                    if (colorTextureTarget == TextureTarget.Texture2D)
-                    {
-                        GL.TexImage2D(TextureTarget.Texture2D,
-                                      0,
-                                      PixelInternalFormat.Rgba32f,
-                                      newWidth,
-                                      newHeight,
-                                      0,
-                                      PixelFormat.Rgba,
-                                      PixelType.Float,
-                                      IntPtr.Zero);
-                        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer,
-                                               RenderbufferStorage.Depth24Stencil8,
-                                               newWidth,
-                                               newHeight);
-                    }
-                    else
-                    {
-                        GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample,
-                                                 (int)msaaType,
-                                                 PixelInternalFormat.Rgba32f,
-                                                 newWidth,
-                                                 newHeight,
-                                                 true);
+                    GL.FramebufferTexture(FramebufferTarget.Framebuffer,
+                                          FramebufferAttachment.ColorAttachment0,
+                                          GLSharedTextureHandle,
+                                          0);
 
-                        GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer,
-                                                          (int)msaaType,
-                                                          RenderbufferStorage.Depth24Stencil8,
-                                                          newWidth,
-                                                          newHeight);
-                    }
-
-
+                    GL.TexImage2D(TextureTarget.Texture2D,
+                                  0,
+                                  PixelInternalFormat.Rgba32f,
+                                  newWidth,
+                                  newHeight,
+                                  0,
+                                  PixelFormat.Rgba,
+                                  PixelType.Float,
+                                  IntPtr.Zero);
+                    GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer,
+                                           RenderbufferStorage.Depth24Stencil8,
+                                           newWidth,
+                                           newHeight);
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer,
                                                FramebufferAttachment.DepthStencilAttachment,
                                                RenderbufferTarget.Renderbuffer,
@@ -223,15 +156,15 @@ namespace OpenTK.Wpf
 
                     if (!GL.IsFramebuffer(GLFramebufferHandle))
                     {
-                        throw new Exception("Failed to create framebuffer.");
+                        Debug.WriteLine("Failed to create framebuffer.");
                     }
                     if (!GL.IsTexture(GLSharedTextureHandle))
                     {
-                        throw new Exception($"Failed to create {colorTextureTarget}");
+                        Debug.WriteLine("Failed to create texture");
                     }
                     if (!GL.IsRenderbuffer(GLDepthStencilRenderbufferHandle))
                     {
-                        throw new Exception("Failed to create renderbuffer");
+                        Debug.WriteLine("Failed to create renderbuffer");
                     }
 
                     // FIXME: This will report unsupported but it will not do that in Render()...?

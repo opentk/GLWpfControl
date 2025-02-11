@@ -2,9 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Interop;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Wgl;
 using OpenTK.Windowing.Common;
@@ -13,15 +10,15 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Wpf.Interop;
 using WindowState = OpenTK.Windowing.Common.WindowState;
 
-namespace OpenTK.Wpf 
+namespace OpenTK.Wpf
 {
     /// This contains the DirectX and OpenGL contexts used in this control.
-    internal sealed class DxGlContext : IDisposable 
+    internal sealed class DxGlContext : IDisposable
     {
         /// <summary>The DirectX context. This is basically the root of all DirectX state.</summary>
         public DXInterop.IDirect3D9Ex DxContext { get; }
 
-        /// <summary>The DirectX device handle. This is the graphics card we're running on.</summary> 
+        /// <summary>The DirectX device handle. This is the graphics card we're running on.</summary>
         public DXInterop.IDirect3DDevice9Ex DxDevice { get; }
 
         /// <summary>The OpenGL Context. This is basically the root of all OpenGL state.</summary>
@@ -29,7 +26,7 @@ namespace OpenTK.Wpf
 
         /// <summary>An OpenGL handle to the DirectX device. Created and used by the WGL_dx_interop extension.</summary>
         public IntPtr GLDeviceHandle { get; }
-        
+
         /// <summary>The GLFW window that provides the OpenGL context. Null if a context was provided externally.</summary>
         private NativeWindow? GlfwWindow { get; }
 
