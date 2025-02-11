@@ -54,8 +54,10 @@ namespace OpenTK.Wpf.Renderers
         public IntPtr DxInteropColorRenderTargetRegisteredHandle { get; private set; }
         public IntPtr DxInteropDepthStencilRenderTargetRegisteredHandle { get; private set; }
 
+        public int GLFramebufferHandle => GLSharedFramebufferHandle;
+
         /// <summary>The OpenGL framebuffer handle.</summary>
-        public int GLFramebufferHandle { get; private set; }
+        public int GLSharedFramebufferHandle { get; private set; }
         private int GLSharedColorRenderbufferHandle { get; set; }
         private int GLSharedDepthRenderRenderbufferHandle { get; set; }
 
@@ -191,7 +193,7 @@ namespace OpenTK.Wpf.Renderers
                     }
 #endif
 
-                    GLFramebufferHandle = GL.GenFramebuffer();
+                    GLSharedFramebufferHandle = GL.GenFramebuffer();
 
                     TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
 
@@ -219,7 +221,7 @@ namespace OpenTK.Wpf.Renderers
                         Debug.WriteLine($"Could not register depth stencil render target. 0x{DXInterop.GetLastError():X8}");
                     }
 
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLSharedFramebufferHandle);
 
                     GL.FramebufferRenderbuffer(
                         FramebufferTarget.Framebuffer,
@@ -270,7 +272,7 @@ namespace OpenTK.Wpf.Renderers
                 Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
                 DxColorRenderTarget.Release();
                 DxDepthStencilRenderTarget.Release();
-                GL.DeleteFramebuffer(GLFramebufferHandle);
+                GL.DeleteFramebuffer(GLSharedFramebufferHandle);
                 GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
                 GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
             }
@@ -298,7 +300,7 @@ namespace OpenTK.Wpf.Renderers
             {
                 Debug.WriteLine("Failed to lock objects!");
             }
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLSharedFramebufferHandle);
             GL.Viewport(0, 0, FramebufferWidth, FramebufferHeight);
 
             GLRender?.Invoke(deltaT);
