@@ -114,12 +114,12 @@ namespace OpenTK.Wpf.Renderers
             GL.BindTexture(TextureTarget.Texture2D, GLBlitTextureHandle);
             GL.TexImage2D(TextureTarget.Texture2D,
                           0,
-                          PixelInternalFormat.Rgba32f,
+                          PixelInternalFormat.Rgba8,
                           width,
                           height,
                           0,
                           PixelFormat.Rgba,
-                          PixelType.Float,
+                          PixelType.UnsignedByte,
                           IntPtr.Zero);
 
             GLBlitDepthStencilRenderbufferHandle = GL.GenRenderbuffer();
