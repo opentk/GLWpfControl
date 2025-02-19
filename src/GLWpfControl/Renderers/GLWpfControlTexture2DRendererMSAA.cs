@@ -160,7 +160,7 @@ namespace OpenTK.Wpf.Renderers
             GL.BindTexture(TextureTarget.Texture2DMultisample, GLBlitTextureHandle);
             GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample,
                                      numSamples,
-                                     PixelInternalFormat.Rgba32f,
+                                     PixelInternalFormat.Rgba8,
                                      width,
                                      height,
                                      true);
@@ -228,6 +228,17 @@ namespace OpenTK.Wpf.Renderers
             GLSharedFramebufferHandle = GL.GenFramebuffer();
             GLSharedTextureHandle = GL.GenTexture();
 
+            GL.BindTexture(TextureTarget.Texture2D, GLSharedTextureHandle);
+            GL.TexImage2D(TextureTarget.Texture2D,
+                          0,
+                          PixelInternalFormat.Rgba8,
+                          width,
+                          height,
+                          0,
+                          PixelFormat.Rgba,
+                          PixelType.UnsignedByte,
+                          IntPtr.Zero);
+
             DxInteropRegisteredHandle = Wgl.DXRegisterObjectNV(
                 _context.GLDeviceHandle,
                 DxRenderTargetHandle.Handle,
@@ -246,16 +257,6 @@ namespace OpenTK.Wpf.Renderers
                                   FramebufferAttachment.ColorAttachment0,
                                   GLSharedTextureHandle,
                                   0);
-
-            GL.TexImage2D(TextureTarget.Texture2D,
-                          0,
-                          PixelInternalFormat.Rgba32f,
-                          width,
-                          height,
-                          0,
-                          PixelFormat.Rgba,
-                          PixelType.Float,
-                          IntPtr.Zero);
 
             if (!GL.IsFramebuffer(GLSharedFramebufferHandle))
             {
