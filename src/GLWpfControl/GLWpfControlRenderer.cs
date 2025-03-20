@@ -35,10 +35,10 @@ namespace OpenTK.Wpf
         public MultisampleType MultisampleType { get; private set; }
 
         /// <summary>The OpenGL Framebuffer width</summary>
-        public int Width => D3dImage == null ? FramebufferWidth : 0;
+        public int Width => D3dImage != null ? FramebufferWidth : 0;
 
         /// <summary>The OpenGL Framebuffer height</summary>
-        public int Height => D3dImage == null ? FramebufferHeight : 0;
+        public int Height => D3dImage != null ? FramebufferHeight : 0;
 
         public IGraphicsContext GLContext => _context.GraphicsContext;
 
