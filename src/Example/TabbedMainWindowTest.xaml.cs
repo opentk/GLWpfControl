@@ -36,7 +36,7 @@ namespace Example
             Control3.Start(transparentSettings);
             Control3.Context.MakeCurrent();
             scene3.Initialize();
-            
+
             Control1.KeyDown += Control1_KeyDown;
 
             Keyboard.AddPreviewKeyDownHandler(this, Keyboard_PreviewKeyDown);
