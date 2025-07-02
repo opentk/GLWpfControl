@@ -111,7 +111,6 @@ namespace OpenTK.Wpf
                 AutoDepthStencilFormat = Format.Unknown,
                 BackBufferCount = 1,
                 EnableAutoDepthStencil = 0,
-                // Add D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL?
                 Flags = 0,
                 FullScreen_RefreshRateInHz = 0,
                 MultiSampleQuality = 0,
