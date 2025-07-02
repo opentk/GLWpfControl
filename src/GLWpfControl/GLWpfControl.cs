@@ -115,7 +115,8 @@ namespace OpenTK.Wpf
         /// If MSAA backbuffers can be created for this GLWpfControl.
         /// If false any attempt to create an MSAA framebuffer will be ignored.
         /// </summary>
-        public bool SupportsMSAA => _renderer?.SupportsMSAA ?? false;
+        [Obsolete("This property will always return true.")]
+        public bool SupportsMSAA => true;
 
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 
@@ -245,14 +246,7 @@ namespace OpenTK.Wpf
                     
                     Format format = Settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
 
-                    MultisampleType msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
-                    // 2 to 16 are valid msaa values, clamp to 16.
-                    if (Settings.Samples >= 2 && Settings.Samples <= 16)
-                        msaaType = MultisampleType.D3DMULTISAMPLE_NONE + Settings.Samples;
-                    else if (Settings.Samples > 16)
-                        msaaType = MultisampleType.D3DMULTISAMPLE_16_SAMPLES;
-
-                    _renderer.ReallocateFramebufferIfNeeded(RenderSize.Width, RenderSize.Height, dpiScaleX, dpiScaleY, format, msaaType);
+                    _renderer.ReallocateFramebufferIfNeeded(RenderSize.Width, RenderSize.Height, dpiScaleX, dpiScaleY, format, Settings.Samples);
                 }
 
                 _renderer.Render(drawingContext);
