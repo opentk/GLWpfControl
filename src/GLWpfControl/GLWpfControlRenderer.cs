@@ -50,11 +50,11 @@ namespace OpenTK.Wpf
         public IntPtr DxInteropColorRenderTargetRegisteredHandle { get; private set; }
 
         private int GLSharedFramebufferHandle { get; set; }
-        private int GLSharedColorRenderbufferHandle { get; set; }
+        private int GLSharedColorTextureHandle { get; set; }
 
         /// <summary>The OpenGL framebuffer handle.</summary>
         public int GLFramebufferHandle { get; private set; }
-        private int GLColorRenderbufferHandle { get; set; }
+        private int GLColorTextureHandle { get; set; }
         private int GLDepthRenderRenderbufferHandle { get; set; }
 
         public TranslateTransform TranslateTransform { get; private set; }
@@ -117,12 +117,12 @@ namespace OpenTK.Wpf
 
                     GLSharedFramebufferHandle = GL.GenFramebuffer();
 
-                    GLSharedColorRenderbufferHandle = GL.GenRenderbuffer();
+                    GLSharedColorTextureHandle = GL.GenTexture();
                     DxInteropColorRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
                         DxColorRenderTarget.Handle,
-                        (uint)GLSharedColorRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
+                        (uint)GLSharedColorTextureHandle,
+                        (uint)TextureTarget.Texture2D,
                         WGL_NV_DX_interop.AccessReadWrite);
                     if (DxInteropColorRenderTargetRegisteredHandle == IntPtr.Zero)
                     {
@@ -130,11 +130,12 @@ namespace OpenTK.Wpf
                     }
 
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLSharedFramebufferHandle);
-                    GL.FramebufferRenderbuffer(
+                    GL.FramebufferTexture2D(
                         FramebufferTarget.Framebuffer, 
                         FramebufferAttachment.ColorAttachment0, 
-                        RenderbufferTarget.Renderbuffer, 
-                        GLSharedFramebufferHandle);
+                        TextureTarget.Texture2D,
+                        GLSharedColorTextureHandle,
+                        0);
 
                     FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
                     if (status != FramebufferErrorCode.FramebufferComplete)
@@ -144,11 +145,19 @@ namespace OpenTK.Wpf
 
                     GLFramebufferHandle = GL.GenFramebuffer();
 
-                    GLColorRenderbufferHandle =  GL.GenRenderbuffer();
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLColorRenderbufferHandle);
+                    GLColorTextureHandle =  GL.GenTexture();
                     if (Samples > 1)
                     {
-                        GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Samples, RenderbufferStorage.Rgba8, FramebufferWidth, FramebufferHeight);
+                        int prevT2dms = GL.GetInteger(GetPName.TextureBinding2DMultisample);
+                        GL.BindTexture(TextureTarget.Texture2DMultisample, GLColorTextureHandle);
+                        GL.TexImage2DMultisample(
+                            TextureTargetMultisample.Texture2DMultisample,
+                            Samples,
+                            PixelInternalFormat.Rgba8, 
+                            FramebufferWidth,
+                            FramebufferHeight,
+                            true);
+                        GL.BindTexture(TextureTarget.Texture2DMultisample, prevT2dms);
                     }
                     else
                     {
@@ -172,21 +181,23 @@ namespace OpenTK.Wpf
 
                     if (Samples > 1)
                     {
-                        GL.FramebufferRenderbuffer(
+                        GL.FramebufferTexture2D(
                             FramebufferTarget.Framebuffer,
                             FramebufferAttachment.ColorAttachment0,
-                            RenderbufferTarget.Renderbuffer,
-                            GLColorRenderbufferHandle);
+                            TextureTarget.Texture2DMultisample,
+                            GLColorTextureHandle,
+                            0);
                     }
                     else
                     {
                         // If we are not doing MSAA we use the shared renderbuffer directly.
                         // - Noggin_bops 2025-07-03
-                        GL.FramebufferRenderbuffer(
+                        GL.FramebufferTexture2D(
                             FramebufferTarget.Framebuffer,
                             FramebufferAttachment.ColorAttachment0,
-                            RenderbufferTarget.Renderbuffer,
-                            GLSharedColorRenderbufferHandle);
+                            TextureTarget.Texture2D,
+                            GLSharedColorTextureHandle,
+                            0);
                     }
 
                     // FIXME: What if we don't have a combined format?
@@ -228,10 +239,10 @@ namespace OpenTK.Wpf
                 DxColorRenderTarget.Release();
 
                 GL.DeleteFramebuffer(GLSharedFramebufferHandle);
-                GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
+                GL.DeleteTexture(GLSharedColorTextureHandle);
 
                 GL.DeleteFramebuffer(GLFramebufferHandle);
-                GL.DeleteRenderbuffer(GLColorRenderbufferHandle);
+                GL.DeleteTexture(GLColorTextureHandle);
                 GL.DeleteRenderbuffer(GLDepthRenderRenderbufferHandle);
             }
 
