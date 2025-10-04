@@ -5,6 +5,7 @@ namespace OpenTK.Wpf.Interop
     [Flags]
     internal enum CreateFlags
     {
+        FpuPreserve = 2,
         Multithreaded = 4,
         PureDevice = 16,
         HardwareVertexProcessing = 64,
