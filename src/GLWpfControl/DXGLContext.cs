@@ -64,7 +64,8 @@ namespace OpenTK.Wpf {
                 IntPtr.Zero,
                 CreateFlags.HardwareVertexProcessing |
                 CreateFlags.Multithreaded |
-                CreateFlags.PureDevice,
+                CreateFlags.PureDevice |
+                CreateFlags.FpuPreserve,
                 ref deviceParameters,
                 IntPtr.Zero,
                 out var dxDeviceHandle);
