@@ -5,6 +5,8 @@
         <UseWPF>true</UseWPF>
         <RootNamespace>OpenTK.Wpf</RootNamespace>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\GLWpfControl.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
     <ItemGroup>
