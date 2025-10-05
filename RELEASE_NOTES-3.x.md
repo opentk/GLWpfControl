@@ -1,3 +1,8 @@
+### 3.3.1
+    * Sign the GLWpfControl assembly (@ChristianRadloff).
+    * Allow software rendering fallback to support remote desktop. (@gmurray81)
+    * Add D3DCREATE_FPU_PRESERVE to fix issue where creating a GLWpfControl caused double precision calculations to be done with single precision in 32-bit applications. (@NogginBops)
+
 ### 3.3.0
     * Add NonReloadingTabControl.
     * Add example with new NonReloadingTabControl.
