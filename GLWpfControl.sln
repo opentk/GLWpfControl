@@ -5,9 +5,6 @@ VisualStudioVersion = 17.2.32516.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F02DE1CD-94DB-4F38-8B0A-833B2A357E2E}"
 	ProjectSection(SolutionItems) = preProject
-		build.cmd = build.cmd
-		build.fsx = build.fsx
-		build.sh = build.sh
 		paket.dependencies = paket.dependencies
 		paket.lock = paket.lock
 	EndProjectSection

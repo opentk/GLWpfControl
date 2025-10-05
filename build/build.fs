@@ -211,9 +211,15 @@ Target.create "ReleaseOnGitHub" (fun _ ->
 
     let files = !!"bin/*" |> Seq.toList
 
+    let setParams (p:GitHub.CreateReleaseParams) =
+        { p with
+            Body = String.Join(Environment.NewLine, release.Notes)
+            Prerelease = (release.SemVer.PreRelease <> None)
+            TargetCommitish = Fake.Tools.Git.Information.getBranchName "."
+        }
+
     GitHub.createClientWithToken token
-    |> GitHub.draftNewRelease gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
-    //|> GitHub.uploadFiles files
+    |> GitHub.createRelease gitOwner gitName release.NugetVersion setParams
     |> GitHub.publishDraft
     |> Async.RunSynchronously)
 
