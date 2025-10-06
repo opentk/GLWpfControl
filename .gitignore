@@ -319,6 +319,13 @@ _Pvt_Extensions
 paket-files/
 *.Restore.targets
 
+# Build tool temp file
+*.template
+
+### OpenTK AssemblyInfo files ###
+**/AssemblyInfo.cs
+**/AssemblyInfo.fs
+
 # FAKE - F# Make
 .fake/
 

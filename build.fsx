@@ -1,19 +1,36 @@
-open Fake
-
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
-
-#r @"packages/FAKE/tools/FakeLib.dll"
-open Fake
-open Fake.Git
-open Fake.AssemblyInfoFile
-open Fake.ReleaseNotesHelper
-open Fake.UserInputHelper
-open Fake.Testing
 open System
 open System.IO
+open System.Threading
 open System.Diagnostics
+open Fake.Core
+open Fake.DotNet
+open Fake.DotNet.NuGet
+open Fake.IO
+
+#r "paket:
+storage: packages
+nuget Fake.IO.FileSystem
+nuget Fake.DotNet.MSBuild
+nuget Fake.DotNet.Testing.XUnit2
+nuget Fake.DotNet.AssemblyInfoFile
+nuget Fake.DotNet.NuGet prerelease
+nuget Fake.DotNet.Paket
+nuget Fake.DotNet.Cli
+nuget Fake.Core.Target
+nuget Fake.Net.Http
+nuget Fake.Api.Github
+nuget xunit.runner.console
+nuget NuGet.CommandLine
+nuget Fake.Core.ReleaseNotes //"
+
+#load "./.fake/build.fsx/intellisense.fsx"
+
+open Fake.IO;
+open Fake.IO.FileSystemOperators
+open Fake.IO.Globbing.Operators
 
 // --------------------------------------------------------------------------------------
 // project-specific details below
@@ -38,7 +55,7 @@ let summary = "A native WPF control for OpenTK 4.X."
 let description = ""
 
 // List of author names (for NuGet package)
-let authors = [ "varon" ]
+let authors = [ "varon"; "NogginBops" ]
 
 // Tags for your project (for NuGet package)
 let tags = "WPF OpenTK OpenGL OpenGLES GLES OpenAL C# F# VB .NET Mono Vector Math Game Graphics Sound"
@@ -48,19 +65,24 @@ let copyright = "Copyright (c) 2020 Team OpenTK."
 // File system information
 let solutionFile  = "GLWpfControl.sln"
 
+let binDir = "./bin/"
+let buildDir = binDir </> "build"
+let nugetDir = binDir </> "nuget"
+let testDir = binDir </> "test"
+
 // Pattern specifying assemblies to be tested using NUnit
 let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
-let gitOwner = "varon"
+let gitOwner = "opentk"
 let gitHome = "https://github.com/" + gitOwner
 
 // The name of the project on GitHub
 let gitName = "GLWpfControl"
 
 // The url for the raw files hosted
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/opentk"
+let gitRaw = Environment.environVarOrDefault "gitRaw" "https://raw.github.com/opentk"
 
 // --------------------------------------------------------------------------------------
 // The rest of the file includes standard build steps
@@ -79,89 +101,174 @@ let (|Fsproj|Csproj|Vbproj|) (projFileName:string) =
 
 let activeProjects =
     !! "src/**/*.??proj"
-    
+
+let releaseProjects =
+    !! "src/**/*.??proj"
+    -- "src/Example/**"
+
+let install =
+    lazy
+        (if (DotNet.getVersion id).StartsWith "6" then id
+         else DotNet.install (fun options -> { options with Version = DotNet.Version "6.0.200" }))
+
+// Set general properties without arguments
+let inline dotnetSimple arg = DotNet.Options.lift install.Value arg
+
 // Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" (fun _ ->
+Target.create "AssemblyInfo" (fun _ ->
     let getAssemblyInfoAttributes (projectName:string) =
-        [ Attribute.Title (projectName)
-          Attribute.Product project
-          Attribute.Description summary
-          Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion
-          Attribute.CLSCompliant true
-          Attribute.Copyright copyright
+        [
+          AssemblyInfo.Title (projectName)
+          AssemblyInfo.Product project
+          AssemblyInfo.Description summary
+          AssemblyInfo.Version release.AssemblyVersion
+          AssemblyInfo.FileVersion release.AssemblyVersion
+          AssemblyInfo.CLSCompliant true
+          AssemblyInfo.Copyright copyright
         ]
 
     let getProjectDetails projectPath =
-        let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
+        let projectName = Path.GetFileNameWithoutExtension((string)projectPath)
         ( projectPath,
-          projectName,
-          System.IO.Path.GetDirectoryName(projectPath),
+          Path.GetDirectoryName((string)projectPath),
           (getAssemblyInfoAttributes projectName)
         )
 
     activeProjects
     |> Seq.map getProjectDetails
-    |> Seq.iter (fun (projFileName, projectName, folderName, attributes) ->
+    |> Seq.iter (fun (projFileName, folderName, attributes) ->
         match projFileName with
-        | Fsproj -> CreateFSharpAssemblyInfo (folderName @@ "AssemblyInfo.fs") attributes
-        | Csproj -> CreateCSharpAssemblyInfo ((folderName @@ "Properties") @@ "AssemblyInfo.cs") attributes
-        | Vbproj -> CreateVisualBasicAssemblyInfo ((folderName @@ "My Project") @@ "AssemblyInfo.vb") attributes
+        | Fsproj -> AssemblyInfoFile.createFSharp (folderName @@ "AssemblyInfo.fs") attributes
+        | Csproj -> AssemblyInfoFile.createCSharp ((folderName @@ "Properties") @@ "AssemblyInfo.cs") attributes
+        | Vbproj -> AssemblyInfoFile.createVisualBasic ((folderName @@ "My Project") @@ "AssemblyInfo.vb") attributes
         )
 )
 
 // Copies binaries from default VS location to expected bin folder
 // But keeps a subdirectory structure for each project in the
 // src folder to support multiple project outputs
-Target "CopyBinaries" (fun _ ->
+Target.create "CopyBinaries" (fun _ ->
     activeProjects
     |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) @@ "bin/Release", "bin" @@ (System.IO.Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> CopyDir toDir fromDir (fun _ -> true))
+    |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
 )
 
 // --------------------------------------------------------------------------------------
 // Clean build results
 
-Target "Clean" (fun _ ->
-    CleanDirs ["bin"; "temp"]
+Target.create "Clean" (fun _ ->
+    Shell.cleanDirs ["bin"; "temp"]
 )
+
+Target.create "Restore" (fun _ -> DotNet.restore dotnetSimple "GLWpfControl.sln" |> ignore)
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
 
-Target "Build" (fun _ ->
-    activeProjects
-    |> MSBuildRelease "" "Build"
-    |> ignore
-)
+Target.create "Build" (fun _ ->
+     let setOptions a =
+        let customParams = sprintf "/p:PackageVersion=%s /p:ProductVersion=%s" release.AssemblyVersion release.NugetVersion
+        DotNet.Options.withCustomParams (Some customParams) (dotnetSimple a)
+
+     for proj in activeProjects do
+        DotNet.build setOptions proj
+
+    )
 
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
 
-Target "NuGet" (fun _ ->
-    Paket.Pack(fun p ->
-        { p with
-            OutputPath = "bin"
-            Version = release.NugetVersion
-            ReleaseNotes = toLines release.Notes})
-)
+Target.create "CreateNuGetPackage" (fun _ ->
+    Directory.CreateDirectory nugetDir |> ignore
+    let notes = release.Notes |> List.reduce (fun s1 s2 -> s1 + "\n" + s2)
+
+    for proj in releaseProjects do
+        Trace.logf "Creating nuget package for Project: %s\n" proj
+
+        let dir = Path.GetDirectoryName proj
+        let templatePath = Path.Combine(dir, "paket")
+        let oldTemplateContent = File.ReadAllText templatePath
+        let newTemplateContent = oldTemplateContent.Insert(
+                                    oldTemplateContent.Length, 
+                                    sprintf "\nversion \n\t%s\nauthors \n\t%s\nowners \n\t%s\n"
+                                        release.NugetVersion
+                                        (authors |> List.reduce (fun s a -> s + " " + a))
+                                        (authors |> List.reduce (fun s a -> s + " " + a))).Replace(
+                                            "#VERSION#", release.NugetVersion)
+        File.WriteAllText(templatePath+".template", newTemplateContent);
+
+        Trace.logf "Packing into folder: %s\n" (Path.GetFullPath(nugetDir))
+        
+        let setParams (p:Paket.PaketPackParams) = 
+            { p with
+                ReleaseNotes = notes
+                OutputPath = Path.GetFullPath(nugetDir)
+                WorkingDir = dir
+                Version = release.NugetVersion
+            }
+        Paket.pack setParams
+    )
 
 
-Target "BuildPackage" DoNothing
+Target.create "BuildPackage" ignore
+
+// ---------
+// Release Targets
+// ---------
+
+open Fake.Api
+
+Target.create "ReleaseOnGitHub" (fun _ ->
+    let token =
+        match Environment.environVarOrDefault "opentk_github_token" "" with
+        | s when not (System.String.IsNullOrWhiteSpace s) -> s
+        | _ ->
+            failwith
+                "please set the github_token environment variable to a github personal access token with repro access."
+
+    let files = !!"bin/*" |> Seq.toList
+
+    GitHub.createClientWithToken token
+    |> GitHub.draftNewRelease gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
+    //|> GitHub.uploadFiles files
+    |> GitHub.publishDraft
+    |> Async.RunSynchronously)
+
+Target.create "ReleaseOnNuGet" (fun _ ->
+    let apiKey =
+        match Environment.environVarOrDefault "opentk_nuget_api_key" "" with
+        | s when not (System.String.IsNullOrWhiteSpace s) -> s
+        | _ -> failwith "please set the nuget_api_key environment variable to a nuget access token."
+
+    !! (nugetDir </> "*.nupkg")
+    |> Seq.iter
+        (DotNet.nugetPush (fun opts ->
+            { opts with
+                PushParams =
+                    { opts.PushParams with
+                        ApiKey = Some apiKey
+                        Source = Some "nuget.org" } })))
+
+Target.create "ReleaseOnAll" ignore
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
-Target "All" DoNothing
+open Fake.Core.TargetOperators
+
+Target.create "All" ignore
 
 "Clean"
+  ==> "Restore"
   ==> "AssemblyInfo"
   ==> "Build"
   ==> "CopyBinaries"
   ==> "All"
 
 "All"
-  ==> "NuGet"
+  ==> "CreateNuGetPackage"
+  ==> "ReleaseOnNuGet"
+  ==> "ReleaseOnGithub"
+  ==> "ReleaseOnAll"
 
-
-RunTargetOrDefault "All"
+Target.runOrDefault "All"

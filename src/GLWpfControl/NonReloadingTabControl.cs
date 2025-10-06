@@ -64,7 +64,7 @@ namespace OpenTK.Wpf
                 case NotifyCollectionChangedAction.Remove:
                     if (e.OldItems != null)
                     {
-                        foreach (var item in e.OldItems)
+                        foreach (object item in e.OldItems)
                         {
                             ContentPresenter cp = FindChildContentPresenter(item);
                             if (cp != null)
@@ -101,7 +101,12 @@ namespace OpenTK.Wpf
 
             // show the right child
             foreach (ContentPresenter child in _itemsHolderPanel.Children)
-                child.Visibility = ((child.Tag as TabItem).IsSelected) ? Visibility.Visible : Visibility.Collapsed;
+            {
+                if (child != null)
+                {
+                    child.Visibility = ((child.Tag as TabItem)?.IsSelected ?? false) ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
         }
 
         private ContentPresenter CreateChildContentPresenter(object item)
@@ -116,20 +121,20 @@ namespace OpenTK.Wpf
 
             // the actual child to be added.  cp.Tag is a reference to the TabItem
             cp = new ContentPresenter();
-            cp.Content = (item is TabItem) ? (item as TabItem).Content : item;
+            cp.Content = (item is TabItem tabItem) ? tabItem.Content : item;
             cp.ContentTemplate = SelectedContentTemplate;
             cp.ContentTemplateSelector = SelectedContentTemplateSelector;
             cp.ContentStringFormat = SelectedContentStringFormat;
             cp.Visibility = Visibility.Collapsed;
             cp.Tag = (item is TabItem) ? item : (ItemContainerGenerator.ContainerFromItem(item));
-            _itemsHolderPanel.Children.Add(cp);
+            _itemsHolderPanel?.Children.Add(cp);
             return cp;
         }
 
         private ContentPresenter FindChildContentPresenter(object data)
         {
-            if (data is TabItem)
-                data = (data as TabItem).Content;
+            if (data is TabItem tabItem)
+                data = tabItem.Content;
 
             if (data == null)
                 return null;
@@ -139,7 +144,7 @@ namespace OpenTK.Wpf
 
             foreach (ContentPresenter cp in _itemsHolderPanel.Children)
             {
-                if (cp.Content == data)
+                if (cp?.Content == data)
                     return cp;
             }
 
@@ -154,7 +159,9 @@ namespace OpenTK.Wpf
 
             TabItem item = selectedItem as TabItem;
             if (item == null)
+            {
                 item = ItemContainerGenerator.ContainerFromIndex(SelectedIndex) as TabItem;
+            }
 
             return item;
         }

@@ -23,8 +23,20 @@
 				x:Name="Control2"
 				Render="Control2_OnRender" />
 		</TabItem>
-		<TabItem Header="Blank 3">
-		</TabItem>
+		<TabItem Header="Control 3">
+            <Grid>
+                <Label
+                Background="#FFE6931C"
+                Content="BEHIND       CONTROL"
+                FontSize="50px"
+                HorizontalContentAlignment="Center"
+                Padding="45px 180px 0px 0px" />
+
+                <glWpfControl:GLWpfControl
+				    x:Name="Control3"
+				    Render="Control3_OnRender" />
+            </Grid>
+        </TabItem>
 		<TabItem Header="Blank 4">
 		</TabItem>
 	</glWpfControl:NonReloadingTabControl>

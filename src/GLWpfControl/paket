@@ -23,3 +23,7 @@ dependencies
     OpenTK ~> 3.3.0
     
 include-pdbs true
+
+files
+    bin\Release\net452\net452\GLWpfControl.dll ==> lib\net452
+    bin\Release\net452\net452\GLWpfControl.pdb ==> lib\net452

@@ -1,15 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+      <OutputType>WinExe</OutputType>
+      <TargetFramework>net462</TargetFramework>
+      <UseWPF>true</UseWPF>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net452</TargetFramework>
-        <UseWPF>true</UseWPF>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\GLWpfControl\GLWpfControl.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GLWpfControl\GLWpfControl.csproj" />
+  </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="OpenTK" Version="3.3.1" />
