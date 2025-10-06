@@ -1,9 +1,10 @@
-﻿using System;
+﻿using OpenTK.Windowing.Common;
+using OpenTK.Wpf;
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Windows.Controls;
 using System.Windows.Input;
-using OpenTK.Windowing.Common;
-using OpenTK.Wpf;
 
 namespace Example
 {
@@ -20,19 +21,19 @@ namespace Example
         public TabbedMainWindowTest()
         {
             InitializeComponent();
-            GLWpfControlSettings mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug};
+            GLWpfControlSettings mainSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug };
             // Start() makes the controls context current.
             Control1.Start(mainSettings);
             // We call Context.MakeCurrent() to make this explicitly clear.
             Control1.Context.MakeCurrent();
             scene1.Initialize();
 
-            GLWpfControlSettings insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8};
+            GLWpfControlSettings insetSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, Samples = 8, ContextToUse = Control1.Context };
             Control2.Start(insetSettings);
             Control2.Context.MakeCurrent();
             scene2.Initialize();
 
-            GLWpfControlSettings transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true};
+            GLWpfControlSettings transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfile.Compatability, ContextFlags = ContextFlags.Debug, TransparentBackground = true };
             Control3.Start(transparentSettings);
             Control3.Context.MakeCurrent();
             scene3.Initialize();
@@ -40,6 +41,17 @@ namespace Example
             Control1.KeyDown += Control1_KeyDown;
 
             Keyboard.AddPreviewKeyDownHandler(this, Keyboard_PreviewKeyDown);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            // The order here is important as the lifetime of the context Control2 uses is tied to the
+            // lifetime of Control1, so we can't dispose the context from Control1 before we dispose Control2.
+            Control2.Dispose();
+            Control1.Dispose();
+            Control3.Dispose();
         }
 
         private void Keyboard_PreviewKeyDown(object sender, KeyEventArgs e)
