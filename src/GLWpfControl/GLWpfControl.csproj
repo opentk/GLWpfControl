@@ -5,6 +5,7 @@
       <RootNamespace>OpenTK.Wpf</RootNamespace>
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
       <SignAssembly>true</SignAssembly>
       <AssemblyOriginatorKeyFile>..\..\GLWpfControl.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -13,8 +14,4 @@
     <PackageReference Include="OpenTK" Version="3.3.1" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
   </ItemGroup>
-
-  <PropertyGroup >
-      <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
-    </PropertyGroup>
 </Project>

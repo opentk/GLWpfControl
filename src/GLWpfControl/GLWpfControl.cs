@@ -120,6 +120,13 @@ namespace OpenTK.Wpf
         [Obsolete("This property will always return true.")]
         public bool SupportsMSAA => true;
 
+        /// <summary>
+        /// If MSAA backbuffers can be created for this GLWpfControl.
+        /// If false any attempt to create an MSAA framebuffer will be ignored.
+        /// </summary>
+        [Obsolete("This property will always return true.")]
+        public bool SupportsMSAA => true;
+
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 
         [Obsolete("This property has no effect. See RegisterToEventsDirectly.")]

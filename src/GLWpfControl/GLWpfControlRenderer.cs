@@ -246,6 +246,30 @@ namespace OpenTK.Wpf
             D3dImage = null;
         }
 
+        /// <summary>
+        /// Releases all resources related to the framebuffer.
+        /// </summary>
+        public void ReleaseFramebufferResources()
+        {
+            _context.GraphicsContext.MakeCurrent();
+
+            if (D3dImage != null)
+            {
+                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
+
+                DxColorRenderTarget.Release();
+
+                GL.DeleteFramebuffer(GLSharedFramebufferHandle);
+                GL.DeleteTexture(GLSharedColorTextureHandle);
+
+                GL.DeleteFramebuffer(GLFramebufferHandle);
+                GL.DeleteTexture(GLColorTextureHandle);
+                GL.DeleteRenderbuffer(GLDepthRenderRenderbufferHandle);
+            }
+
+            D3dImage = null;
+        }
+
         public void Render(DrawingContext drawingContext)
         {
             if (D3dImage == null)

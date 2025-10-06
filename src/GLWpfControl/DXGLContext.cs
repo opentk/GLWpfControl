@@ -41,40 +41,6 @@ namespace OpenTK.Wpf
 
         public DxGlContext(GLWpfControlSettings settings)
         {
-            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out DXInterop.IDirect3D9Ex dxContext);
-            DxContext = dxContext;
-
-            PresentationParameters deviceParameters = new PresentationParameters
-            {
-                Windowed = 1,
-                SwapEffect = SwapEffect.Discard,
-                DeviceWindowHandle = IntPtr.Zero,
-                PresentationInterval = 0,
-                BackBufferFormat = Format.X8R8G8B8,
-                BackBufferWidth = 1,
-                BackBufferHeight = 1,
-                AutoDepthStencilFormat = Format.Unknown,
-                BackBufferCount = 1,
-                EnableAutoDepthStencil = 0,
-                Flags = 0,
-                FullScreen_RefreshRateInHz = 0,
-                MultiSampleQuality = 0,
-                MultiSampleType = MultisampleType.D3DMULTISAMPLE_NONE,
-            };
-
-            dxContext.CreateDeviceEx(
-                0,
-                DeviceType.HAL,
-                IntPtr.Zero,
-                CreateFlags.HardwareVertexProcessing |
-                CreateFlags.Multithreaded |
-                CreateFlags.PureDevice |
-                CreateFlags.FpuPreserve,
-                ref deviceParameters,
-                IntPtr.Zero,
-                out DXInterop.IDirect3DDevice9Ex dxDevice);
-            DxDevice = dxDevice;
-
             // if the graphics context is null, we use the shared context.
             if (settings.ContextToUse != null) {
                 GraphicsContext = settings.ContextToUse;
@@ -114,6 +80,40 @@ namespace OpenTK.Wpf
                 GL.Enable(EnableCap.DebugOutputSynchronous);
 #endif
             }
+
+            DXInterop.Direct3DCreate9Ex(DXInterop.DefaultSdkVersion, out DXInterop.IDirect3D9Ex dxContext);
+            DxContext = dxContext;
+
+            PresentationParameters deviceParameters = new PresentationParameters
+            {
+                Windowed = 1,
+                SwapEffect = SwapEffect.Discard,
+                DeviceWindowHandle = IntPtr.Zero,
+                PresentationInterval = 0,
+                BackBufferFormat = Format.X8R8G8B8,
+                BackBufferWidth = 1,
+                BackBufferHeight = 1,
+                AutoDepthStencilFormat = Format.Unknown,
+                BackBufferCount = 1,
+                EnableAutoDepthStencil = 0,
+                Flags = 0,
+                FullScreen_RefreshRateInHz = 0,
+                MultiSampleQuality = 0,
+                MultiSampleType = MultisampleType.D3DMULTISAMPLE_NONE,
+            };
+
+            dxContext.CreateDeviceEx(
+                0,
+                DeviceType.HAL,
+                IntPtr.Zero,
+                CreateFlags.HardwareVertexProcessing |
+                CreateFlags.Multithreaded |
+                CreateFlags.PureDevice |
+                CreateFlags.FpuPreserve,
+                ref deviceParameters,
+                IntPtr.Zero,
+                out DXInterop.IDirect3DDevice9Ex dxDevice);
+            DxDevice = dxDevice;
 
             GLDeviceHandle = Wgl.DXOpenDeviceNV(DxDevice.Handle);
             if (GLDeviceHandle == IntPtr.Zero)

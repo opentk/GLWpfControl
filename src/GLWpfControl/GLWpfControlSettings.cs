@@ -43,6 +43,7 @@ namespace OpenTK.Wpf {
         /// <summary>
         /// A optional context for context sharing.
         /// </summary>
+        /// <remarks>Only used if <see cref="ContextToUse"/> is <see langword="null"/>.</remarks>
         [CLSCompliant(false)]
         public IGraphicsContext SharedContext { get; set; }
 
