@@ -18,6 +18,8 @@ namespace Example
         ExampleScene scene2 = new ExampleScene();
         ExampleScene scene3 = new ExampleScene();
 
+        bool disposedControl1 = false;
+
         public TabbedMainWindowTest()
         {
             InitializeComponent();
@@ -37,7 +39,7 @@ namespace Example
             Control3.Start(transparentSettings);
             Control3.Context.MakeCurrent();
             scene3.Initialize();
-
+            
             Control1.KeyDown += Control1_KeyDown;
 
             Keyboard.AddPreviewKeyDownHandler(this, Keyboard_PreviewKeyDown);
@@ -47,10 +49,13 @@ namespace Example
         {
             base.OnClosed(e);
 
-            // The order here is important as the lifetime of the context Control2 uses is tied to the
-            // lifetime of Control1, so we can't dispose the context from Control1 before we dispose Control2.
-            Control2.Dispose();
-            Control1.Dispose();
+            if (disposedControl1 == false)
+            {
+                // The order here is important as the lifetime of the context Control2 uses is tied to the
+                // lifetime of Control1, so we can't dispose the context from Control1 before we dispose Control2.
+                Control2.Dispose();
+                Control1.Dispose();
+            }
             Control3.Dispose();
         }
 
@@ -65,7 +70,11 @@ namespace Example
 
             if (e.Key == Key.A)
             {
+                // Control2 uses the context from Control1, 
+                // so we need to dispose Control2 first.
+                Control2.Dispose();
                 Control1.Dispose();
+                disposedControl1 = true;
             }
         }
 
