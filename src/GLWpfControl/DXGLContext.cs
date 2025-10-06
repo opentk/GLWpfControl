@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -30,6 +31,9 @@ namespace OpenTK.Wpf
         
         /// <summary>The window that provides the OpenGL context. Null if a context was provided externally.</summary>
         public IWindowInfo WindowInfo { get; }
+
+        /// <summary>Does the context own this <see cref="IWindowInfo"/> or not.</summary>
+        internal bool OwnWindowInfo { get; }
 
 #if DEBUG
         private readonly static DebugProc DebugProcCallback = Window_DebugProc;
@@ -69,7 +73,6 @@ namespace OpenTK.Wpf
                 ref deviceParameters,
                 IntPtr.Zero,
                 out DXInterop.IDirect3DDevice9Ex dxDevice);
-
             DxDevice = dxDevice;
 
             // if the graphics context is null, we use the shared context.
@@ -81,6 +84,7 @@ namespace OpenTK.Wpf
                     throw new InvalidOperationException("When setting ContextToUse you also need to set the WindowInfo property.");
                 }
                 WindowInfo = settings.WindowInfo;
+                OwnWindowInfo = false;
             }
             else {
                 if (settings.WindowInfo != null)
@@ -96,6 +100,7 @@ namespace OpenTK.Wpf
                 var hwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
 
                 WindowInfo = Utilities.CreateWindowsWindowInfo(hwndSource.Handle);
+                OwnWindowInfo = true;
 
                 var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
 
@@ -113,26 +118,36 @@ namespace OpenTK.Wpf
             GLDeviceHandle = Wgl.DXOpenDeviceNV(DxDevice.Handle);
             if (GLDeviceHandle == IntPtr.Zero)
             {
-                throw new Win32Exception(DXInterop.GetLastError());
+                int error = DXInterop.GetLastError();
+                Dispose();
+                throw new Win32Exception(error);
             }
-        }
-
-        ~DxGlContext()
-        {
-            Dispose();
         }
 
         public void Dispose()
         {
-            if (Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
+            int error = 0;
+            if (GLDeviceHandle != IntPtr.Zero && Wgl.DXCloseDeviceNV(GLDeviceHandle) == false)
             {
-                throw new Win32Exception(DXInterop.GetLastError());
+                error = DXInterop.GetLastError();
             }
-            WindowInfo?.Dispose();
-            DxDevice.Release();
-            DxContext.Release();
+            if (OwnWindowInfo)
+            {
+                WindowInfo?.Dispose();
+            }
+            if (DxDevice.Handle != IntPtr.Zero)
+            {
+                DxDevice.Release();
+            }
+            if (DxContext.Handle != IntPtr.Zero)
+            {
+                DxContext.Release();
+            }
 
-            GC.SuppressFinalize(this);
+            if (error != 0)
+            {
+                throw new Win32Exception(error);
+            }
         }
 
 #if DEBUG

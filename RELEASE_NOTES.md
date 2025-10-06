@@ -1,3 +1,17 @@
+## 4.3.3
+
+* Fix crashes related to `Dispose` and unloading of the control in general. (@Krugpelke, @NogginBops, @timsol, @4nonym0us)
+* Fixed issue where `GLWpfControl.Framebuffer` property stopped working. (@insel-maz, @NogginBops)
+* Hopefully fixed a few crashes related to MSAA not being supported. (@NogginBops)
+* Added `GLWpfControl.SupportsMSAA` property to check if MSAA will be supported. (@NogginBops)
+
+## 4.3.2
+
+* Fixed AccessViolationException when disposing GLWpfControl. (@NogginBops)
+* Fixed issue where GLWpfControl would not work on integrated graphics cards.
+    The current fix doesn't support using MSAA on these graphics cards and will throw a COMException. This is something we want to fix or be able to detect in the future. (@NogginBops)
+* Fixed issue where resizing control would leak GL objects due to wrong deletion order. (@NogginBops)
+
 ## 4.3.1
 
 Hotfix release to fix context handling in `4.3.0`.

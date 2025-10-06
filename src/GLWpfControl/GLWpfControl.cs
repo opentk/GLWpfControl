@@ -76,7 +76,7 @@ namespace OpenTK.Wpf
         /// Bind to this instead of the default framebuffer when using this component along with other FrameBuffers for the final pass.
         /// If no framebuffer is available (because this control is not visible, etc etc, then it should be 0).
         /// </summary>
-        public int Framebuffer => _renderer?.FrameBufferHandle ?? 0;
+        public int Framebuffer => _renderer?.GLFramebufferHandle ?? 0;
 
         /// <summary>
         /// If this control is rendering continuously.
@@ -112,6 +112,13 @@ namespace OpenTK.Wpf
         /// The <see cref="IWindowInfo"/> related to this controls OpenGL context.
         /// </summary>
         public IWindowInfo WindowInfo => _renderer?._context.WindowInfo;
+
+        /// <summary>
+        /// If MSAA backbuffers can be created for this GLWpfControl.
+        /// If false any attempt to create an MSAA framebuffer will be ignored.
+        /// </summary>
+        [Obsolete("This property will always return true.")]
+        public bool SupportsMSAA => true;
 
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 
@@ -183,12 +190,10 @@ namespace OpenTK.Wpf
 
         private void OnUnloaded()
         {
-            // FIXME: Make this a separate function for releasing resources...
-            // Currently this works as we are passing a zero width and height
-            // which causes the renderer to not reallocate the framebuffer
-            // after the previous one has been deleted.
-            // - Noggin_bops 2024-05-29
-            _renderer?.ReallocateFramebufferIfNeeded(0, 0, 1, 1, Format.X8R8G8B8, MultisampleType.D3DMULTISAMPLE_NONE);
+            if (_isStarted)
+            {
+                _renderer?.ReleaseFramebufferResources();
+            }
         }
 
         /// <summary>
@@ -226,7 +231,7 @@ namespace OpenTK.Wpf
             if (isDesignMode) {
                 DrawDesignTimeHelper(this, drawingContext);
             }
-            else if (_renderer != null)
+            else if (_renderer != null && _isStarted == true)
             {
                 if (Settings != null)
                 {
@@ -249,14 +254,7 @@ namespace OpenTK.Wpf
                     
                     Format format = Settings.TransparentBackground ? Format.A8R8G8B8 : Format.X8R8G8B8;
 
-                    MultisampleType msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
-                    // 2 to 16 are valid msaa values, clamp to 16.
-                    if (Settings.Samples >= 2 && Settings.Samples <= 16)
-                        msaaType = MultisampleType.D3DMULTISAMPLE_NONE + Settings.Samples;
-                    else if (Settings.Samples > 16)
-                        msaaType = MultisampleType.D3DMULTISAMPLE_16_SAMPLES;
-
-                    _renderer.ReallocateFramebufferIfNeeded(RenderSize.Width, RenderSize.Height, dpiScaleX, dpiScaleY, format, msaaType);
+                    _renderer.ReallocateFramebufferIfNeeded(RenderSize.Width, RenderSize.Height, dpiScaleX, dpiScaleY, format, Settings.Samples);
                 }
 
                 _renderer.Render(drawingContext);

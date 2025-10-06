@@ -42,6 +42,17 @@ namespace Example
             Keyboard.AddPreviewKeyDownHandler(this, Keyboard_PreviewKeyDown);
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            // The order here is important as the lifetime of the context Control2 uses is tied to the
+            // lifetime of Control1, so we can't dispose the context from Control1 before we dispose Control2.
+            Control2.Dispose();
+            Control1.Dispose();
+            Control3.Dispose();
+        }
+
         private void Keyboard_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             Debug.WriteLine($"Preview key down: {e.Key}");
@@ -50,6 +61,11 @@ namespace Example
         private void Control1_KeyDown(object sender, KeyEventArgs e)
         {
             Debug.WriteLine(e.Key);
+
+            if (e.Key == Key.A)
+            {
+                Control1.Dispose();
+            }
         }
 
         private void Control1_OnRender(TimeSpan delta)

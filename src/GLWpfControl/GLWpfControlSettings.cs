@@ -31,6 +31,7 @@ namespace OpenTK.Wpf {
         /// The management of the context sent to the <see cref="GLWpfControl"/> becomes the responsibility of the <see cref="GLWpfControl"/>.
         /// Trying to call <see cref="IGraphicsContext.MakeCurrent"/> on this context on some other thread might lead to uninteded consequences.
         /// </summary>
+        /// <remarks>When using the context from one GLWpfControl the disposal order is important, the dependent controls need to be disposed before the control that originally created the context.</remarks>
         [CLSCompliant(false)]
         public IGraphicsContext ContextToUse { get; set; }
 
