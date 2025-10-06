@@ -20,19 +20,19 @@ namespace Example
         public TabbedMainWindowTest()
         {
             InitializeComponent();
-            GLWpfControlSettings mainSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfileMask.ContextCompatibilityProfileBit, ContextFlags = GraphicsContextFlags.Debug};
+            GLWpfControlSettings mainSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfileMask.ContextCompatibilityProfileBit, ContextFlags = GraphicsContextFlags.Debug };
             // Start() makes the controls context current.
             Control1.Start(mainSettings);
             // We call Context.MakeCurrent() to make this explicitly clear.
             Control1.MakeCurrent();
             scene1.Initialize();
 
-            GLWpfControlSettings insetSettings = new GLWpfControlSettings {MajorVersion = 4, MinorVersion = 1, Profile = ContextProfileMask.ContextCompatibilityProfileBit, ContextFlags = GraphicsContextFlags.Debug, Samples = 8};
+            GLWpfControlSettings insetSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfileMask.ContextCompatibilityProfileBit, ContextFlags = GraphicsContextFlags.Debug, Samples = 8, ContextToUse = Control1.Context, WindowInfo = Control1.WindowInfo };
             Control2.Start(insetSettings);
             Control2.MakeCurrent();
             scene2.Initialize();
 
-            GLWpfControlSettings transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfileMask.ContextCompatibilityProfileBit, ContextFlags = GraphicsContextFlags.Debug, TransparentBackground = true};
+            GLWpfControlSettings transparentSettings = new GLWpfControlSettings { MajorVersion = 4, MinorVersion = 1, Profile = ContextProfileMask.ContextCompatibilityProfileBit, ContextFlags = GraphicsContextFlags.Debug, TransparentBackground = true };
             Control3.Start(transparentSettings);
             Control3.MakeCurrent();
             scene3.Initialize();

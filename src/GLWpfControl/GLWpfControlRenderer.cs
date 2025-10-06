@@ -74,20 +74,7 @@ namespace OpenTK.Wpf
 
             if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || MultisampleType != msaaType)
             {
-                // FIXME: Externally 
-                _context.GraphicsContext.MakeCurrent(_context.WindowInfo);
-
-                if (D3dImage != null)
-                {
-                    GL.DeleteFramebuffer(GLFramebufferHandle);
-                    GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
-                    GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
-                    Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
-                    Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
-                    DxColorRenderTarget.Release();
-                    DxDepthStencilRenderTarget.Release();
-                }
-                D3dImage = null;
+                ReleaseFramebufferResources();
 
                 if (width > 0 && height > 0)
                 {
@@ -117,23 +104,7 @@ namespace OpenTK.Wpf
                         ref Unsafe.NullRef<IntPtr>());
                     DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
 
-#if DEBUG
-                    {
-                        DxColorRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
-
-                        Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
-                    }
-
-                    {
-                        DxDepthStencilRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
-
-                        Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
-                    }
-#endif
-
                     GLFramebufferHandle = GL.GenFramebuffer();
-
-                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
 
                     GLSharedColorRenderbufferHandle = GL.GenRenderbuffer();
                     DxInteropColorRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
@@ -188,6 +159,27 @@ namespace OpenTK.Wpf
                 }
             }
         }
+        
+        /// <summary>
+        /// Releases all resources related to the framebuffer.
+        /// </summary>
+        public void ReleaseFramebufferResources()
+        {
+            _context.GraphicsContext.MakeCurrent(_context.WindowInfo);
+
+            if (D3dImage != null)
+            {
+                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
+                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
+                DxColorRenderTarget.Release();
+                DxDepthStencilRenderTarget.Release();
+                GL.DeleteFramebuffer(GLFramebufferHandle);
+                GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
+                GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
+            }
+            D3dImage = null;
+        }
+
 
         public void Render(DrawingContext drawingContext)
         {
@@ -223,7 +215,7 @@ namespace OpenTK.Wpf
             {
                 Debug.WriteLine("Failed to unlock objects!");
             }
-            
+
             D3dImage.AddDirtyRect(new Int32Rect(0, 0, FramebufferWidth, FramebufferHeight));
             D3dImage.Unlock();
 
@@ -245,6 +237,7 @@ namespace OpenTK.Wpf
 
         public void Dispose()
         {
+            ReleaseFramebufferResources();
             _context.Dispose();
         }
     }

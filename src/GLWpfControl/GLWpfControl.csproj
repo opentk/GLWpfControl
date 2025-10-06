@@ -5,11 +5,16 @@
       <RootNamespace>OpenTK.Wpf</RootNamespace>
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <SignAssembly>true</SignAssembly>
+      <AssemblyOriginatorKeyFile>..\..\GLWpfControl.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="OpenTK" Version="3.3.1" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
   </ItemGroup>
+
+  <PropertyGroup >
+      <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
+    </PropertyGroup>
 </Project>

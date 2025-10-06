@@ -5,9 +5,6 @@ VisualStudioVersion = 17.2.32516.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F02DE1CD-94DB-4F38-8B0A-833B2A357E2E}"
 	ProjectSection(SolutionItems) = preProject
-		build.cmd = build.cmd
-		build.fsx = build.fsx
-		build.sh = build.sh
 		paket.dependencies = paket.dependencies
 		paket.lock = paket.lock
 	EndProjectSection
@@ -16,8 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{8A91
 	ProjectSection(SolutionItems) = preProject
 		src\GLWpfControl\paket.template = src\GLWpfControl\paket.template
 		README.md = README.md
-		RELEASE_NOTES.md = RELEASE_NOTES.md
 		RELEASE_NOTES-3.x.md = RELEASE_NOTES-3.x.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLWpfControl", "src\GLWpfControl\GLWpfControl.csproj", "{E201C66F-F247-4E23-AB4D-0EB50005091D}"
@@ -28,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "build", "build\build.fsproj", "{338B3FE6-B61C-6FC6-F788-A4C367EE299F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,9 +52,20 @@ Global
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|x64.ActiveCfg = Release|x64
 		{7E12D07B-0DD6-4288-A4F8-92EB75848ECF}.Release|x64.Build.0 = Release|x64
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Debug|x64.Build.0 = Debug|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Release|x64.ActiveCfg = Release|Any CPU
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{338B3FE6-B61C-6FC6-F788-A4C367EE299F} = {F02DE1CD-94DB-4F38-8B0A-833B2A357E2E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {97CD4768-306D-4862-9FE0-1ED5261AA0D4}

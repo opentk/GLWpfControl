@@ -1,6 +1,7 @@
 using System;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Platform;
 
 namespace OpenTK.Wpf {
     public sealed class GLWpfControlSettings
@@ -25,13 +26,18 @@ namespace OpenTK.Wpf {
         public bool TransparentBackground { get; set; } = false;
 
         /// <summary>
-        /// May be null. If defined, an external context will be used, of which the caller is responsible
-        /// for managing the lifetime and disposal of.
+        /// May be null. If defined, an external context will be used, of which the caller is responsible for managing the lifetime and disposal of.
+        /// If defined the <see cref="WindowInfo"/> property also needs to be set to a <see cref="IWindowInfo"/> that can be used when calling <see cref="GraphicsContext.MakeCurrent(IWindowInfo)"/>.
         /// The management of the context sent to the <see cref="GLWpfControl"/> becomes the responsibility of the <see cref="GLWpfControl"/>.
         /// Trying to call <see cref="IGraphicsContext.MakeCurrent"/> on this context on some other thread might lead to uninteded consequences.
         /// </summary>
         [CLSCompliant(false)]
         public IGraphicsContext ContextToUse { get; set; }
+
+        /// <summary>
+        /// When <see cref="ContextToUse"/> is set this property should contain the <see cref="IWindowInfo"/> related to the context, otherwise this property should be null.
+        /// </summary>
+        public IWindowInfo WindowInfo { get; set; }
 
         /// <summary>
         /// A optional context for context sharing.

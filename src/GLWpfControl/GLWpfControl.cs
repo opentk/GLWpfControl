@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using OpenTK.Wpf.Interop;
 using OpenTK.Graphics;
+using OpenTK.Platform;
 
 namespace OpenTK.Wpf
 {
@@ -105,8 +106,12 @@ namespace OpenTK.Wpf
         /// It is not safe to call <see cref="IGraphicsContext.MakeCurrent"/> on this context on any other thread
         /// than the one the <see cref="GLWpfControl"/> is running on.
         /// </summary>
-        [CLSCompliant(false)]
         public IGraphicsContext Context => _renderer?.GLContext;
+
+        /// <summary>
+        /// The <see cref="IWindowInfo"/> related to this controls OpenGL context.
+        /// </summary>
+        public IWindowInfo WindowInfo => _renderer?._context.WindowInfo;
 
         private TimeSpan? _lastRenderTime = TimeSpan.FromSeconds(-1);
 

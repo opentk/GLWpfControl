@@ -62,7 +62,10 @@ namespace OpenTK.Wpf
                 0,
                 DeviceType.HAL,
                 IntPtr.Zero,
-                CreateFlags.HardwareVertexProcessing | CreateFlags.Multithreaded | CreateFlags.PureDevice | CreateFlags.FpuPreserve,
+                CreateFlags.HardwareVertexProcessing |
+                CreateFlags.Multithreaded |
+                CreateFlags.PureDevice |
+                CreateFlags.FpuPreserve,
                 ref deviceParameters,
                 IntPtr.Zero,
                 out DXInterop.IDirect3DDevice9Ex dxDevice);
@@ -72,8 +75,19 @@ namespace OpenTK.Wpf
             // if the graphics context is null, we use the shared context.
             if (settings.ContextToUse != null) {
                 GraphicsContext = settings.ContextToUse;
+
+                if (settings.WindowInfo == null)
+                {
+                    throw new InvalidOperationException("When setting ContextToUse you also need to set the WindowInfo property.");
+                }
+                WindowInfo = settings.WindowInfo;
             }
             else {
+                if (settings.WindowInfo != null)
+                {
+                    throw new InvalidOperationException("When ContextToUse is set to null the WindowInfo setting also needs to be set to null.");
+                }
+
                 // we're already in a window context, so we can just cheat by creating a new dependency object here rather than passing any around.
                 var depObject = new DependencyObject();
                 // retrieve window handle/info
@@ -85,7 +99,7 @@ namespace OpenTK.Wpf
 
                 var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
 
-                GraphicsContext = new GraphicsContext(mode, WindowInfo, settings.SharedContext, settings.MajorVersion, settings.MinorVersion, settings.GraphicsContextFlags);
+                GraphicsContext = new GraphicsContext(mode, WindowInfo, settings.SharedContext, settings.MajorVersion, settings.MinorVersion, settings.ContextFlags);
                 GraphicsContext.LoadAll();
                 GraphicsContext.MakeCurrent(WindowInfo);
 
@@ -102,79 +116,6 @@ namespace OpenTK.Wpf
                 throw new Win32Exception(DXInterop.GetLastError());
             }
         }
-
-        /*
-        private static IGraphicsContext GetOrCreateSharedOpenGLContext(GLWpfControlSettings settings) {
-            if (_sharedContext != null) {
-                var isSameContext = GLWpfControlSettings.WouldResultInSameContext(settings, _sharedContextSettings);
-                if (!isSameContext) {
-                    throw new ArgumentException($"The provided {nameof(GLWpfControlSettings)} would result" +
-                                                $"in a different context creation to one previously created. To fix this," +
-                                                $" either ensure all of your context settings are identical, or provide an " +
-                                                $"external context via the '{nameof(GLWpfControlSettings.ContextToUse)}' field.");
-                }
-            } 
-            
-            else {
-                // we're already in a window context, so we can just cheat by creating a new dependency object here rather than passing any around.
-                var depObject = new DependencyObject();
-                // retrieve window handle/info
-                var window = Window.GetWindow(depObject);
-                var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
-                var hwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
-
-                var windowInfo = Utilities.CreateWindowsWindowInfo(hwndSource.Handle);
-                
-                var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-                
-                var gfxCtx = new GraphicsContext(mode, windowInfo, settings.MajorVersion, settings.MinorVersion,settings.GraphicsContextFlags);
-                gfxCtx.LoadAll();
-                gfxCtx.MakeCurrent(windowInfo);
-                
-                _sharedContext = gfxCtx;
-                _sharedContextSettings = settings;
-                _sharedContextResources = new IDisposable[] {hwndSource, windowInfo, gfxCtx};
-                
-                // GL init
-                // var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
-                // _commonContext = new GraphicsContext(mode, _windowInfo, _settings.MajorVersion, _settings.MinorVersion,
-                //     _settings.GraphicsContextFlags);
-                // _commonContext.LoadAll();
-                _sharedContext.MakeCurrent(windowInfo);
-=======
-                NativeWindowSettings nws = NativeWindowSettings.Default;
-                nws.StartFocused = false;
-                nws.StartVisible = false;
-                nws.NumberOfSamples = 0;
-                nws.SharedContext = settings.SharedContext;
-                // If we ask GLFW for 1.0, we should get the highest level context available with full compat.
-                nws.APIVersion = new Version(settings.MajorVersion, settings.MinorVersion);
-                nws.Flags = ContextFlags.Offscreen | settings.ContextFlags;
-                // We have to ask for any compat in this case.
-                nws.Profile = settings.Profile;
-                nws.WindowBorder = WindowBorder.Hidden;
-                nws.WindowState = WindowState.Minimized;
-                GlfwWindow = new NativeWindow(nws);
-                GraphicsContext = GlfwWindow.Context;
-                GraphicsContext.MakeCurrent();
-
-                IBindingsContext provider = settings.BindingsContext ?? new GLFWBindingsContext();
-                Wgl.LoadBindings(provider);
-
-#if DEBUG
-                GL.DebugMessageCallback(DebugProcCallback, IntPtr.Zero);
-                GL.Enable(EnableCap.DebugOutput);
-                GL.Enable(EnableCap.DebugOutputSynchronous);
-#endif
-            }
-
-            GLDeviceHandle = Wgl.DXOpenDeviceNV(dxDevice.Handle);
-            if (GLDeviceHandle == IntPtr.Zero)
-            {
-                throw new Win32Exception(DXInterop.GetLastError());
-            }
-        }
-        */
 
         ~DxGlContext()
         {

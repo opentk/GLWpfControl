@@ -19,11 +19,12 @@ requireLicenseAcceptance
     false
 copyright
     Copyright (c) 2020 Team OpenTK.
-dependencies
-    OpenTK ~> 3.3.0
     
 include-pdbs true
 
 files
     bin\Release\net452\net452\GLWpfControl.dll ==> lib\net452
     bin\Release\net452\net452\GLWpfControl.pdb ==> lib\net452
+    
+dependencies
+    OpenTK ~> 3.3.0
