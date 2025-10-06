@@ -41,7 +41,7 @@ As controls can be layered, nested and structured over your 3D view.
             // [...]
             var settings = new GLWpfControlSettings
             {
-                MajorVersion = 3,
+                MajorVersion = 4,
                 MinorVersion = 6
             };
             OpenTkControl.Start(settings);
