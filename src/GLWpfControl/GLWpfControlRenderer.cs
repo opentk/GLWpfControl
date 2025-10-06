@@ -32,8 +32,8 @@ namespace OpenTK.Wpf
         /// <summary>The height of this buffer in pixels.</summary>
         public int FramebufferHeight { get; private set; }
 
-        /// <summary>The DirectX multisample type.</summary>
-        public MultisampleType MultisampleType { get; private set; }
+        /// <summary>The number of Framebuffer MSAA samples.</summary>
+        public int Samples { get; private set; }
 
         /// <summary>The OpenGL Framebuffer width</summary>
         public int Width => D3dImage != null ? FramebufferWidth : 0;
@@ -46,22 +46,21 @@ namespace OpenTK.Wpf
         public D3DImage? D3dImage { get; private set; }
 
         public DXInterop.IDirect3DSurface9 DxColorRenderTarget { get; private set; }
-        public DXInterop.IDirect3DSurface9 DxDepthStencilRenderTarget { get; private set; }
 
         public IntPtr DxInteropColorRenderTargetRegisteredHandle { get; private set; }
-        public IntPtr DxInteropDepthStencilRenderTargetRegisteredHandle { get; private set; }
+
+        private int GLSharedFramebufferHandle { get; set; }
+        private int GLSharedColorTextureHandle { get; set; }
 
         /// <summary>The OpenGL framebuffer handle.</summary>
         public int GLFramebufferHandle { get; private set; }
-        private int GLSharedColorRenderbufferHandle { get; set; }
-        private int GLSharedDepthRenderRenderbufferHandle { get; set; }
+        private int GLColorTextureHandle { get; set; }
+        private int GLDepthRenderRenderbufferHandle { get; set; }
 
         public TranslateTransform TranslateTransform { get; private set; }
         public ScaleTransform FlipYTransform { get; private set; }
 
         private TimeSpan _lastFrameStamp;
-
-        public readonly bool SupportsMSAA;
 
         public GLWpfControlRenderer(GLWpfControlSettings settings)
         {
@@ -69,67 +68,14 @@ namespace OpenTK.Wpf
             // Placeholder transforms.
             TranslateTransform = new TranslateTransform(0, 0);
             FlipYTransform = new ScaleTransform(1, 1);
-
-            SupportsMSAA = SupportsMSAATest();
         }
 
-        public bool SupportsMSAATest()
-        {
-            // A test to see whether we can create multisample render targets without
-            // getting an exception...
-            try
-            {
-                IntPtr dxColorRenderTargetShareHandle = IntPtr.Zero;
-                _context.DxDevice.CreateRenderTarget(
-                128,
-                128,
-                Format.X8R8G8B8,
-                MultisampleType.D3DMULTISAMPLE_2_SAMPLES,
-                0,
-                false,
-                out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
-                ref dxColorRenderTargetShareHandle);
-
-                IntPtr dxDepthStencilRenderTargetShareHandle = IntPtr.Zero;
-                _context.DxDevice.CreateDepthStencilSurface(
-                    FramebufferWidth,
-                    FramebufferHeight,
-                    Format.D24S8,
-                    MultisampleType.D3DMULTISAMPLE_2_SAMPLES,
-                    0,
-                    false,
-                    out DXInterop.IDirect3DSurface9 dxDepthStencilRenderTarget,
-                    ref dxDepthStencilRenderTargetShareHandle);
-                DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
-
-                dxColorRenderTarget.Release();
-                dxDepthStencilRenderTarget.Release();
-
-                return true;
-            }
-            catch(COMException)
-            {
-                Trace.TraceWarning("GLWpfControl was unable to create an MSAA framebuffer on this computer.");
-                return false;
-            }
-        }
-
-        public void ReallocateFramebufferIfNeeded(double width, double height, double dpiScaleX, double dpiScaleY, Format format, MultisampleType msaaType)
+        public void ReallocateFramebufferIfNeeded(double width, double height, double dpiScaleX, double dpiScaleY, Format format, int samples)
         {
             int newWidth = (int)Math.Ceiling(width * dpiScaleX);
             int newHeight = (int)Math.Ceiling(height * dpiScaleY);
 
-            // Disable MSAA if we've determined we don't support it.
-            // It's better to create a normal backbuffer instead of crashing.
-            if (SupportsMSAA == false)
-            {
-                msaaType = MultisampleType.D3DMULTISAMPLE_NONE;
-            }
-
-            // FIXME: It seems we can't use this function to detect if MSAA will work with NV_DX_interop or not...
-            int result = _context.DxContext.CheckDeviceMultiSampleType(0, DeviceType.HAL, format, true, msaaType, out uint qualityLevels);
-
-            if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || MultisampleType != msaaType)
+            if (D3dImage == null || FramebufferWidth != newWidth || FramebufferHeight != newHeight || Samples != samples)
             {
                 ReleaseFramebufferResources();
 
@@ -137,14 +83,14 @@ namespace OpenTK.Wpf
                 {
                     FramebufferWidth = newWidth;
                     FramebufferHeight = newHeight;
-                    MultisampleType = msaaType;
+                    Samples = samples;
 
                     IntPtr dxColorRenderTargetShareHandle = IntPtr.Zero;
                     _context.DxDevice.CreateRenderTarget(
                         FramebufferWidth,
                         FramebufferHeight,
                         format,
-                        msaaType,
+                        MultisampleType.D3DMULTISAMPLE_NONE,
                         0,
                         false,
                         out DXInterop.IDirect3DSurface9 dxColorRenderTarget,
@@ -158,95 +104,118 @@ namespace OpenTK.Wpf
                         Debug.WriteLine("Failed to set resource share handle for color render target.");
                     }
 
-                    IntPtr dxDepthStencilRenderTargetShareHandle = IntPtr.Zero;
-                    _context.DxDevice.CreateDepthStencilSurface(
-                        FramebufferWidth,
-                        FramebufferHeight,
-                        Format.D24S8,
-                        msaaType,
-                        0,
-                        false,
-                        out DXInterop.IDirect3DSurface9 dxDepthStencilRenderTarget,
-                        ref dxDepthStencilRenderTargetShareHandle);
-                    DxDepthStencilRenderTarget = dxDepthStencilRenderTarget;
-
-                    success = Wgl.DXSetResourceShareHandleNV(dxDepthStencilRenderTarget.Handle, dxDepthStencilRenderTargetShareHandle);
-                    if (success == false)
-                    {
-                        Debug.WriteLine("Failed to set resource share handle for depth stencil render target.");
-                    }
-
 #if DEBUG
                     {
                         DxColorRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
 
                         Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
                     }
-
-                    {
-                        DxDepthStencilRenderTarget.GetDesc(out DXInterop.D3DSURFACE_DESC desc);
-
-                        Debug.WriteLine($"Render target desc: {desc.Format}, {desc.Type}, {desc.Usage}, {desc.Pool}, {desc.MultiSampleType}, {desc.MultiSampleQuality}, {desc.Width}, {desc.Height}");
-                    }
 #endif
 
-                    GLFramebufferHandle = GL.GenFramebuffer();
+                    int prevFramebuffer = GL.GetInteger(GetPName.FramebufferBinding);
+                    int prevRenderbuffer = GL.GetInteger(GetPName.RenderbufferBinding);
 
-                    TextureTarget colorTextureTarget = msaaType == MultisampleType.D3DMULTISAMPLE_NONE ? TextureTarget.Texture2D : TextureTarget.Texture2DMultisample;
+                    GLSharedFramebufferHandle = GL.GenFramebuffer();
 
-                    GLSharedColorRenderbufferHandle = GL.GenRenderbuffer();
+                    GLSharedColorTextureHandle = GL.GenTexture();
                     DxInteropColorRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
                         _context.GLDeviceHandle,
                         DxColorRenderTarget.Handle,
-                        (uint)GLSharedColorRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
+                        (uint)GLSharedColorTextureHandle,
+                        (uint)TextureTarget.Texture2D,
                         WGL_NV_DX_interop.AccessReadWrite);
                     if (DxInteropColorRenderTargetRegisteredHandle == IntPtr.Zero)
                     {
                         Debug.WriteLine($"Could not register color render target. 0x{DXInterop.GetLastError():X8}");
                     }
 
-                    GLSharedDepthRenderRenderbufferHandle = GL.GenRenderbuffer();
-                    DxInteropDepthStencilRenderTargetRegisteredHandle = Wgl.DXRegisterObjectNV(
-                        _context.GLDeviceHandle,
-                        DxDepthStencilRenderTarget.Handle,
-                        (uint)GLSharedDepthRenderRenderbufferHandle,
-                        (uint)RenderbufferTarget.Renderbuffer,
-                        WGL_NV_DX_interop.AccessReadWrite);
-                    if (DxInteropDepthStencilRenderTargetRegisteredHandle == IntPtr.Zero)
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLSharedFramebufferHandle);
+                    GL.FramebufferTexture2D(
+                        FramebufferTarget.Framebuffer, 
+                        FramebufferAttachment.ColorAttachment0, 
+                        TextureTarget.Texture2D,
+                        GLSharedColorTextureHandle,
+                        0);
+
+                    FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
+                    if (status != FramebufferErrorCode.FramebufferComplete)
                     {
-                        Debug.WriteLine($"Could not register depth stencil render target. 0x{DXInterop.GetLastError():X8}");
+                        Debug.WriteLine($"Shared framebuffer is not complete: {status}");
+                    }
+
+                    GLFramebufferHandle = GL.GenFramebuffer();
+
+                    GLColorTextureHandle =  GL.GenTexture();
+                    if (Samples > 1)
+                    {
+                        int prevT2dms = GL.GetInteger(GetPName.TextureBinding2DMultisample);
+                        GL.BindTexture(TextureTarget.Texture2DMultisample, GLColorTextureHandle);
+                        GL.TexImage2DMultisample(
+                            TextureTargetMultisample.Texture2DMultisample,
+                            Samples,
+                            PixelInternalFormat.Rgba8, 
+                            FramebufferWidth,
+                            FramebufferHeight,
+                            true);
+                        GL.BindTexture(TextureTarget.Texture2DMultisample, prevT2dms);
+                    }
+                    else
+                    {
+                        // We don't need this renderbuffer for non MSAA rendering.
+                        // - Noggin_bops 2025-07-03
+                        // GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Rgba8, FramebufferWidth, FramebufferHeight);
+                    }
+
+                    GLDepthRenderRenderbufferHandle = GL.GenRenderbuffer();
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, GLDepthRenderRenderbufferHandle);
+                    if (Samples > 1)
+                    {
+                        GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Samples, RenderbufferStorage.Depth24Stencil8, FramebufferWidth, FramebufferHeight);
+                    }
+                    else
+                    {
+                        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, FramebufferWidth, FramebufferHeight);
                     }
 
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
 
-                    GL.FramebufferRenderbuffer(
-                        FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.ColorAttachment0,
-                        RenderbufferTarget.Renderbuffer,
-                        GLSharedColorRenderbufferHandle);
+                    if (Samples > 1)
+                    {
+                        GL.FramebufferTexture2D(
+                            FramebufferTarget.Framebuffer,
+                            FramebufferAttachment.ColorAttachment0,
+                            TextureTarget.Texture2DMultisample,
+                            GLColorTextureHandle,
+                            0);
+                    }
+                    else
+                    {
+                        // If we are not doing MSAA we use the shared renderbuffer directly.
+                        // - Noggin_bops 2025-07-03
+                        GL.FramebufferTexture2D(
+                            FramebufferTarget.Framebuffer,
+                            FramebufferAttachment.ColorAttachment0,
+                            TextureTarget.Texture2D,
+                            GLSharedColorTextureHandle,
+                            0);
+                    }
 
-                    // FIXME: If we have a combined format, maybe set both at the same time?
+                    // FIXME: What if we don't have a combined format?
                     GL.FramebufferRenderbuffer(
                         FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.DepthAttachment,
+                        FramebufferAttachment.DepthStencilAttachment,
                         RenderbufferTarget.Renderbuffer,
-                        GLSharedDepthRenderRenderbufferHandle);
-
-                    GL.FramebufferRenderbuffer(
-                        FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.StencilAttachment,
-                        RenderbufferTarget.Renderbuffer,
-                        GLSharedDepthRenderRenderbufferHandle);
+                        GLDepthRenderRenderbufferHandle);
 
                     // FIXME: This will report unsupported but it will not do that in Render()...?
-                    FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
+                    status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
                     if (status != FramebufferErrorCode.FramebufferComplete)
                     {
                         Debug.WriteLine($"Framebuffer is not complete: {status}");
                     }
 
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, prevRenderbuffer);
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, prevFramebuffer);
 
                     D3dImage = new D3DImage(96.0 * dpiScaleX, 96.0 * dpiScaleY);
 
@@ -266,13 +235,17 @@ namespace OpenTK.Wpf
             if (D3dImage != null)
             {
                 Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropColorRenderTargetRegisteredHandle);
-                Wgl.DXUnregisterObjectNV(_context.GLDeviceHandle, DxInteropDepthStencilRenderTargetRegisteredHandle);
+
                 DxColorRenderTarget.Release();
-                DxDepthStencilRenderTarget.Release();
+
+                GL.DeleteFramebuffer(GLSharedFramebufferHandle);
+                GL.DeleteTexture(GLSharedColorTextureHandle);
+
                 GL.DeleteFramebuffer(GLFramebufferHandle);
-                GL.DeleteRenderbuffer(GLSharedDepthRenderRenderbufferHandle);
-                GL.DeleteRenderbuffer(GLSharedColorRenderbufferHandle);
+                GL.DeleteTexture(GLColorTextureHandle);
+                GL.DeleteRenderbuffer(GLDepthRenderRenderbufferHandle);
             }
+
             D3dImage = null;
         }
 
@@ -292,20 +265,29 @@ namespace OpenTK.Wpf
             // Lock the interop object, DX calls to the framebuffer are no longer valid
             D3dImage.Lock();
             D3dImage.SetBackBuffer(System.Windows.Interop.D3DResourceType.IDirect3DSurface9, DxColorRenderTarget.Handle, true);
-            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            bool success = Wgl.DXLockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropColorRenderTargetRegisteredHandle });
             if (success == false)
             {
                 Debug.WriteLine("Failed to lock objects!");
             }
+
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, GLFramebufferHandle);
             GL.Viewport(0, 0, FramebufferWidth, FramebufferHeight);
-
             GLRender?.Invoke(deltaT);
+            if (Samples > 1)
+            {
+                // If we have MSAA enabled we need to resolve from our OpenGL hosted multisampled renderbuffer
+                // to the DX shared non-MSAA texture.
+                // - Noggin_bops 2025-07-03
+                GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, GLSharedFramebufferHandle);
+                GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, GLFramebufferHandle);
+                GL.BlitFramebuffer(0, 0, FramebufferWidth, FramebufferHeight, 0, 0, FramebufferWidth, FramebufferHeight, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+            }
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GLAsyncRender?.Invoke();
 
             // Unlock the interop object, this acts as a synchronization point. OpenGL draws to the framebuffer are no longer valid.
-            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 2, new[] { DxInteropColorRenderTargetRegisteredHandle, DxInteropDepthStencilRenderTargetRegisteredHandle });
+            success = Wgl.DXUnlockObjectsNV(_context.GLDeviceHandle, 1, new[] { DxInteropColorRenderTargetRegisteredHandle });
             if (success == false)
             {
                 Debug.WriteLine("Failed to unlock objects!");
