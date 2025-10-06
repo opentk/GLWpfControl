@@ -8,6 +8,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <OutputPath>bin\$(Configuration)\$(TargetFramework)</OutputPath>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\GLWpfControl.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

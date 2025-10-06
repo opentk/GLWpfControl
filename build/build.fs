@@ -9,28 +9,13 @@ open Fake.Core
 open Fake.DotNet
 open Fake.DotNet.NuGet
 open Fake.IO
-
-#r "paket:
-storage: packages
-nuget Fake.IO.FileSystem
-nuget Fake.DotNet.MSBuild
-nuget Fake.DotNet.Testing.XUnit2
-nuget Fake.DotNet.AssemblyInfoFile
-nuget Fake.DotNet.NuGet prerelease
-nuget Fake.DotNet.Paket
-nuget Fake.DotNet.Cli
-nuget Fake.Core.Target
-nuget Fake.Net.Http
-nuget Fake.Api.Github
-nuget xunit.runner.console
-nuget NuGet.CommandLine
-nuget Fake.Core.ReleaseNotes //"
-
-#load "./.fake/build.fsx/intellisense.fsx"
-
-open Fake.IO;
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
+
+let execContext = Context.FakeExecutionContext.Create false "build.fsx" [ ]
+Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
+
+let rootDir = __SOURCE_DIRECTORY__ </> ".."
 
 // --------------------------------------------------------------------------------------
 // project-specific details below
@@ -109,7 +94,7 @@ let releaseProjects =
 let install =
     lazy
         (if (DotNet.getVersion id).StartsWith "6" then id
-         else DotNet.install (fun options -> { options with Version = DotNet.Version "6.0.200" }))
+         else DotNet.install (fun options -> { options with Channel = DotNet.CliChannel.Version 6 0 }))
 
 // Set general properties without arguments
 let inline dotnetSimple arg = DotNet.Options.lift install.Value arg
@@ -148,7 +133,7 @@ Target.create "AssemblyInfo" (fun _ ->
 // But keeps a subdirectory structure for each project in the
 // src folder to support multiple project outputs
 Target.create "CopyBinaries" (fun _ ->
-    activeProjects
+    releaseProjects
     |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) @@ "bin/Release", "bin" @@ (System.IO.Path.GetFileNameWithoutExtension f)))
     |>  Seq.iter (fun (fromDir, toDir) -> Shell.copyDir toDir fromDir (fun _ -> true))
 )
@@ -188,19 +173,17 @@ Target.create "CreateNuGetPackage" (fun _ ->
         let dir = Path.GetDirectoryName proj
         let templatePath = Path.Combine(dir, "paket")
         let oldTemplateContent = File.ReadAllText templatePath
-        let newTemplateContent = oldTemplateContent.Insert(
-                                    oldTemplateContent.Length, 
-                                    sprintf "\nversion \n\t%s\nauthors \n\t%s\nowners \n\t%s\n"
-                                        release.NugetVersion
-                                        (authors |> List.reduce (fun s a -> s + " " + a))
-                                        (authors |> List.reduce (fun s a -> s + " " + a))).Replace(
-                                            "#VERSION#", release.NugetVersion)
+        let newTemplateContent = oldTemplateContent.Insert(oldTemplateContent.Length,  sprintf "\nversion \n\t%s\nauthors \n\t%s\nowners \n\t%s\n"
+                release.NugetVersion
+                (authors |> List.reduce (fun s a -> s + " " + a))
+                (authors |> List.reduce (fun s a -> s + " " + a))).Replace("#VERSION#", release.NugetVersion)
         File.WriteAllText(templatePath+".template", newTemplateContent);
 
         Trace.logf "Packing into folder: %s\n" (Path.GetFullPath(nugetDir))
         
         let setParams (p:Paket.PaketPackParams) = 
             { p with
+                ToolType = ToolType.CreateLocalTool()
                 ReleaseNotes = notes
                 OutputPath = Path.GetFullPath(nugetDir)
                 WorkingDir = dir
@@ -228,9 +211,15 @@ Target.create "ReleaseOnGitHub" (fun _ ->
 
     let files = !!"bin/*" |> Seq.toList
 
+    let setParams (p:GitHub.CreateReleaseParams) =
+        { p with
+            Body = String.Join(Environment.NewLine, release.Notes)
+            Prerelease = (release.SemVer.PreRelease <> None)
+            TargetCommitish = Fake.Tools.Git.Information.getBranchName "."
+        }
+
     GitHub.createClientWithToken token
-    |> GitHub.draftNewRelease gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
-    //|> GitHub.uploadFiles files
+    |> GitHub.createRelease gitOwner gitName release.NugetVersion setParams
     |> GitHub.publishDraft
     |> Async.RunSynchronously)
 
@@ -254,9 +243,9 @@ Target.create "ReleaseOnAll" ignore
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
-open Fake.Core.TargetOperators
-
 Target.create "All" ignore
+
+open Fake.Core.TargetOperators
 
 "Clean"
   ==> "Restore"
@@ -264,11 +253,26 @@ Target.create "All" ignore
   ==> "Build"
   ==> "CopyBinaries"
   ==> "All"
+  |> ignore
 
 "All"
   ==> "CreateNuGetPackage"
   ==> "ReleaseOnNuGet"
   ==> "ReleaseOnGithub"
   ==> "ReleaseOnAll"
+  |> ignore
 
-Target.runOrDefault "All"
+// ---------
+// Startup
+// ---------
+
+[<EntryPoint>]
+let main args = 
+    try
+        match args with
+        | [| target |] -> Target.runOrDefault target
+        | _ -> Target.runOrDefault "All"
+        0
+    with e ->
+        printfn "%A" e
+        1
