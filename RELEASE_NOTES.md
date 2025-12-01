@@ -1,3 +1,11 @@
+## 4.3.4
+
+* Fixed issue where `Width` and `Height` properties would erraneously return 0 when the control was operating normally. (@parzivail)
+* Host depth+stencil buffer completely in OpenGL, avoiding a host of driver issues related to unecessarily sharing this buffer. (@NogginBops)
+* Updated build system to generate signed assemblies. (@NogginBops)
+* Fix the readme example using a non-existent OpenGL version. (@NogginBops)
+* Added more documentation and example usage for `GLWpfControlSettings.ContextToUse` property. (@NogginBops)
+
 ## 4.3.3
 
 * Fix crashes related to `Dispose` and unloading of the control in general. (@Krugpelke, @NogginBops, @timsol, @4nonym0us)
