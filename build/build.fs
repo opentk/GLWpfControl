@@ -93,8 +93,8 @@ let releaseProjects =
 
 let install =
     lazy
-        (if (DotNet.getVersion id).StartsWith "6" then id
-         else DotNet.install (fun options -> { options with Channel = DotNet.CliChannel.Version 6 0 }))
+        (if (DotNet.getVersion id).StartsWith "10" then id
+         else DotNet.install (fun options -> { options with Channel = DotNet.CliChannel.Version 10 0 }))
 
 // Set general properties without arguments
 let inline dotnetSimple arg = DotNet.Options.lift install.Value arg
