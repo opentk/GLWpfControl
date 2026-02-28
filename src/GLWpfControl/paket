@@ -1,10 +1,10 @@
 type project
 id OpenTK.GLWpfControl
 description
-    A native WPF control for OpenTK 4.8.0+
+    A native WPF control for OpenTK 4.9.4+
 
 dependencies
-    OpenTK ~> 4.0 >= 4.8.2
+    OpenTK ~> 4.0 >= 4.9.4
 
 files
     bin\Release\netcoreapp3.1\netcoreapp3.1\GLWpfControl.dll ==> lib\netcoreapp3.1
