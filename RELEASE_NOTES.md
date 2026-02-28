@@ -1,3 +1,8 @@
+## 4.3.5
+
+* Updated OpenTK dependency to 4.9.4. (@NogginBops)
+* Updated build system. (@NogginBops)
+
 ## 4.3.4
 
 * Fixed issue where `Width` and `Height` properties would erraneously return 0 when the control was operating normally. (@parzivail)
