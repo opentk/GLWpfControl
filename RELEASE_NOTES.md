@@ -1,3 +1,7 @@
+## 4.3.6
+
+* Fix opentk dependency used for the nuget package. (@NogginBops)
+
 ## 4.3.5
 
 * Updated OpenTK dependency to 4.9.4. (@NogginBops)
